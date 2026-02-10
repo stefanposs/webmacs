@@ -118,8 +118,11 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@v4
 
-      - name: Run pip-audit on backend
+      - name: Set up Python 3.14
+        run: uv python install 3.14
+
+      - name: Audit backend dependencies
         working-directory: backend
         run: |
-          uv pip install pip-audit
-          uv run pip-audit
+          uv sync --all-extras
+          uv tool run pip-audit
