@@ -1,0 +1,274 @@
+/* ================================================================
+   Shared styles for list / table views
+   ================================================================ */
+
+/* View header */
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--wm-text);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Data table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--wm-surface);
+  border-radius: var(--wm-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--wm-shadow);
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
+
+  th {
+    background: var(--wm-border-light);
+    font-weight: 600;
+    color: var(--wm-text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--wm-border-light);
+    transition: background var(--wm-transition);
+
+    &:last-child { border-bottom: none; }
+    &:hover { background: #f8fafc; }
+  }
+}
+
+/* Monospace cells */
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  color: var(--wm-text-secondary);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  background: #e2e8f0;
+  color: #475569;
+
+  /* Event types */
+  &--sensor { background: var(--wm-info-bg); color: #1d4ed8; }
+  &--actuator { background: var(--wm-success-bg); color: #065f46; }
+  &--range { background: var(--wm-warning-bg); color: #92400e; }
+  &--cmd_button { background: #fce7f3; color: #be185d; }
+  &--cmd_opened { background: #d1fae5; color: #065f46; }
+  &--cmd_closed { background: #fee2e2; color: #991b1b; }
+
+  /* Log levels */
+  &--info { background: var(--wm-info-bg); color: #1d4ed8; }
+  &--warning { background: var(--wm-warning-bg); color: #92400e; }
+  &--error { background: var(--wm-danger-bg); color: #991b1b; }
+  &--debug { background: #e2e8f0; color: #475569; }
+
+  /* State */
+  &--running { background: var(--wm-success); color: #fff; }
+  &--stopped { background: #94a3b8; color: #fff; }
+  &--admin { background: var(--wm-warning); color: #fff; }
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  background: var(--wm-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--wm-radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--wm-transition);
+  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.3);
+
+  &:hover {
+    background: var(--wm-primary-dark);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--wm-surface);
+  color: var(--wm-text-secondary);
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--wm-transition);
+
+  &:hover { background: var(--wm-border-light); border-color: #cbd5e1; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-danger {
+  @extend .btn-primary;
+  background: var(--wm-danger);
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+
+  &:hover {
+    background: #dc2626;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+  }
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--wm-text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: var(--wm-radius);
+  font-size: 1rem;
+  transition: all var(--wm-transition);
+
+  &:hover { color: var(--wm-danger); background: var(--wm-danger-bg); }
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--wm-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Empty state */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--wm-text-muted);
+  padding: 3rem 2rem;
+  font-size: 0.95rem;
+
+  i {
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+  }
+}
+
+/* Dialog overlay */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog {
+  background: var(--wm-surface);
+  padding: 2rem;
+  border-radius: var(--wm-radius-lg);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--wm-shadow-lg);
+  animation: slideUp 0.2s ease;
+
+  h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 0.35rem;
+    color: var(--wm-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--wm-border);
+    border-radius: var(--wm-radius);
+    font-size: 0.9rem;
+    transition: all var(--wm-transition);
+    background: var(--wm-surface);
+
+    &:focus {
+      outline: none;
+      border-color: var(--wm-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    }
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  color: var(--wm-text-secondary);
+  font-size: 0.875rem;
+}

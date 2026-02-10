@@ -1,0 +1,269 @@
+# WebMACS — Web-based Monitoring and Control System
+
+Enterprise-grade IoT platform for monitoring and controlling fluidized bed (*Wirbelschicht*) experiments.  
+Built with **FastAPI**, **Vue 3**, and **Python 3.14**.
+
+---
+
+## Architecture
+
+```
+├── backend/          # FastAPI REST API (Python 3.14)
+├── controller/       # Async IoT Controller (Python 3.14)
+├── frontend/         # Vue 3 + TypeScript SPA
+├── docker/           # Dockerfiles
+├── docker-compose.yml
+└── pyproject.toml    # UV workspace root
+```
+
+## Tech Stack
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Backend API** | FastAPI 0.115+ | REST API + OpenAPI docs |
+| **Database** | PostgreSQL 17 + SQLAlchemy 2.x async | Persistent storage with asyncpg |
+| **Migrations** | Alembic | Database schema migrations |
+| **Auth** | JWT (python-jose) + bcrypt | Authentication & Authorization |
+| **Frontend** | Vue 3 + TypeScript + Vite | Single Page Application |
+| **UI Framework** | PrimeVue 4 | Enterprise UI components |
+| **Charts** | Chart.js 4 + vue-chartjs | Real-time data visualization |
+| **State** | Pinia | Frontend state management |
+| **IoT Controller** | Python asyncio + httpx | Hardware communication |
+| **Hardware** | revpimodio2 | Revolution Pi GPIO |
+| **Containerization** | Docker + Docker Compose | Deployment |
+| **Package Manager** | UV (Astral) | Fast Python dependency management |
+| **Linting** | Ruff + mypy | Code quality |
+| **Testing** | pytest + pytest-asyncio + respx | Backend & controller tests |
+| **CI/CD** | GitHub Actions | Continuous Integration |
+
+## Quick Start
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/) (recommended)
+- [UV](https://docs.astral.sh/uv/) (for local Python development)
+- [Node.js 22+](https://nodejs.org/) (for local frontend development)
+
+### Development (Docker) — Recommended
+
+```bash
+# Copy and configure environment
+cp .env.example .env
+
+# Start all 4 services
+docker compose up --build -d
+
+# Services available at:
+# Frontend:   http://localhost        (port 80)
+# Backend:    http://localhost:8000
+# API Docs:   http://localhost:8000/docs
+# PostgreSQL: localhost:5432
+```
+
+Default admin credentials: `admin@webmacs.io` / `admin123`
+
+### Development (Local)
+
+```bash
+# Backend
+cd backend
+uv sync --all-extras
+uv run uvicorn webmacs_backend.main:app --reload --port 8000
+
+# Controller
+cd controller
+uv sync --all-extras
+uv run python -m webmacs_controller
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+### Running Tests
+
+```bash
+# All Python tests
+uv run pytest
+
+# Backend only
+uv run pytest backend/tests/ -v
+
+# Controller only
+uv run pytest controller/tests/ -v
+
+# Frontend
+cd frontend && npm run test
+
+# With coverage
+uv run pytest --cov --cov-report=html
+```
+
+### Linting & Formatting
+
+```bash
+uv run ruff check .
+uv run ruff format .
+uv run mypy backend/src controller/src
+```
+
+---
+
+## Project Structure
+
+### Backend (`backend/src/webmacs_backend/`)
+
+```
+├── main.py              # FastAPI app with lifespan (admin seeding)
+├── config.py            # Pydantic Settings (env vars)
+├── database.py          # Async engine + session (conditional commit)
+├── enums.py             # StrEnum — single source of truth for all enums
+├── models.py            # SQLAlchemy 2.0 ORM models
+├── schemas.py           # Pydantic v2 request/response schemas
+├── repository.py        # Generic CRUD (paginate, get_or_404, delete, update)
+├── security.py          # JWT create/decode, bcrypt hash/verify
+├── dependencies.py      # DI: CurrentUser, AdminUser, DbSession
+└── api/v1/
+    ├── auth.py          # POST /login, /logout — GET /me
+    ├── users.py         # CRUD /users (admin-only list & delete)
+    ├── events.py        # CRUD /events (sensor, actuator, range, …)
+    ├── experiments.py   # CRUD /experiments + POST /stop
+    ├── datapoints.py    # CRUD + POST /batch (bulk insert) + GET /latest
+    └── logging.py       # CRUD /logging (no delete)
+```
+
+**Key patterns:**
+
+- **`enums.py`** — Single `StrEnum` source eliminates triple-duplication across models/schemas/frontend.
+- **`repository.py`** — Generic CRUD functions using PEP 695 type parameters (`[M: Base, S: BaseModel]`),
+  removing ~200 lines of repeated boilerplate across routers.
+- **`database.py`** — Conditional commit: only commits when `session.new`, `dirty`, or `deleted` exist.
+- **`security.py`** — `create_access_token()`, `decode_access_token()`, `hash_password()`, `verify_password()`,
+  `TokenPayload` frozen dataclass, `InvalidTokenError`.
+
+### Controller (`controller/src/webmacs_controller/`)
+
+```
+├── __main__.py          # Entry point (asyncio.run)
+├── app.py               # Orchestrator (TaskGroup: sensors, actuators, rules)
+├── config.py            # Pydantic Settings
+├── schemas.py           # Pydantic v2 models
+└── services/
+    ├── api_client.py    # Resilient httpx client (retry + auto re-auth)
+    ├── sensor_manager.py
+    ├── actuator_manager.py
+    ├── rule_engine.py   # Valve interval cycling
+    └── hardware.py      # RevPi ABC + SimulatedHardware + DemoSeeder
+```
+
+**Key patterns:**
+
+- **`api_client.py`** — Central `_request()` method with exponential backoff (max 3 retries),
+  auto re-authentication on 401, handles `TimeoutException`, 5xx, `TransportError`.
+  Raises `APIClientError` when all retries exhausted.
+- **`hardware.py`** — Protocol-based abstraction: `HardwareInterface` with `RevPiHardware`
+  (production) and `SimulatedHardware` + `DemoSeeder` (development).
+
+### Frontend (`frontend/src/`)
+
+```
+├── main.ts
+├── App.vue              # Layout shell + page transitions
+├── router/index.ts      # Vue Router with auth guards
+├── services/api.ts      # Axios instance with error extraction
+├── types/index.ts       # TypeScript interfaces + enums
+├── stores/              # Pinia state management
+│   ├── auth.ts
+│   ├── events.ts
+│   ├── experiments.ts
+│   └── datapoints.ts
+├── composables/         # Reusable composition functions
+│   ├── useNotification.ts   # PrimeVue Toast wrapper
+│   ├── usePolling.ts        # Interval polling with auto cleanup
+│   └── useFormatters.ts     # Date, number, relative time formatters
+├── components/
+│   ├── AppSidebar.vue   # Gradient nav with sections + avatar
+│   └── AppTopbar.vue    # Live clock + environment badge
+├── views/
+│   ├── LoginView.vue    # Gradient login with icons
+│   ├── DashboardView.vue# Stats bar + sensor cards + live chart
+│   ├── EventsView.vue
+│   ├── ExperimentsView.vue
+│   ├── DatapointsView.vue
+│   ├── LogsView.vue
+│   └── UsersView.vue
+└── assets/styles/
+    ├── main.scss        # CSS custom properties design system
+    └── _views-shared.scss  # Shared view styles + animations
+```
+
+**Key patterns:**
+
+- **Composables** — `useNotification` (Toast), `usePolling` (auto-cleanup intervals),
+  `useFormatters` (date/number/relative time) keep views thin.
+- **Design tokens** — CSS custom properties (`--wm-primary`, `--wm-bg`, `--wm-surface`, etc.)
+  for consistent theming.
+- **Stores** — Events store re-fetches after mutations (no StatusResponse corruption).
+
+---
+
+## API Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/v1/auth/login` | — | Authenticate, returns JWT |
+| `POST` | `/api/v1/auth/logout` | Bearer | Blacklist current token |
+| `GET` | `/api/v1/auth/me` | Bearer | Current user profile |
+| `GET` | `/api/v1/events` | Bearer | List events (paginated) |
+| `POST` | `/api/v1/events` | Bearer | Create event |
+| `GET` | `/api/v1/events/{id}` | Bearer | Get event by public ID |
+| `PUT` | `/api/v1/events/{id}` | Bearer | Update event |
+| `DELETE` | `/api/v1/events/{id}` | Bearer | Delete event |
+| `GET` | `/api/v1/experiments` | Bearer | List experiments (paginated) |
+| `POST` | `/api/v1/experiments` | Bearer | Create / start experiment |
+| `POST` | `/api/v1/experiments/{id}/stop` | Bearer | Stop experiment |
+| `DELETE` | `/api/v1/experiments/{id}` | Bearer | Delete experiment |
+| `GET` | `/api/v1/datapoints` | Bearer | List datapoints (paginated) |
+| `POST` | `/api/v1/datapoints/batch` | Bearer | Bulk insert datapoints |
+| `GET` | `/api/v1/datapoints/latest` | Bearer | Latest value per event |
+| `DELETE` | `/api/v1/datapoints/{id}` | Bearer | Delete datapoint |
+| `GET` | `/api/v1/logging` | Bearer | List log entries (paginated) |
+| `POST` | `/api/v1/logging` | Bearer | Create log entry |
+| `PUT` | `/api/v1/logging/{id}` | Bearer | Update log entry |
+| `GET` | `/api/v1/users` | Admin | List users (paginated) |
+| `POST` | `/api/v1/users` | Bearer | Create user |
+| `PUT` | `/api/v1/users/{id}` | Bearer | Update user |
+| `DELETE` | `/api/v1/users/{id}` | Admin | Delete user |
+| `GET` | `/health` | — | Health check |
+
+Interactive docs: **http://localhost:8000/docs** (Swagger UI) or **/redoc** (ReDoc)
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+```env
+# Database
+DB_PASSWORD=webmacs_dev_password
+
+# Security — generate with: openssl rand -hex 32
+SECRET_KEY=change-me-in-production
+
+# Initial admin (seeded on first start)
+ADMIN_EMAIL=admin@webmacs.io
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+
+# Controller
+WEBMACS_ENV=development
+WEBMACS_POLL_INTERVAL=0.5
+```
+
+See [.env.example](.env.example) for the full list.
+
+## License
+
+MIT

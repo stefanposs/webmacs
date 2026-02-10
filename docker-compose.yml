@@ -1,0 +1,76 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: webmacs
+      POSTGRES_USER: webmacs
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-webmacs_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webmacs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://webmacs:${DB_PASSWORD:-webmacs_dev_password}@db:5432/webmacs
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      CORS_ORIGINS: '["http://localhost:5173", "http://localhost:80"]'
+      WEBMACS_ENV: development
+      INITIAL_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@webmacs.io}
+      INITIAL_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      INITIAL_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Vue 3 Frontend (dev mode)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  # IoT Controller
+  controller:
+    build:
+      context: .
+      dockerfile: docker/controller.Dockerfile
+    restart: unless-stopped
+    environment:
+      WEBMACS_ENV: development
+      WEBMACS_SERVER_URL: http://backend
+      WEBMACS_SERVER_PORT: "8000"
+      WEBMACS_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@webmacs.io}
+      WEBMACS_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      WEBMACS_POLL_INTERVAL: "0.5"
+      WEBMACS_TELEMETRY_MODE: ${TELEMETRY_MODE:-http}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,101 @@
+site_name: WebMACS Documentation
+site_description: >-
+  Web-based Monitoring and Control System for IoT experiments.
+  Real-time sensor data, WebSocket telemetry, and experiment management.
+
+repo_name: stefanposs/webmacs
+repo_url: https://github.com/stefanposs/webmacs
+
+docs_dir: assets/mkdocs
+site_dir: docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Configuration: getting-started/configuration.md
+  - User Guide:
+    - Overview: guide/index.md
+    - Dashboard: guide/dashboard.md
+    - Experiments: guide/experiments.md
+    - Events & Sensors: guide/events.md
+    - CSV Export: guide/csv-export.md
+  - Architecture:
+    - System Overview: architecture/overview.md
+    - Backend (FastAPI): architecture/backend.md
+    - Frontend (Vue 3): architecture/frontend.md
+    - Controller (IoT): architecture/controller.md
+    - WebSocket Design: architecture/websocket.md
+    - Database Abstraction: architecture/database.md
+  - API Reference:
+    - REST Endpoints: api/rest.md
+    - WebSocket API: api/websocket.md
+    - Schemas: api/schemas.md
+  - Development:
+    - Contributing: development/contributing.md
+    - Testing: development/testing.md
+    - Code Style: development/code-style.md
+  - Deployment:
+    - Docker: deployment/docker.md
+    - Production: deployment/production.md
+    - Environment Variables: deployment/env-vars.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true

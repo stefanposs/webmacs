@@ -1,0 +1,89 @@
+/* ================================================================
+   WebMACS v2 — Global Styles
+   Modern SaaS-grade IoT control dashboard
+   ================================================================ */
+
+/* CSS Custom Properties (Design Tokens) */
+:root {
+  /* Brand */
+  --wm-primary: #3b82f6;
+  --wm-primary-dark: #2563eb;
+  --wm-primary-light: #dbeafe;
+
+  /* Neutrals */
+  --wm-bg: #f1f5f9;
+  --wm-surface: #ffffff;
+  --wm-border: #e2e8f0;
+  --wm-border-light: #f1f5f9;
+  --wm-text: #1e293b;
+  --wm-text-secondary: #64748b;
+  --wm-text-muted: #94a3b8;
+
+  /* Status */
+  --wm-success: #10b981;
+  --wm-success-bg: #d1fae5;
+  --wm-warning: #f59e0b;
+  --wm-warning-bg: #fef3c7;
+  --wm-danger: #ef4444;
+  --wm-danger-bg: #fee2e2;
+  --wm-info: #3b82f6;
+  --wm-info-bg: #dbeafe;
+
+  /* Shadows */
+  --wm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --wm-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --wm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --wm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+  /* Spacing */
+  --wm-radius: 8px;
+  --wm-radius-lg: 12px;
+
+  /* Transitions */
+  --wm-transition: 0.2s ease;
+
+  /* Sidebar */
+  --wm-sidebar-width: 260px;
+}
+
+/* Reset & base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--wm-bg);
+  color: var(--wm-text);
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Utility */
+.text-center { text-align: center; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+
+/* Utility */

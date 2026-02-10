@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Python Backend & Controller
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [backend, controller]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: webmacs_test
+          POSTGRES_USER: webmacs
+          POSTGRES_PASSWORD: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python 3.14
+        run: uv python install 3.14
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.component }}
+        run: uv sync --all-extras
+
+      - name: Lint with ruff
+        working-directory: ${{ matrix.component }}
+        run: |
+          uv run ruff check src/
+          uv run ruff format --check src/
+
+      - name: Type check with mypy
+        working-directory: ${{ matrix.component }}
+        run: uv run mypy src/
+
+      - name: Run tests
+        working-directory: ${{ matrix.component }}
+        env:
+          DATABASE_URL: postgresql+asyncpg://webmacs:test@localhost:5432/webmacs_test
+          SECRET_KEY: test-secret-key
+        run: uv run pytest tests/ -v --cov --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          flags: ${{ matrix.component }}
+          files: ${{ matrix.component }}/coverage.xml
+
+  # Vue Frontend
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Type check
+        working-directory: frontend
+        run: npm run type-check
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Test
+        working-directory: frontend
+        run: npm run test -- --run
+
+  # Docker build test
+  docker:
+    runs-on: ubuntu-latest
+    needs: [python, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: docker compose build
+
+  # Security scan
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v4
+
+      - name: Run pip-audit on backend
+        working-directory: backend
+        run: |
+          uv pip install pip-audit
+          uv run pip-audit

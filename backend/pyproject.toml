@@ -1,0 +1,49 @@
+[project]
+name = "webmacs-backend"
+version = "2.0.0"
+description = "WebMACS Backend - FastAPI REST API for IoT experiment monitoring"
+requires-python = ">=3.14"
+authors = [{ name = "Stefan Poß" }]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "pydantic[email]>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "python-jose[cryptography]>=3.3.0",
+    "bcrypt>=4.2.0",
+    "python-multipart>=0.0.18",
+    "httpx>=0.28.0",
+    "structlog>=24.4.0",
+    "sentry-sdk[fastapi]>=2.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.28.0",
+    "aiosqlite>=0.20.0",
+    "factory-boy>=3.3.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pre-commit>=4.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with -m 'not slow')",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/webmacs_backend"]

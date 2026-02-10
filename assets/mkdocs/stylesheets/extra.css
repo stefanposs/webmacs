@@ -1,0 +1,39 @@
+/* WebMACS Documentation — Custom Styles */
+
+:root {
+  --md-primary-fg-color: #1a237e !important;
+  --md-primary-fg-color--light: #283593 !important;
+  --md-primary-fg-color--dark: #0d1642 !important;
+  --md-accent-fg-color: #00bcd4 !important;
+}
+
+.md-header {
+  background-color: #1a237e !important;
+}
+
+.md-tabs {
+  background-color: #1a237e !important;
+}
+
+/* Feature grid on landing page */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.grid-item {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  padding: 1.2rem;
+  transition: box-shadow 0.2s;
+}
+
+.grid-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.grid-item h3 {
+  margin-top: 0;
+}
