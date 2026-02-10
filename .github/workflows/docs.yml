@@ -1,52 +1,33 @@
+# GitHub Actions workflow for deploying mkdocs documentation to GitHub Pages
 name: docs
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'assets/mkdocs/**'
-      - 'mkdocs.yml'
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
+    branches:
+      - main
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
-      - name: Install MkDocs
-        run: pip install mkdocs mkdocs-material
+      - name: Install dependencies
+        run: |
+          pip install mkdocs mkdocs-material mkdocstrings[python]
 
       - name: Build documentation
         run: mkdocs build --config-file mkdocs.yml
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Commit and push docs
+        uses: EndBug/add-and-commit@v9
         with:
-          path: docs
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          add: 'docs'
+          message: 'Update built docs'
+          default_author: github_actions
