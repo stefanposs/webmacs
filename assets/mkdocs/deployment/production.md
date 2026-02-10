@@ -87,7 +87,7 @@ cat backup_20250115.sql | docker compose exec -T db psql -U webmacs webmacs
 Add a cron job:
 
 ```cron
-0 2 * * * cd /path/to/webmacs/v2 && docker compose exec -T db pg_dump -U webmacs webmacs | gzip > /backups/webmacs_$(date +\%Y\%m\%d).sql.gz
+0 2 * * * cd /path/to/webmacs && docker compose exec -T db pg_dump -U webmacs webmacs | gzip > /backups/webmacs_$(date +\%Y\%m\%d).sql.gz
 ```
 
 ---

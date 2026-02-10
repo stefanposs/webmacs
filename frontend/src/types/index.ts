@@ -13,7 +13,6 @@ export enum LoggingType {
   info = 'info',
   warning = 'warning',
   error = 'error',
-  debug = 'debug',
 }
 
 export interface StatusResponse {
@@ -60,6 +59,7 @@ export interface LogEntry {
   content: string
   logging_type: string | null
   status_type: string | null
+  created_on: string | null
   user_public_id: string
 }
 

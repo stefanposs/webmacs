@@ -17,7 +17,7 @@
       </thead>
       <tbody>
         <tr v-for="log in logs" :key="log.public_id">
-          <td class="mono">{{ formatRelativeTime(log.user_public_id) }}</td>
+          <td class="mono">{{ formatRelativeTime(log.created_on) }}</td>
           <td><span class="badge" :class="`badge--${log.logging_type}`">{{ log.logging_type }}</span></td>
           <td>{{ log.status_type ?? '—' }}</td>
           <td>{{ log.content }}</td>

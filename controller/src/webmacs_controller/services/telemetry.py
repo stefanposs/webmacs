@@ -7,9 +7,12 @@ or WebSocket, controlled by the WEBMACS_TELEMETRY_MODE environment variable.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 import structlog
+
+if TYPE_CHECKING:
+    from webmacs_controller.services.api_client import APIClient
 
 logger = structlog.get_logger()
 
@@ -26,7 +29,6 @@ class HttpTelemetry:
     """Send telemetry via HTTP POST to /datapoints/batch."""
 
     def __init__(self, api_client: Any) -> None:
-        from webmacs_controller.services.api_client import APIClient
         self._api_client: APIClient = api_client
 
     async def connect(self) -> None:
@@ -101,7 +103,7 @@ class WebSocketTelemetry:
                 self._ws = None
             logger.info("ws_telemetry_closed")
 
-    async def __aenter__(self) -> "WebSocketTelemetry":
+    async def __aenter__(self) -> WebSocketTelemetry:
         await self.connect()
         return self
 

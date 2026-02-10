@@ -1,11 +1,11 @@
 """Pydantic v2 schemas for controller data models."""
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     sensor = "sensor"
     actuator = "actuator"
     range = "range"

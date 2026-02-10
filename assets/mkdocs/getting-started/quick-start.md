@@ -7,7 +7,7 @@ This guide walks you through your first WebMACS session — from login to runnin
 ## 1. Start the Stack
 
 ```bash
-cd webmacs/v2
+cd webmacs
 docker compose up -d
 ```
 

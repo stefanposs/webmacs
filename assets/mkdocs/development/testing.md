@@ -9,19 +9,19 @@ WebMACS has three test suites: **backend** (Python), **controller** (Python), an
 ```
 ├── backend/tests/
 │   ├── conftest.py           # Fixtures (async session, test client, auth)
-│   ├── test_auth.py          # Login, JWT validation
-│   ├── test_users.py         # User CRUD
-│   ├── test_experiments.py   # Experiment lifecycle
-│   ├── test_events.py        # Events CRUD
-│   ├── test_datapoints.py    # Datapoints + bulk create
-│   └── test_logging.py       # Logs CRUD
+│   ├── test_auth.py          # Login, JWT validation, logout
+│   ├── test_datapoints.py    # Datapoints batch, latest, CRUD
+│   └── test_events.py        # Events CRUD + duplicates
 ├── controller/tests/
 │   ├── conftest.py           # Fixtures (mock API client)
 │   ├── test_api_client.py    # HTTP client + retry logic
-│   ├── test_sensor_manager.py # Sensor reading tests
-│   └── test_telemetry.py     # Transport protocol tests
-└── frontend/
-    └── (vitest tests via npm run test)
+│   ├── test_hardware.py      # Hardware abstraction tests
+│   └── test_sensor_manager.py # Sensor reading tests
+└── frontend/src/
+    ├── composables/__tests__/  # useFormatters, useNotification
+    ├── stores/__tests__/       # auth, events, experiments, datapoints
+    ├── services/__tests__/     # api, websocket
+    └── types/__tests__/        # TypeScript enum validation
 ```
 
 ---

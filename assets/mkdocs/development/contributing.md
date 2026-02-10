@@ -10,7 +10,7 @@ Contributions to WebMACS are welcome. Here is how to get involved.
 
 ```bash
 git clone https://github.com/stefanposs/webmacs.git
-cd webmacs/v2
+cd webmacs
 ```
 
 ### 2. Install dependencies

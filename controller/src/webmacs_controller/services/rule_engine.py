@@ -1,12 +1,15 @@
 """Rule engine - manages valve interval cycling logic."""
 
 import asyncio
+from typing import TYPE_CHECKING
 
 import structlog
 
-from webmacs_controller.schemas import DatapointSchema, EventSchema, EventType
-from webmacs_controller.services.api_client import APIClient
-from webmacs_controller.services.hardware import HardwareInterface
+from webmacs_controller.schemas import EventSchema, EventType
+
+if TYPE_CHECKING:
+    from webmacs_controller.services.api_client import APIClient
+    from webmacs_controller.services.hardware import HardwareInterface
 
 logger = structlog.get_logger()
 
@@ -58,6 +61,12 @@ class RuleEngine:
         if not all([self._start_button, self._opened_event, self._closed_event, self._rule_event]):
             return
 
+        # Narrowed after all() guard — these are guaranteed non-None
+        assert self._start_button is not None
+        assert self._opened_event is not None
+        assert self._closed_event is not None
+        assert self._rule_event is not None
+
         try:
             start_value = await self._get_latest_value(self._start_button.public_id)
             if start_value is None or int(float(start_value)) != 1:
@@ -68,10 +77,14 @@ class RuleEngine:
             logger.info("Rule cycle STOP")
 
         except Exception as e:
-            logger.error("RuleEngine run failed", error=str(e))
+            logger.exception("RuleEngine run failed", error=str(e))
 
     async def _execute_cycle(self) -> None:
         """Run one open/close cycle of the valve."""
+        assert self._opened_event is not None
+        assert self._closed_event is not None
+        assert self._start_button is not None
+
         open_duration = await self._get_latest_value(self._opened_event.public_id)
         close_duration = await self._get_latest_value(self._closed_event.public_id)
 
@@ -93,6 +106,7 @@ class RuleEngine:
 
     async def _post_rule_value(self, value: float) -> None:
         """Post the rule datapoint value to backend."""
+        assert self._rule_event is not None
         await self._post_event_value(self._rule_event.public_id, value)
 
     async def _post_event_value(self, event_public_id: str, value: float) -> None:

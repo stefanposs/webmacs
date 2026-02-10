@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 
 from webmacs_controller.schemas import EventSchema, EventType
 
 if TYPE_CHECKING:
+    from webmacs_controller.services.hardware import HardwareInterface
     from webmacs_controller.services.telemetry import TelemetryTransport
 
 logger = structlog.get_logger()
@@ -20,9 +21,9 @@ class SensorManager:
     def __init__(
         self,
         events: list[EventSchema],
-        hardware: object,
+        hardware: HardwareInterface,
         telemetry: TelemetryTransport,
-        revpi_mapping: dict,
+        revpi_mapping: dict[str, Any],
         is_production: bool = False,
     ) -> None:
         self._sensors = [e for e in events if e.type == EventType.sensor]
@@ -38,7 +39,7 @@ class SensorManager:
 
     async def run(self) -> None:
         """Read all sensor values from hardware and post to backend."""
-        datapoints: list[dict] = []
+        datapoints: list[dict[str, Any]] = []
 
         for sensor in self._sensors:
             revpi_label = self._get_revpi_label(sensor.public_id)
@@ -55,9 +56,9 @@ class SensorManager:
 
     def _get_revpi_label(self, public_id: str) -> str | None:
         """Get hardware label for an event. Falls back to public_id in dev mode."""
-        mapping = self._revpi_mapping.get(public_id)
+        mapping: dict[str, Any] | None = self._revpi_mapping.get(public_id)
         if mapping and mapping.get("REVPI"):
-            return mapping["REVPI"]
+            return str(mapping["REVPI"])
         # Dev fallback: use public_id directly (SimulatedHardware registers by public_id)
         if not self._is_production:
             return public_id

@@ -152,14 +152,14 @@ class TestSingleDatapoint:
         """Create one datapoint, then retrieve it by public_id."""
         # Create
         create_resp = await client.post(
-            "/api/v1/datapoints/",
+            "/api/v1/datapoints",
             json={"value": 42.0, "event_public_id": sample_event.public_id},
             headers=auth_headers,
         )
         assert create_resp.status_code == 201
 
         # List to find the public_id (paginated response)
-        list_resp = await client.get("/api/v1/datapoints/", headers=auth_headers)
+        list_resp = await client.get("/api/v1/datapoints", headers=auth_headers)
         assert list_resp.status_code == 200
         dp_list = list_resp.json()["data"]
         assert len(dp_list) == 1
@@ -187,7 +187,7 @@ class TestSingleDatapoint:
     ) -> None:
         """Datapoint referencing a non-existent event → 404."""
         resp = await client.post(
-            "/api/v1/datapoints/",
+            "/api/v1/datapoints",
             json={"value": 1.0, "event_public_id": "no-such-event"},
             headers=auth_headers,
         )

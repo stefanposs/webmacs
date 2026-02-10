@@ -8,10 +8,12 @@ Manages two independent groups:
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from fastapi import WebSocket
+
+if TYPE_CHECKING:
+    from fastapi import WebSocket
 
 logger = structlog.get_logger()
 

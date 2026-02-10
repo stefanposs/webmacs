@@ -21,14 +21,12 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     admin: Mapped[bool] = mapped_column(Boolean, default=False)
-    registered_on: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    registered_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    events: Mapped[list["Event"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    experiments: Mapped[list["Experiment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    log_entries: Mapped[list["LogEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    events: Mapped[list[Event]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    experiments: Mapped[list[Experiment]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    log_entries: Mapped[list[LogEntry]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Event(Base):
@@ -46,8 +44,8 @@ class Event(Base):
     user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="events")
-    datapoints: Mapped[list["Datapoint"]] = relationship(back_populates="event", cascade="all, delete-orphan")
+    user: Mapped[User] = relationship(back_populates="events")
+    datapoints: Mapped[list[Datapoint]] = relationship(back_populates="event", cascade="all, delete-orphan")
 
 
 class Experiment(Base):
@@ -63,8 +61,8 @@ class Experiment(Base):
     user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="experiments")
-    datapoints: Mapped[list["Datapoint"]] = relationship(back_populates="experiment", cascade="all, delete-orphan")
+    user: Mapped[User] = relationship(back_populates="experiments")
+    datapoints: Mapped[list[Datapoint]] = relationship(back_populates="experiment", cascade="all, delete-orphan")
 
 
 class Datapoint(Base):
@@ -80,8 +78,8 @@ class Datapoint(Base):
     experiment_public_id: Mapped[str | None] = mapped_column(String, ForeignKey("experiments.public_id"), nullable=True)
 
     # Relationships
-    event: Mapped["Event"] = relationship(back_populates="datapoints")
-    experiment: Mapped["Experiment | None"] = relationship(back_populates="datapoints")
+    event: Mapped[Event] = relationship(back_populates="datapoints")
+    experiment: Mapped[Experiment | None] = relationship(back_populates="datapoints")
 
 
 class BlacklistToken(Base):
@@ -104,7 +102,8 @@ class LogEntry(Base):
     content: Mapped[str] = mapped_column(String(500), nullable=False)
     logging_type: Mapped[LoggingType | None] = mapped_column(Enum(LoggingType), nullable=True)
     status_type: Mapped[StatusType] = mapped_column(Enum(StatusType), default=StatusType.unread)
+    created_on: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
     user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="log_entries")
+    user: Mapped[User] = relationship(back_populates="log_entries")

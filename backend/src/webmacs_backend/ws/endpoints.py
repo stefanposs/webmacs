@@ -12,12 +12,11 @@ import uuid
 
 import structlog
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 
 from webmacs_backend.database import db_session
 from webmacs_backend.models import Datapoint, Experiment
 from webmacs_backend.ws.connection_manager import manager
-from sqlalchemy import select
 
 logger = structlog.get_logger()
 
@@ -49,9 +48,7 @@ async def controller_telemetry(ws: WebSocket) -> None:
             # Persist batch using standalone session (not FastAPI DI)
             async with db_session() as session:
                 # Find active experiment
-                result = await session.execute(
-                    select(Experiment.public_id).where(Experiment.stopped_on.is_(None))
-                )
+                result = await session.execute(select(Experiment.public_id).where(Experiment.stopped_on.is_(None)))
                 row = result.first()
                 exp_id = row[0] if row else None
 
@@ -86,7 +83,7 @@ async def controller_telemetry(ws: WebSocket) -> None:
     except WebSocketDisconnect:
         logger.info("controller_ws_disconnected")
     except Exception as exc:
-        logger.error("controller_ws_error", error=str(exc))
+        logger.exception("controller_ws_error", error=str(exc))
     finally:
         await manager.disconnect("controller", ws)
 
@@ -103,10 +100,12 @@ async def datapoints_stream(ws: WebSocket) -> None:
     await manager.connect("frontend", ws)
     try:
         # Send initial confirmation
-        await ws.send_json({
-            "type": "connected",
-            "message": "Subscribed to live datapoint stream.",
-        })
+        await ws.send_json(
+            {
+                "type": "connected",
+                "message": "Subscribed to live datapoint stream.",
+            }
+        )
 
         # Keep connection alive — wait for client messages (pings/close)
         while True:
@@ -118,6 +117,6 @@ async def datapoints_stream(ws: WebSocket) -> None:
     except WebSocketDisconnect:
         logger.info("frontend_ws_disconnected")
     except Exception as exc:
-        logger.error("frontend_ws_error", error=str(exc))
+        logger.exception("frontend_ws_error", error=str(exc))
     finally:
         await manager.disconnect("frontend", ws)

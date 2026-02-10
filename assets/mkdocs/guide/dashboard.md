@@ -2,6 +2,8 @@
 
 The Dashboard is the primary view for real-time sensor monitoring. It displays live datapoint values and updates automatically.
 
+![WebMACS Dashboard](../images/web_gui_dashboard-v2.png){ .screenshot }
+
 ---
 
 ## Real-Time Data

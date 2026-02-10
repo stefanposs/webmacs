@@ -11,7 +11,7 @@ export const useEventStore = defineStore('events', () => {
   async function fetchEvents(page = 1, pageSize = 50): Promise<void> {
     loading.value = true
     try {
-      const { data } = await api.get<PaginatedResponse<Event>>('/events/', {
+      const { data } = await api.get<PaginatedResponse<Event>>('/events', {
         params: { page, page_size: pageSize },
       })
       events.value = data.data
@@ -22,7 +22,7 @@ export const useEventStore = defineStore('events', () => {
   }
 
   async function createEvent(payload: Partial<Event>): Promise<void> {
-    await api.post('/events/', payload)
+    await api.post('/events', payload)
     await fetchEvents()
   }
 

@@ -15,7 +15,10 @@ router = APIRouter()
 
 @router.get("", response_model=PaginatedResponse[EventResponse])
 async def list_events(
-    db: DbSession, current_user: CurrentUser, page: int = 1, page_size: int = 25,
+    db: DbSession,
+    current_user: CurrentUser,
+    page: int = 1,
+    page_size: int = 25,
 ) -> PaginatedResponse[EventResponse]:
     return await paginate(db, Event, EventResponse, page=page, page_size=page_size)
 
@@ -26,15 +29,17 @@ async def create_event(data: EventCreate, db: DbSession, current_user: CurrentUs
     if result.scalar_one_or_none():
         raise ConflictError("Event")
 
-    db.add(Event(
-        public_id=str(uuid.uuid4()),
-        name=data.name,
-        min_value=data.min_value,
-        max_value=data.max_value,
-        unit=data.unit,
-        type=data.type,
-        user_public_id=current_user.public_id,
-    ))
+    db.add(
+        Event(
+            public_id=str(uuid.uuid4()),
+            name=data.name,
+            min_value=data.min_value,
+            max_value=data.max_value,
+            unit=data.unit,
+            type=data.type,
+            user_public_id=current_user.public_id,
+        )
+    )
     return StatusResponse(status="success", message="Event successfully created.")
 
 
@@ -46,7 +51,10 @@ async def get_event(public_id: str, db: DbSession, current_user: CurrentUser) ->
 
 @router.put("/{public_id}", response_model=StatusResponse)
 async def update_event(
-    public_id: str, data: EventUpdate, db: DbSession, current_user: CurrentUser,
+    public_id: str,
+    data: EventUpdate,
+    db: DbSession,
+    current_user: CurrentUser,
 ) -> StatusResponse:
     return await update_from_schema(db, Event, public_id, data, entity_name="Event")
 

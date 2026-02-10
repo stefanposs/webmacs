@@ -38,7 +38,7 @@ class APIClient:
         self._credentials: tuple[str, str] | None = None
         self._client = httpx.AsyncClient(base_url=base_url, timeout=timeout, follow_redirects=True)
 
-    async def __aenter__(self) -> "APIClient":
+    async def __aenter__(self) -> APIClient:
         return self
 
     async def __aexit__(self, *exc: object) -> None:

@@ -6,14 +6,17 @@ Not decorated with @runtime_checkable — we rely on mypy for static verificatio
 
 from __future__ import annotations
 
-import datetime
-from typing import Protocol, Sequence
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    import datetime
+    from collections.abc import Sequence
 
 
 class DatapointRecord:
     """Minimal data-transfer object for a datapoint row."""
 
-    __slots__ = ("public_id", "value", "timestamp", "event_public_id", "experiment_public_id")
+    __slots__ = ("event_public_id", "experiment_public_id", "public_id", "timestamp", "value")
 
     def __init__(
         self,
@@ -33,7 +36,7 @@ class DatapointRecord:
 class ExperimentRecord:
     """Minimal data-transfer object for an experiment row."""
 
-    __slots__ = ("public_id", "name", "started_on", "stopped_on", "user_public_id")
+    __slots__ = ("name", "public_id", "started_on", "stopped_on", "user_public_id")
 
     def __init__(
         self,
@@ -64,13 +67,15 @@ class DatapointRepository(Protocol):
 
     async def create_batch(
         self,
-        rows: list[dict],
+        rows: list[dict[str, Any]],
     ) -> int: ...
 
     async def get_latest_per_event(self) -> Sequence[DatapointRecord]: ...
 
     async def list_paginated(
-        self, page: int, page_size: int,
+        self,
+        page: int,
+        page_size: int,
     ) -> tuple[int, Sequence[DatapointRecord]]: ...
 
     async def get_by_public_id(self, public_id: str) -> DatapointRecord | None: ...
@@ -78,7 +83,8 @@ class DatapointRepository(Protocol):
     async def delete_by_public_id(self, public_id: str) -> bool: ...
 
     async def get_by_experiment(
-        self, experiment_public_id: str,
+        self,
+        experiment_public_id: str,
     ) -> Sequence[DatapointRecord]: ...
 
 
@@ -86,13 +92,18 @@ class ExperimentRepository(Protocol):
     """Protocol for experiment storage operations."""
 
     async def create(
-        self, public_id: str, name: str, user_public_id: str,
+        self,
+        public_id: str,
+        name: str,
+        user_public_id: str,
     ) -> None: ...
 
     async def get_by_public_id(self, public_id: str) -> ExperimentRecord | None: ...
 
     async def list_paginated(
-        self, page: int, page_size: int,
+        self,
+        page: int,
+        page_size: int,
     ) -> tuple[int, Sequence[ExperimentRecord]]: ...
 
     async def update(self, public_id: str, **fields: object) -> bool: ...

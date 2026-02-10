@@ -150,14 +150,22 @@ function isActive(publicId: string): boolean {
 
 async function toggleActuator(event: Event) {
   const current = isActive(event.public_id)
-  await datapointStore.createDatapoint({ event_public_id: event.public_id, value: current ? 0 : 1 })
-  await datapointStore.fetchLatest()
+  try {
+    await datapointStore.createDatapoint({ event_public_id: event.public_id, value: current ? 0 : 1 })
+    await datapointStore.fetchLatest()
+  } catch {
+    // best-effort, real-time update will catch up
+  }
 }
 
 async function onRangeChange(ev: globalThis.Event, event: Event) {
   const target = ev.target as HTMLInputElement
-  await datapointStore.createDatapoint({ event_public_id: event.public_id, value: parseFloat(target.value) })
-  await datapointStore.fetchLatest()
+  try {
+    await datapointStore.createDatapoint({ event_public_id: event.public_id, value: parseFloat(target.value) })
+    await datapointStore.fetchLatest()
+  } catch {
+    // best-effort
+  }
 }
 
 const CHART_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
@@ -211,7 +219,10 @@ function recordHistory() {
 // Record chart history whenever real-time data updates
 watch(realtimeDatapoints, recordHistory, { deep: true })
 
-onMounted(() => eventStore.fetchEvents())
+onMounted(async () => {
+  await eventStore.fetchEvents()
+  await datapointStore.fetchLatest()
+})
 </script>
 
 <style lang="scss" scoped>

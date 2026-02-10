@@ -4,6 +4,7 @@ import csv
 import datetime
 import io
 import uuid
+from collections.abc import Generator
 
 from fastapi import APIRouter, status
 from fastapi.responses import StreamingResponse
@@ -12,25 +13,36 @@ from sqlalchemy import select
 from webmacs_backend.dependencies import CurrentUser, DbSession
 from webmacs_backend.models import Datapoint, Event, Experiment
 from webmacs_backend.repository import delete_by_public_id, get_or_404, paginate, update_from_schema
-from webmacs_backend.schemas import ExperimentCreate, ExperimentResponse, ExperimentUpdate, PaginatedResponse, StatusResponse
+from webmacs_backend.schemas import (
+    ExperimentCreate,
+    ExperimentResponse,
+    ExperimentUpdate,
+    PaginatedResponse,
+    StatusResponse,
+)
 
 router = APIRouter()
 
 
 @router.get("", response_model=PaginatedResponse[ExperimentResponse])
 async def list_experiments(
-    db: DbSession, current_user: CurrentUser, page: int = 1, page_size: int = 25,
+    db: DbSession,
+    current_user: CurrentUser,
+    page: int = 1,
+    page_size: int = 25,
 ) -> PaginatedResponse[ExperimentResponse]:
     return await paginate(db, Experiment, ExperimentResponse, page=page, page_size=page_size)
 
 
 @router.post("", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
 async def create_experiment(data: ExperimentCreate, db: DbSession, current_user: CurrentUser) -> StatusResponse:
-    db.add(Experiment(
-        public_id=str(uuid.uuid4()),
-        name=data.name,
-        user_public_id=current_user.public_id,
-    ))
+    db.add(
+        Experiment(
+            public_id=str(uuid.uuid4()),
+            name=data.name,
+            user_public_id=current_user.public_id,
+        )
+    )
     return StatusResponse(status="success", message="Experiment successfully created.")
 
 
@@ -42,7 +54,10 @@ async def get_experiment(public_id: str, db: DbSession, current_user: CurrentUse
 
 @router.put("/{public_id}", response_model=StatusResponse)
 async def update_experiment(
-    public_id: str, data: ExperimentUpdate, db: DbSession, current_user: CurrentUser,
+    public_id: str,
+    data: ExperimentUpdate,
+    db: DbSession,
+    current_user: CurrentUser,
 ) -> StatusResponse:
     return await update_from_schema(db, Experiment, public_id, data, entity_name="Experiment")
 
@@ -67,7 +82,7 @@ async def export_experiment_csv(public_id: str, db: DbSession, current_user: Cur
     )
     rows = result.all()
 
-    def generate():
+    def generate() -> Generator[str]:
         buf = io.StringIO()
         writer = csv.writer(buf)
         writer.writerow(["timestamp", "event_name", "event_public_id", "value", "unit", "datapoint_public_id"])
@@ -76,14 +91,16 @@ async def export_experiment_csv(public_id: str, db: DbSession, current_user: Cur
         buf.truncate(0)
 
         for dp, event_name, unit in rows:
-            writer.writerow([
-                dp.timestamp.isoformat() if dp.timestamp else "",
-                event_name,
-                dp.event_public_id,
-                dp.value,
-                unit,
-                dp.public_id,
-            ])
+            writer.writerow(
+                [
+                    dp.timestamp.isoformat() if dp.timestamp else "",
+                    event_name,
+                    dp.event_public_id,
+                    dp.value,
+                    unit,
+                    dp.public_id,
+                ]
+            )
             yield buf.getvalue()
             buf.seek(0)
             buf.truncate(0)

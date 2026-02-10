@@ -27,9 +27,8 @@ export const useDatapointStore = defineStore('datapoints', () => {
     latestDatapoints.value = data
   }
 
-  async function createDatapoint(payload: { value: number; event_public_id: string }): Promise<Datapoint> {
-    const { data } = await api.post<Datapoint>('/datapoints', payload)
-    return data
+  async function createDatapoint(payload: { value: number; event_public_id: string }): Promise<void> {
+    await api.post('/datapoints', payload)
   }
 
   async function createBatch(items: { value: number; event_public_id: string }[]): Promise<void> {

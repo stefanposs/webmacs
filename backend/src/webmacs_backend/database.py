@@ -1,12 +1,15 @@
 """Database engine and session management."""
 
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from webmacs_backend.config import settings
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 engine = create_async_engine(
     settings.database_url,

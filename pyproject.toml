@@ -10,6 +10,21 @@ authors = [{ name = "Stefan Poß" }]
 [tool.uv.workspace]
 members = ["backend", "controller"]
 
+[tool.uv]
+override-dependencies = ["revpimodio2>=2.6.0"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.28.0",
+    "aiosqlite>=0.20.0",
+    "respx>=0.22.0",
+]
+
 [tool.ruff]
 target-version = "py314"
 line-length = 120
@@ -17,7 +32,29 @@ src = ["backend/src", "controller/src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN", "PIE", "PT", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "ERA", "PL", "TRY", "FLY", "PERF", "RUF"]
-ignore = ["S101", "TRY003", "PLR0913"]
+ignore = [
+    "S101",    # assert in tests
+    "S104",    # binding to 0.0.0.0 (Docker)
+    "S105",    # hardcoded password (defaults)
+    "S110",    # try-except-pass (best-effort logging)
+    "S311",    # random for simulation, not crypto
+    "TRY003",  # long exception messages
+    "TRY300",  # return in try block
+    "TRY400",  # structlog.error is fine
+    "PLR0913", # too many arguments
+    "PLR2004", # magic values in comparisons
+    "PLC0415", # import inside function (optional deps)
+    "ARG001",  # FastAPI DI requires "unused" params
+    "ARG002",  # hardware interface signatures
+    "B008",    # Depends() in defaults (FastAPI pattern)
+    "RUF001",  # ambiguous unicode (en-dash in strings)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"backend/src/webmacs_backend/api/**" = ["TC001", "TC003"]  # FastAPI needs DI type aliases at runtime
+"backend/src/webmacs_backend/models.py" = ["TC003"]  # SQLAlchemy needs datetime at runtime
+"backend/src/webmacs_backend/schemas.py" = ["TC003"]  # Pydantic needs datetime at runtime
+"controller/src/webmacs_controller/app.py" = ["TC003"]  # Callable/Coroutine used in runtime signatures
 
 [tool.ruff.lint.isort]
 known-first-party = ["webmacs_backend", "webmacs_controller", "webmacs_shared"]

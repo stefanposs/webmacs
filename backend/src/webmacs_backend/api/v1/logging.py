@@ -14,19 +14,24 @@ router = APIRouter()
 
 @router.get("", response_model=PaginatedResponse[LogEntryResponse])
 async def list_log_entries(
-    db: DbSession, current_user: CurrentUser, page: int = 1, page_size: int = 25,
+    db: DbSession,
+    current_user: CurrentUser,
+    page: int = 1,
+    page_size: int = 25,
 ) -> PaginatedResponse[LogEntryResponse]:
     return await paginate(db, LogEntry, LogEntryResponse, page=page, page_size=page_size)
 
 
 @router.post("", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
 async def create_log_entry(data: LogEntryCreate, db: DbSession, current_user: CurrentUser) -> StatusResponse:
-    db.add(LogEntry(
-        public_id=str(uuid.uuid4()),
-        content=data.content,
-        logging_type=data.logging_type,
-        user_public_id=current_user.public_id,
-    ))
+    db.add(
+        LogEntry(
+            public_id=str(uuid.uuid4()),
+            content=data.content,
+            logging_type=data.logging_type,
+            user_public_id=current_user.public_id,
+        )
+    )
     return StatusResponse(status="success", message="Log entry successfully created.")
 
 
@@ -38,6 +43,9 @@ async def get_log_entry(public_id: str, db: DbSession, current_user: CurrentUser
 
 @router.put("/{public_id}", response_model=StatusResponse)
 async def update_log_entry(
-    public_id: str, data: LogEntryUpdate, db: DbSession, current_user: CurrentUser,
+    public_id: str,
+    data: LogEntryUpdate,
+    db: DbSession,
+    current_user: CurrentUser,
 ) -> StatusResponse:
     return await update_from_schema(db, LogEntry, public_id, data, entity_name="LogEntry")

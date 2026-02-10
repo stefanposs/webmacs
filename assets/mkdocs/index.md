@@ -8,6 +8,8 @@ WebMACS provides real-time sensor monitoring, experiment management, and telemet
 
 ## Features
 
+![WebMACS Dashboard — Real-Time Monitoring](images/web_gui_dashboard-v2.png){ .screenshot }
+
 <div class="grid-container" markdown>
 
 <div class="grid-item" markdown>
@@ -49,7 +51,7 @@ Four-container stack (PostgreSQL, FastAPI, Vue/Nginx, Controller) — one comman
 ```bash
 # Clone the repository
 git clone https://github.com/stefanposs/webmacs.git
-cd webmacs/v2
+cd webmacs
 
 # Copy environment defaults
 cp .env.example .env

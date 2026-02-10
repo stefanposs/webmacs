@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from webmacs_backend.database import Base
 from webmacs_backend.schemas import PaginatedResponse, StatusResponse
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 # ─── Domain Errors ───────────────────────────────────────────────────────────
 
@@ -44,7 +47,7 @@ async def paginate[M: Base, S: BaseModel](
     *,
     page: int = 1,
     page_size: int = 25,
-    base_query: Select | None = None,
+    base_query: Select[Any] | None = None,
 ) -> PaginatedResponse[S]:
     """Generic paginated list query."""
     query = base_query if base_query is not None else select(model)
@@ -71,7 +74,7 @@ async def get_or_404[M: Base](
     entity_name: str = "Resource",
 ) -> M:
     """Fetch by public_id or raise 404."""
-    result = await db.execute(select(model).where(model.public_id == public_id))
+    result = await db.execute(select(model).where(model.public_id == public_id))  # type: ignore[attr-defined]
     entity = result.scalar_one_or_none()
     if not entity:
         raise NotFoundError(entity_name, public_id)

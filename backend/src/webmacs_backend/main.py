@@ -1,20 +1,23 @@
 """WebMACS Backend - FastAPI Application Factory."""
 
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from sqlalchemy import select
 
-from webmacs_backend.api.v1 import auth, datapoints, events, experiments, logging as logging_api, users
+from webmacs_backend.api.v1 import auth, datapoints, events, experiments, users
+from webmacs_backend.api.v1 import logging as logging_api
 from webmacs_backend.config import settings
 from webmacs_backend.database import async_session, engine, init_db
 from webmacs_backend.models import User
 from webmacs_backend.security import hash_password
 from webmacs_backend.ws import endpoints as ws_endpoints
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 logger = structlog.get_logger()
 

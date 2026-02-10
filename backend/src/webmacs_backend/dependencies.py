@@ -29,14 +29,17 @@ async def get_current_user(
     token = credentials.credentials
 
     # Check blacklist
-    result = await db.execute(select(BlacklistToken).where(BlacklistToken.token == token))
-    if result.scalar_one_or_none():
+    blacklist_result = await db.execute(select(BlacklistToken).where(BlacklistToken.token == token))
+    if blacklist_result.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked.")
 
     try:
         payload = decode_access_token(token)
     except InvalidTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token.",
+        ) from None
 
     result = await db.execute(select(User).where(User.id == payload.user_id))
     user = result.scalar_one_or_none()

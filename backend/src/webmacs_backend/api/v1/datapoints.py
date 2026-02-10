@@ -29,14 +29,19 @@ async def _active_experiment_id(db: DbSession) -> str | None:
 
 @router.get("", response_model=PaginatedResponse[DatapointResponse])
 async def list_datapoints(
-    db: DbSession, current_user: CurrentUser, page: int = 1, page_size: int = 25,
+    db: DbSession,
+    current_user: CurrentUser,
+    page: int = 1,
+    page_size: int = 25,
 ) -> PaginatedResponse[DatapointResponse]:
     total = (await db.execute(select(func.count(Datapoint.id)))).scalar_one()
     result = await db.execute(
         select(Datapoint).order_by(desc(Datapoint.timestamp)).offset((page - 1) * page_size).limit(page_size)
     )
     return PaginatedResponse(
-        page=page, page_size=page_size, total=total,
+        page=page,
+        page_size=page_size,
+        total=total,
         data=[DatapointResponse.model_validate(dp) for dp in result.scalars().all()],
     )
 
@@ -48,19 +53,23 @@ async def create_datapoint(data: DatapointCreate, db: DbSession, current_user: C
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found.")
 
     exp_id = await _active_experiment_id(db)
-    db.add(Datapoint(
-        public_id=str(uuid.uuid4()),
-        value=data.value,
-        timestamp=datetime.datetime.now(datetime.UTC),
-        event_public_id=data.event_public_id,
-        experiment_public_id=exp_id,
-    ))
+    db.add(
+        Datapoint(
+            public_id=str(uuid.uuid4()),
+            value=data.value,
+            timestamp=datetime.datetime.now(datetime.UTC),
+            event_public_id=data.event_public_id,
+            experiment_public_id=exp_id,
+        )
+    )
     return StatusResponse(status="success", message="Datapoint successfully created.")
 
 
 @router.post("/batch", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
 async def create_datapoints_batch(
-    data: DatapointBatchCreate, db: DbSession, current_user: CurrentUser,
+    data: DatapointBatchCreate,
+    db: DbSession,
+    current_user: CurrentUser,
 ) -> StatusResponse:
     exp_id = await _active_experiment_id(db)
     now = datetime.datetime.now(datetime.UTC)
@@ -75,23 +84,29 @@ async def create_datapoints_batch(
         }
         for dp in data.datapoints
     ]
-    await db.execute(insert(Datapoint), rows)
+    if rows:
+        await db.execute(insert(Datapoint), rows)
     return StatusResponse(status="success", message=f"{len(rows)} datapoints successfully created.")
 
 
 @router.get("/latest", response_model=list[DatapointResponse])
 async def get_latest_datapoints(db: DbSession, current_user: CurrentUser) -> list[DatapointResponse]:
-    subq = (
+    # Subquery: for each event, find the max id among the rows with the latest timestamp.
+    ts_subq = (
         select(Datapoint.event_public_id, func.max(Datapoint.timestamp).label("max_ts"))
         .group_by(Datapoint.event_public_id)
         .subquery()
     )
-    result = await db.execute(
-        select(Datapoint).join(
-            subq,
-            (Datapoint.event_public_id == subq.c.event_public_id) & (Datapoint.timestamp == subq.c.max_ts),
+    id_subq = (
+        select(func.max(Datapoint.id).label("max_id"))
+        .join(
+            ts_subq,
+            (Datapoint.event_public_id == ts_subq.c.event_public_id) & (Datapoint.timestamp == ts_subq.c.max_ts),
         )
+        .group_by(Datapoint.event_public_id)
+        .subquery()
     )
+    result = await db.execute(select(Datapoint).where(Datapoint.id.in_(select(id_subq.c.max_id))))
     return [DatapointResponse.model_validate(dp) for dp in result.scalars().all()]
 
 

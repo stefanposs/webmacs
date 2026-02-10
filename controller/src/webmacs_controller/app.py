@@ -2,15 +2,17 @@
 
 import asyncio
 import signal
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 import structlog
 
 from webmacs_controller.config import ControllerSettings
-from webmacs_controller.schemas import EventSchema, EventType
+from webmacs_controller.schemas import EventSchema
 from webmacs_controller.services.actuator_manager import ActuatorManager
 from webmacs_controller.services.api_client import APIClient
 from webmacs_controller.services.demo_seeder import DemoSeeder
-from webmacs_controller.services.hardware import HardwareInterface, MockHardware, RevPiHardware, SimulatedHardware
+from webmacs_controller.services.hardware import HardwareInterface, RevPiHardware, SimulatedHardware
 from webmacs_controller.services.rule_engine import RuleEngine
 from webmacs_controller.services.sensor_manager import SensorManager
 from webmacs_controller.services.telemetry import HttpTelemetry, WebSocketTelemetry
@@ -86,12 +88,17 @@ class Application:
 
             # 7. Create service instances
             sensor_mgr = SensorManager(
-                events, hardware, self._telemetry, revpi_mapping,
+                events,
+                hardware,
+                self._telemetry,
+                revpi_mapping,
                 is_production=self._settings.is_production,
             )
             actuator_mgr = ActuatorManager(events, hardware, self._api_client, revpi_mapping)
             rule_engine = RuleEngine(
-                events, hardware, self._api_client,
+                events,
+                hardware,
+                self._api_client,
                 rule_event_id=self._settings.rule_event_id,
             )
 
@@ -109,11 +116,17 @@ class Application:
             logger.info("Shutdown requested via keyboard")
         except* Exception as eg:
             for exc in eg.exceptions:
-                logger.error("Fatal error", error=str(exc), type=type(exc).__name__)
+                logger.exception("Fatal error", error=str(exc), type=type(exc).__name__)
         finally:
             await self._shutdown()
 
-    async def _loop(self, name: str, coro_fn, backoff_base: float = 1.0, max_backoff: float = 60.0) -> None:
+    async def _loop(
+        self,
+        name: str,
+        coro_fn: Callable[[], Coroutine[Any, Any, None]],
+        backoff_base: float = 1.0,
+        max_backoff: float = 60.0,
+    ) -> None:
         """Run a service coroutine in a loop with exponential backoff on errors."""
         consecutive_errors = 0
         while self._running:
@@ -122,7 +135,7 @@ class Application:
                 consecutive_errors = 0
             except Exception as e:
                 consecutive_errors += 1
-                wait = min(backoff_base * (2 ** consecutive_errors), max_backoff)
+                wait = min(backoff_base * (2**consecutive_errors), max_backoff)
                 logger.warning(
                     f"{name} loop error, backing off",
                     error=str(e),
@@ -136,6 +149,7 @@ class Application:
 
     async def _fetch_events(self) -> list[EventSchema]:
         """Fetch all events from the backend API."""
+        assert self._api_client is not None
         data = await self._api_client.get("/events")
         if isinstance(data, dict) and "data" in data:
             return [EventSchema(**e) for e in data["data"]]

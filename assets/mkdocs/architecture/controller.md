@@ -14,9 +14,13 @@ controller/src/webmacs_controller/
 ├── config.py            # pydantic-settings configuration
 ├── schemas.py           # Pydantic models for API payloads
 └── services/
-    ├── api_client.py    # HTTPX client with retry + auto-reauth
+    ├── api_client.py      # HTTPX client with retry + auto-reauth
+    ├── actuator_manager.py  # Actuator command handling
+    ├── demo_seeder.py     # Demo event seeding (dev mode)
+    ├── hardware.py        # HardwareInterface ABC + RevPi/Simulated impls
+    ├── rule_engine.py     # Valve cycling rule logic
     ├── sensor_manager.py  # Sensor reading abstraction
-    └── telemetry.py     # TelemetryTransport Protocol (HTTP / WebSocket)
+    └── telemetry.py       # TelemetryTransport Protocol (HTTP / WebSocket)
 ```
 
 ---

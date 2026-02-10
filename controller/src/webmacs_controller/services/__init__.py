@@ -8,8 +8,8 @@ from webmacs_controller.services.rule_engine import RuleEngine
 from webmacs_controller.services.sensor_manager import SensorManager
 
 __all__ = [
-    "ActuatorManager",
     "APIClient",
+    "ActuatorManager",
     "DemoSeeder",
     "HardwareInterface",
     "MockHardware",

@@ -15,7 +15,12 @@ router = APIRouter()
 
 
 @router.get("", response_model=PaginatedResponse[UserResponse])
-async def list_users(db: DbSession, current_user: AdminUser, page: int = 1, page_size: int = 25) -> PaginatedResponse[UserResponse]:
+async def list_users(
+    db: DbSession,
+    current_user: AdminUser,
+    page: int = 1,
+    page_size: int = 25,
+) -> PaginatedResponse[UserResponse]:
     return await paginate(db, User, UserResponse, page=page, page_size=page_size)
 
 
@@ -25,12 +30,14 @@ async def create_user(data: UserCreate, db: DbSession) -> StatusResponse:
     if result.scalar_one_or_none():
         raise ConflictError("User")
 
-    db.add(User(
-        public_id=str(uuid.uuid4()),
-        email=data.email,
-        username=data.username,
-        password_hash=hash_password(data.password),
-    ))
+    db.add(
+        User(
+            public_id=str(uuid.uuid4()),
+            email=data.email,
+            username=data.username,
+            password_hash=hash_password(data.password),
+        )
+    )
     return StatusResponse(status="success", message="User successfully created.")
 
 

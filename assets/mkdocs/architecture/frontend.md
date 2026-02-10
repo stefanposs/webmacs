@@ -15,8 +15,7 @@ frontend/src/
 │   ├── auth.ts              # JWT auth, login/logout
 │   ├── experiments.ts       # Experiment CRUD
 │   ├── events.ts            # Events CRUD
-│   ├── datapoints.ts        # Datapoints fetch
-│   └── logs.ts              # Log management
+│   └── datapoints.ts        # Datapoints fetch
 ├── views/
 │   ├── DashboardView.vue    # Real-time sensor data
 │   ├── ExperimentsView.vue  # Experiment management + CSV export
@@ -29,11 +28,15 @@ frontend/src/
 ├── composables/
 │   ├── useRealtimeDatapoints.ts   # WS-first + polling fallback
 │   ├── useNotification.ts         # Toast notification system
-│   └── useApi.ts                  # Axios wrapper with auth headers
+│   ├── useFormatters.ts           # Date, number, relative time formatting
+│   └── usePolling.ts              # Generic polling composable
 ├── services/
+│   ├── api.ts               # Axios wrapper with JWT interceptor
 │   └── websocket.ts         # Generic reconnecting WebSocket client
 ├── components/
-│   └── AppToast.vue          # Custom toast notifications
+│   ├── AppSidebar.vue        # Navigation sidebar
+│   ├── AppToast.vue          # Custom toast notifications
+│   └── AppTopbar.vue         # Top navigation bar
 ├── types/                    # TypeScript interfaces
 └── assets/                   # Styles, images
 ```

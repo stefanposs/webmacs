@@ -23,7 +23,7 @@ For local development without Docker you also need:
 
 ```bash
 git clone https://github.com/stefanposs/webmacs.git
-cd webmacs/v2
+cd webmacs
 ```
 
 ---

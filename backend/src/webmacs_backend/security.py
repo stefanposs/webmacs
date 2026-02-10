@@ -4,7 +4,7 @@ import datetime
 from dataclasses import dataclass
 
 import bcrypt
-from jose import JWTError, jwt
+from jose import JWTError, jwt  # type: ignore[import-untyped]
 
 from webmacs_backend.config import settings
 
@@ -39,7 +39,8 @@ def create_access_token(user_id: int) -> str:
     now = datetime.datetime.now(datetime.UTC)
     expire = now + datetime.timedelta(minutes=settings.access_token_expire_minutes)
     payload = {"sub": str(user_id), "exp": expire, "iat": now}
-    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+    encoded: str = jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+    return encoded
 
 
 def decode_access_token(token: str) -> TokenPayload:

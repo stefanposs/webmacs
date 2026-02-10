@@ -17,7 +17,7 @@
           <th>Unit</th>
           <th>Range</th>
           <th>Public ID</th>
-          <th style="width: 80px">Actions</th>
+          <th style="width: 110px">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -28,6 +28,9 @@
           <td>{{ event.min_value }} – {{ event.max_value }}</td>
           <td class="mono">{{ event.public_id.slice(0, 8) }}…</td>
           <td>
+            <button class="btn-icon" @click="openEdit(event)" title="Edit">
+              <i class="pi pi-pencil" />
+            </button>
             <button class="btn-icon" @click="confirmDelete(event)" title="Delete">
               <i class="pi pi-trash" />
             </button>
@@ -77,6 +80,43 @@
         </form>
       </div>
     </div>
+
+    <!-- Edit Dialog -->
+    <div v-if="showEditDialog" class="dialog-overlay" @click.self="showEditDialog = false">
+      <div class="dialog">
+        <h3>Edit Event</h3>
+        <form @submit.prevent="handleEdit">
+          <div class="form-group">
+            <label>Name</label>
+            <input v-model="editForm.name" required />
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select v-model="editForm.type" required>
+              <option v-for="t in eventTypes" :key="t" :value="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input v-model="editForm.unit" />
+          </div>
+          <div style="display: flex; gap: 0.75rem">
+            <div class="form-group" style="flex: 1">
+              <label>Min Value</label>
+              <input v-model.number="editForm.min_value" type="number" step="any" required />
+            </div>
+            <div class="form-group" style="flex: 1">
+              <label>Max Value</label>
+              <input v-model.number="editForm.max_value" type="number" step="any" required />
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-secondary" @click="showEditDialog = false">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -90,11 +130,21 @@ import type { Event } from '@/types'
 const eventStore = useEventStore()
 const { success, error } = useNotification()
 const showCreateDialog = ref(false)
+const showEditDialog = ref(false)
+const editingEvent = ref<Event | null>(null)
 const eventTypes = Object.values(EventType)
 
 const form = reactive({
   name: '',
   type: EventType.sensor,
+  unit: '',
+  min_value: 0,
+  max_value: 100,
+})
+
+const editForm = reactive({
+  name: '',
+  type: EventType.sensor as EventType,
   unit: '',
   min_value: 0,
   max_value: 100,
@@ -108,6 +158,30 @@ async function handleCreate() {
     Object.assign(form, { name: '', type: EventType.sensor, unit: '', min_value: 0, max_value: 100 })
   } catch (err: unknown) {
     error('Failed to create event', (err as Error).message)
+  }
+}
+
+function openEdit(event: Event) {
+  editingEvent.value = event
+  Object.assign(editForm, {
+    name: event.name,
+    type: event.type,
+    unit: event.unit,
+    min_value: event.min_value,
+    max_value: event.max_value,
+  })
+  showEditDialog.value = true
+}
+
+async function handleEdit() {
+  if (!editingEvent.value) return
+  try {
+    await eventStore.updateEvent(editingEvent.value.public_id, { ...editForm })
+    success('Event updated', `"${editForm.name}" was saved.`)
+    showEditDialog.value = false
+    editingEvent.value = null
+  } catch (err: unknown) {
+    error('Failed to update event', (err as Error).message)
   }
 }
 

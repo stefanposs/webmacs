@@ -6,8 +6,8 @@ from pydantic import BaseModel, EmailStr, Field
 
 from webmacs_backend.enums import EventType, LoggingType, StatusType
 
-
 # ─── Auth ────────────────────────────────────────────────────────────────────
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -28,6 +28,7 @@ class TokenData(BaseModel):
 
 
 # ─── User ────────────────────────────────────────────────────────────────────
+
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -52,6 +53,7 @@ class UserResponse(BaseModel):
 
 
 # ─── Event ───────────────────────────────────────────────────────────────────
+
 
 class EventCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
@@ -83,6 +85,7 @@ class EventResponse(BaseModel):
 
 # ─── Experiment ──────────────────────────────────────────────────────────────
 
+
 class ExperimentCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
 
@@ -102,6 +105,7 @@ class ExperimentResponse(BaseModel):
 
 
 # ─── Datapoint ───────────────────────────────────────────────────────────────
+
 
 class DatapointCreate(BaseModel):
     value: float
@@ -124,6 +128,7 @@ class DatapointResponse(BaseModel):
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 
+
 class LogEntryCreate(BaseModel):
     content: str = Field(min_length=1, max_length=500)
     logging_type: LoggingType = LoggingType.info
@@ -139,12 +144,14 @@ class LogEntryResponse(BaseModel):
     content: str
     logging_type: LoggingType | None = None
     status_type: StatusType | None = None
+    created_on: str | None = None
     user_public_id: str
 
     model_config = {"from_attributes": True}
 
 
 # ─── Pagination ──────────────────────────────────────────────────────────────
+
 
 class PaginatedResponse[T](BaseModel):
     page: int
@@ -154,6 +161,7 @@ class PaginatedResponse[T](BaseModel):
 
 
 # ─── Generic ─────────────────────────────────────────────────────────────────
+
 
 class StatusResponse(BaseModel):
     status: str

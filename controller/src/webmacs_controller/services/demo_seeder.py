@@ -1,13 +1,16 @@
 """Demo event seeder for development mode."""
 
+from typing import TYPE_CHECKING, Any
+
 import structlog
 
-from webmacs_controller.services.api_client import APIClient
+if TYPE_CHECKING:
+    from webmacs_controller.services.api_client import APIClient
 
 logger = structlog.get_logger()
 
 # Realistic demo events for a fluidized bed (Wirbelschicht) lab experiment
-DEMO_EVENTS: list[dict] = [
+DEMO_EVENTS: list[dict[str, Any]] = [
     {"name": "Temperature Reactor", "min_value": 20.0, "max_value": 500.0, "unit": "°C", "type": "sensor"},
     {"name": "Temperature Inlet", "min_value": 15.0, "max_value": 200.0, "unit": "°C", "type": "sensor"},
     {"name": "Temperature Outlet", "min_value": 15.0, "max_value": 300.0, "unit": "°C", "type": "sensor"},
@@ -34,10 +37,7 @@ class DemoSeeder:
         existing = await self._api_client.get("/events")
 
         # Handle paginated response
-        if isinstance(existing, dict):
-            items = existing.get("data", [])
-        else:
-            items = existing or []
+        items = existing.get("data", []) if isinstance(existing, dict) else existing or []
 
         if items:
             logger.info("Events already exist, skipping demo seed", count=len(items))

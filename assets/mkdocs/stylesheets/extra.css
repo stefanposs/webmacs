@@ -37,3 +37,12 @@
 .grid-item h3 {
   margin-top: 0;
 }
+
+/* Screenshot images */
+.screenshot {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  margin: 1.5rem 0;
+  max-width: 100%;
+}

@@ -4,9 +4,9 @@ import math
 import random
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, ClassVar
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import Any
 
 import structlog
 
@@ -33,13 +33,14 @@ class RevPiHardware(HardwareInterface):
     def __init__(self) -> None:
         try:
             import revpimodio2
+
             self._rpi = revpimodio2.RevPiModIO(autorefresh=True)
             logger.info("RevPi hardware initialized")
         except ImportError:
             logger.warning("revpimodio2 not installed, hardware interface unavailable")
             self._rpi = None
         except Exception as e:
-            logger.error("Failed to initialize RevPi hardware", error=str(e))
+            logger.exception("Failed to initialize RevPi hardware", error=str(e))
             self._rpi = None
 
     def read_value(self, label: str) -> float | None:
@@ -53,11 +54,11 @@ class RevPiHardware(HardwareInterface):
             case "volumeflow1":
                 return self._convert_volumeflow(raw)
             case "temp1" | "temp2" | "temp3":
-                return raw / 10.0
+                return float(raw) / 10.0
             case "pressure1" | "pressure2":
-                return raw / 1000.0
+                return float(raw) / 1000.0
             case "humidy1":
-                return raw / 100.0
+                return float(raw) / 100.0
             case _:
                 return float(raw)
 
@@ -79,7 +80,7 @@ class RevPiHardware(HardwareInterface):
     @staticmethod
     def _celsius_to_ma(celsius: float) -> int:
         """Convert temperature in Celsius to milliamps (4-20mA range)."""
-        max_temp, min_temp = 100.0, 0.0
+        max_temp, _min_temp = 100.0, 0.0
         max_ma, min_ma = 20000, 4000
         return int(((max_ma - min_ma) / max_temp) * celsius + min_ma)
 
@@ -114,7 +115,7 @@ class MockHardware(HardwareInterface):
 # ─── Signal Simulation ──────────────────────────────────────────────────────
 
 
-class SignalType(str, Enum):
+class SignalType(StrEnum):
     sine_wave = "sine_wave"
     random_walk = "random_walk"
     sawtooth = "sawtooth"
