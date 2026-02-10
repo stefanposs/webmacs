@@ -63,4 +63,4 @@ logs/
 *.sqlite3
 
 # MkDocs build output
-docs/
+docs/*
