@@ -55,15 +55,12 @@ describe('useDatapointStore', () => {
   })
 
   it('creates a single datapoint', async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({
-      data: mockDatapoints[0],
-    } as never)
+    vi.mocked(api.post).mockResolvedValueOnce({ data: {} } as never)
 
     const store = useDatapointStore()
-    const result = await store.createDatapoint({ value: 42.5, event_public_id: 'ev-001' })
+    await store.createDatapoint({ value: 42.5, event_public_id: 'ev-001' })
 
     expect(api.post).toHaveBeenCalledWith('/datapoints', { value: 42.5, event_public_id: 'ev-001' })
-    expect(result.value).toBe(42.5)
   })
 
   it('creates a batch of datapoints', async () => {

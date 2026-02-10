@@ -39,7 +39,7 @@ describe('useEventStore', () => {
     const store = useEventStore()
     await store.fetchEvents()
 
-    expect(api.get).toHaveBeenCalledWith('/events/', { params: { page: 1, page_size: 50 } })
+    expect(api.get).toHaveBeenCalledWith('/events', { params: { page: 1, page_size: 50 } })
     expect(store.events).toHaveLength(2)
     expect(store.total).toBe(2)
     expect(store.loading).toBe(false)
@@ -71,7 +71,7 @@ describe('useEventStore', () => {
     const store = useEventStore()
     await store.createEvent({ name: 'Temperature', type: 'sensor' as never, unit: '°C' })
 
-    expect(api.post).toHaveBeenCalledWith('/events/', expect.objectContaining({ name: 'Temperature' }))
+    expect(api.post).toHaveBeenCalledWith('/events', expect.objectContaining({ name: 'Temperature' }))
     expect(api.get).toHaveBeenCalled()
   })
 
