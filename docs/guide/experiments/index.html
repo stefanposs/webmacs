@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../dashboard/">
+        <link rel="prev" href="../events/">
       
       
-        <link rel="next" href="../events/">
+        <link rel="next" href="../datapoints/">
       
       
         
@@ -353,7 +353,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../deployment/docker/" class="md-tabs__link">
+        <a href="../../deployment/installation-guide/" class="md-tabs__link">
           
   
   
@@ -699,6 +699,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Events & Sensors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -773,6 +801,29 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-happens-during-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens During an Experiment?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#creating-an-experiment" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -782,46 +833,12 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#starting-stopping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Starting &amp; Stopping
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#viewing-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Viewing Results
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#api-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API Examples
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="API Examples">
-      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#create-start" class="md-nav__link">
+  <a href="#stopping-an-experiment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Create &amp; Start
+        Stopping an Experiment
       
     </span>
   </a>
@@ -829,10 +846,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stop" class="md-nav__link">
+  <a href="#downloading-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stop
+        Downloading Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting an Experiment
       
     </span>
   </a>
@@ -841,6 +869,100 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#experiment-table-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment Table Columns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create an Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-experiments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        List Experiments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop an Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download CSV
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete an Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
   
 </li>
       
@@ -871,14 +993,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/" class="md-nav__link">
+      <a href="../datapoints/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Events & Sensors
+    Datapoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Automation Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webhooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Webhooks
   
 
     
@@ -907,6 +1085,90 @@
     
   
     CSV Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ota/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OTA Updates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Users & Auth
   
 
     
@@ -1507,6 +1769,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../deployment/installation-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../deployment/docker/" class="md-nav__link">
         
   
@@ -1629,6 +1919,29 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-happens-during-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens During an Experiment?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#creating-an-experiment" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1638,46 +1951,12 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#starting-stopping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Starting &amp; Stopping
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#viewing-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Viewing Results
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#api-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API Examples
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="API Examples">
-      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#create-start" class="md-nav__link">
+  <a href="#stopping-an-experiment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Create &amp; Start
+        Stopping an Experiment
       
     </span>
   </a>
@@ -1685,10 +1964,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stop" class="md-nav__link">
+  <a href="#downloading-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stop
+        Downloading Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting an Experiment
       
     </span>
   </a>
@@ -1697,6 +1987,100 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#experiment-table-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment Table Columns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create an Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-experiments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        List Experiments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop an Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download CSV
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-an-experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete an Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
   
 </li>
       
@@ -1732,75 +2116,121 @@
 
 
 <h1 id="experiments">Experiments<a class="headerlink" href="#experiments" title="Permanent link">&para;</a></h1>
-<p>Experiments group datapoints in time. Every datapoint collected while an experiment is running is automatically linked to that experiment.</p>
+<p>Experiments let you group datapoints into time-bounded runs. While an experiment is active, every datapoint recorded by the system is automatically linked to it. When you stop the experiment, you can download all associated data as a CSV file.</p>
 <hr />
 <h2 id="lifecycle">Lifecycle<a class="headerlink" href="#lifecycle" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>stateDiagram-v2
-    [*] --&gt; Created: Create
-    Created --&gt; Running: Start
-    Running --&gt; Stopped: Stop
-    Stopped --&gt; [*]</code></pre>
+    [*] --&gt; Created: POST /experiments
+    Created --&gt; Running: Experiment starts immediately
+    Running --&gt; Stopped: PUT /experiments/{id}/stop
+    Stopped --&gt; [*]: Download CSV / Delete</code></pre>
+<div class="admonition info">
+<p class="admonition-title">One experiment at a time</p>
+<p>Only <strong>one experiment</strong> can be running at any time. Starting a new experiment requires stopping the current one first.</p>
+</div>
 <hr />
-<h2 id="creating-an-experiment">Creating an Experiment<a class="headerlink" href="#creating-an-experiment" title="Permanent link">&para;</a></h2>
+<h2 id="what-happens-during-an-experiment">What Happens During an Experiment?<a class="headerlink" href="#what-happens-during-an-experiment" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Create</strong> — you give the experiment a name. It starts running immediately (<code>started_on</code> is set automatically).</li>
+<li><strong>Data collection</strong> — every datapoint pushed by the controller is automatically tagged with the experiment's ID. You don't need to do anything.</li>
+<li><strong>Stop</strong> — you stop the experiment. <code>stopped_on</code> is recorded. No more datapoints are linked.</li>
+<li><strong>Export</strong> — download all linked datapoints as a <a href="../csv-export/">CSV file</a>.</li>
+</ol>
+<hr />
+<h2 id="using-the-ui">Using the UI<a class="headerlink" href="#using-the-ui" title="Permanent link">&para;</a></h2>
+<h3 id="creating-an-experiment">Creating an Experiment<a class="headerlink" href="#creating-an-experiment" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Navigate to <strong>Experiments</strong> in the sidebar</li>
 <li>Click <strong>New Experiment</strong></li>
-<li>Enter a descriptive name</li>
+<li>Enter a descriptive name (e.g. "Fluidised Bed Run 07 — 200°C")</li>
 <li>Click <strong>Create</strong></li>
 </ol>
-<p>The experiment is created but not yet started.</p>
+<p>The experiment starts running immediately. You will see it in the table with a green <strong>Running</strong> badge.</p>
+<h3 id="stopping-an-experiment">Stopping an Experiment<a class="headerlink" href="#stopping-an-experiment" title="Permanent link">&para;</a></h3>
+<p>Click the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 18H6V6h12z"/></svg></span> <strong>Stop</strong> button on a running experiment. The badge changes to <strong>Stopped</strong> and the stop timestamp is recorded.</p>
+<h3 id="downloading-data">Downloading Data<a class="headerlink" href="#downloading-data" title="Permanent link">&para;</a></h3>
+<p>Click the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 20h14v-2H5m14-9h-4V3H9v6H5l7 7z"/></svg></span> <strong>CSV</strong> button on a stopped experiment to download all datapoints. See <a href="../csv-export/">CSV Export</a> for format details.</p>
+<h3 id="deleting-an-experiment">Deleting an Experiment<a class="headerlink" href="#deleting-an-experiment" title="Permanent link">&para;</a></h3>
+<p>Click the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6z"/></svg></span> <strong>Delete</strong> button and confirm. This permanently removes the experiment <strong>and all its linked datapoints</strong>.</p>
+<div class="admonition danger">
+<p class="admonition-title">Deletion is permanent</p>
+<p>Deleting an experiment also deletes every datapoint associated with it. Export to CSV first if you need the data.</p>
+</div>
 <hr />
-<h2 id="starting-stopping">Starting &amp; Stopping<a class="headerlink" href="#starting-stopping" title="Permanent link">&para;</a></h2>
+<h2 id="experiment-table-columns">Experiment Table Columns<a class="headerlink" href="#experiment-table-columns" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Action</th>
-<th>API Endpoint</th>
-<th>Effect</th>
+<th>Column</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Start</td>
-<td><code>POST /api/v1/experiments</code></td>
-<td>Sets <code>started_on</code>, begins associating new datapoints</td>
+<td><strong>Name</strong></td>
+<td>Experiment label</td>
 </tr>
 <tr>
-<td>Stop</td>
-<td><code>PUT /api/v1/experiments/{id}</code></td>
-<td>Sets <code>stopped_on</code>, stops association</td>
+<td><strong>Status</strong></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 16.5v-9l6 4.5M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Running (green) or <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2M9 9h6v6H9"/></svg></span> Stopped (grey)</td>
+</tr>
+<tr>
+<td><strong>Started</strong></td>
+<td>Timestamp when the experiment was created</td>
+</tr>
+<tr>
+<td><strong>Stopped</strong></td>
+<td>Timestamp when the experiment was stopped (empty if still running)</td>
+</tr>
+<tr>
+<td><strong>Actions</strong></td>
+<td>CSV download, Stop, Delete</td>
 </tr>
 </tbody>
 </table>
-<p>Only <strong>one experiment</strong> can be running at a time.</p>
 <hr />
-<h2 id="viewing-results">Viewing Results<a class="headerlink" href="#viewing-results" title="Permanent link">&para;</a></h2>
-<p>The Experiments page shows:</p>
-<ul>
-<li>Experiment name</li>
-<li>Start / stop timestamps</li>
-<li>Number of associated datapoints</li>
-<li><strong>CSV download</strong> button (see <a href="../csv-export/">CSV Export</a>)</li>
-</ul>
-<hr />
-<h2 id="api-examples">API Examples<a class="headerlink" href="#api-examples" title="Permanent link">&para;</a></h2>
-<h3 id="create-start">Create &amp; Start<a class="headerlink" href="#create-start" title="Permanent link">&para;</a></h3>
+<h2 id="using-the-api">Using the API<a class="headerlink" href="#using-the-api" title="Permanent link">&para;</a></h2>
+<h3 id="create-an-experiment">Create an Experiment<a class="headerlink" href="#create-an-experiment" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/experiments<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;name&quot;: &quot;Fluidised Bed Run 07&quot;}&#39;</span>
 </code></pre></div>
-<h3 id="stop">Stop<a class="headerlink" href="#stop" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8000/api/v1/experiments/<span class="nv">$EXP_ID</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;stopped_on&quot;: &quot;2025-01-15T16:00:00Z&quot;}&#39;</span>
+<p>Returns the experiment with <code>started_on</code> already set.</p>
+<h3 id="list-experiments">List Experiments<a class="headerlink" href="#list-experiments" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/experiments<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
+<p>Supports <code>?page=1&amp;page_size=50</code> pagination.</p>
+<h3 id="stop-an-experiment">Stop an Experiment<a class="headerlink" href="#stop-an-experiment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8000/api/v1/experiments/<span class="nv">$EXP_ID</span>/stop<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<h3 id="download-csv">Download CSV<a class="headerlink" href="#download-csv" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>http://localhost:8000/api/v1/experiments/<span class="nv">$EXP_ID</span>/export/csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<h3 id="delete-an-experiment">Delete an Experiment<a class="headerlink" href="#delete-an-experiment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8000/api/v1/experiments/<span class="nv">$EXP_ID</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Recommendations</p>
+<ul>
+<li><strong>Name experiments descriptively</strong> — include parameters, date, or batch number (e.g. "Run 12 — Inlet 180°C, Flow 5 L/min")</li>
+<li><strong>Export CSV before deleting</strong> — deletion is irreversible and removes all linked datapoints</li>
+<li><strong>Stop experiments promptly</strong> — a running experiment captures <em>all</em> data, including calibration or idle readings you may not want</li>
+</ul>
+</div>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../csv-export/">CSV Export</a> — download experiment data</li>
-<li><a href="../../api/rest/">API Reference</a> — full endpoint documentation</li>
+<li><a href="../csv-export/">CSV Export</a> — download and analyse experiment data</li>
+<li><a href="../events/">Events &amp; Sensors</a> — configure the sensors that feed experiments</li>
+<li><a href="../dashboard/">Dashboard</a> — monitor the live data while an experiment runs</li>
 </ul>
 
 
