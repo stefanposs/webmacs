@@ -146,23 +146,113 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/logs` | JWT | List log entries |
-| `POST` | `/api/v1/logs` | JWT | Create log entry |
-| `PUT` | `/api/v1/logs/{id}` | JWT | Update (mark read) |
-| `DELETE` | `/api/v1/logs/{id}` | JWT | Delete log entry |
+| `GET` | `/api/v1/logging` | JWT | List log entries |
+| `POST` | `/api/v1/logging` | JWT | Create log entry |
+| `PUT` | `/api/v1/logging/{id}` | JWT | Update (mark read) |
 
 ### Create Log Entry
 
 ```json
 {
-  "message": "Experiment started",
-  "type": "info",
-  "status": "unread"
+  "content": "Experiment started",
+  "logging_type": "info"
 }
 ```
 
 **Log types:** `error`, `warning`, `info`
 **Statuses:** `read`, `unread`
+
+---
+
+## Webhooks
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/webhooks` | Admin | List webhook subscriptions |
+| `POST` | `/api/v1/webhooks` | Admin | Create webhook |
+| `GET` | `/api/v1/webhooks/{id}` | Admin | Get webhook details |
+| `PUT` | `/api/v1/webhooks/{id}` | Admin | Update webhook |
+| `DELETE` | `/api/v1/webhooks/{id}` | Admin | Delete webhook |
+| `GET` | `/api/v1/webhooks/{id}/deliveries` | Admin | List delivery log |
+
+### Create Webhook
+
+```json
+{
+  "url": "https://example.com/webhook",
+  "secret": "my-hmac-secret",
+  "events": ["sensor.threshold_exceeded", "experiment.started"],
+  "enabled": true
+}
+```
+
+**Webhook Event Types:** `sensor.threshold_exceeded`, `sensor.reading`, `experiment.started`, `experiment.stopped`, `system.health_changed`
+
+**Delivery Statuses:** `pending`, `success`, `failed`, `retrying`
+
+!!! info "HMAC Verification"
+    If a `secret` is provided, each delivery includes an `X-Webhook-Signature` header containing
+    the HMAC-SHA256 signature of the payload body, which can be used to verify authenticity.
+
+---
+
+## Rules
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/rules` | Admin | List automation rules |
+| `POST` | `/api/v1/rules` | Admin | Create rule |
+| `GET` | `/api/v1/rules/{id}` | Admin | Get rule details |
+| `PUT` | `/api/v1/rules/{id}` | Admin | Update rule |
+| `DELETE` | `/api/v1/rules/{id}` | Admin | Delete rule |
+
+### Create Rule
+
+```json
+{
+  "name": "High Temperature Alert",
+  "event_public_id": "evt_temp01",
+  "operator": "gt",
+  "threshold": 50.0,
+  "action_type": "webhook",
+  "webhook_event_type": "sensor.threshold_exceeded",
+  "cooldown_seconds": 300,
+  "enabled": true
+}
+```
+
+**Operators:** `gt` (>), `lt` (<), `gte` (>=), `lte` (<=), `eq` (==), `between`, `not_between`
+
+**Action Types:** `webhook`, `log`
+
+!!! tip "Between operator"
+    When using `between` or `not_between`, provide both `threshold` (low) and `threshold_high` (high) values.
+
+---
+
+## OTA Updates
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/ota` | Admin | List firmware updates |
+| `POST` | `/api/v1/ota` | Admin | Create firmware update |
+| `GET` | `/api/v1/ota/{id}` | Admin | Get update details |
+| `DELETE` | `/api/v1/ota/{id}` | Admin | Delete firmware update |
+| `POST` | `/api/v1/ota/{id}/apply` | Admin | Apply firmware update |
+| `POST` | `/api/v1/ota/{id}/rollback` | Admin | Rollback firmware update |
+| `GET` | `/api/v1/ota/check` | Admin | Check for available updates |
+
+### Create Firmware Update
+
+```json
+{
+  "version": "2.1.0",
+  "release_notes": "Performance improvements and bug fixes",
+  "firmware_url": "https://releases.example.com/firmware/v2.1.0.bin"
+}
+```
+
+**Update Statuses:** `pending`, `downloading`, `verifying`, `applying`, `completed`, `failed`, `rolled_back`
 
 ---
 

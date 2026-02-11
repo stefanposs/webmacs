@@ -2,7 +2,7 @@
 name = "webmacs-backend"
 version = "2.0.0"
 description = "WebMACS Backend - FastAPI REST API for IoT experiment monitoring"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 authors = [{ name = "Stefan Poß" }]
 dependencies = [
     "fastapi>=0.115.0",

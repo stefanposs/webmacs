@@ -1,5 +1,7 @@
 """Actuator manager - receives commands from backend, writes to hardware."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
 
 import structlog

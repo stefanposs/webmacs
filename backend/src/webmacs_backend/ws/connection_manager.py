@@ -26,8 +26,11 @@ class ConnectionManager:
         self._lock = asyncio.Lock()
 
     async def connect(self, topic: str, ws: WebSocket) -> None:
-        """Accept a WebSocket and register it under a topic."""
-        await ws.accept()
+        """Register an already-accepted WebSocket under a topic.
+
+        Note: The caller is responsible for calling ``ws.accept()`` before
+        invoking this method (typically done during authentication).
+        """
         async with self._lock:
             if topic not in self._connections:
                 self._connections[topic] = set()

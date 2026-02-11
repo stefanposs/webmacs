@@ -1,82 +1,120 @@
 # Dashboard
 
-The Dashboard is the primary view for real-time sensor monitoring. It displays live datapoint values and updates automatically.
-
-![WebMACS Dashboard](../images/web_gui_dashboard-v2.png){ .screenshot }
+The Dashboard is your primary control centre. It shows live sensor readings, lets you toggle actuators, adjust range controls, and displays a real-time chart — all updating in real time.
 
 ---
 
-## Real-Time Data
+## At a Glance
 
-WebMACS uses a **WebSocket-first, HTTP-fallback** strategy:
+When you open the Dashboard you see four sections:
+
+| Section | What It Shows |
+|---|---|
+| **Stats bar** | Total sensor count, actuator count, range control count, and connection status |
+| **Sensor cards** | One card per sensor with current value, unit, and min/max range indicator |
+| **Actuator controls** | ON / OFF toggle for each actuator |
+| **Range controls** | Adjustable slider for each range-type event |
+| **Live chart** | Scrolling line chart with the last 60 readings per sensor |
+
+---
+
+## Connection Status
+
+The stats bar shows how data is being received:
+
+| Indicator | Mode | Meaning |
+|---|---|---|
+| :material-web: **Live** (green) | WebSocket | Data streams in real time — best experience |
+| :material-sync: **Poll** (amber) | HTTP Polling | WebSocket unavailable, polling every 1.5 s |
+| :material-loading: **Connecting** | — | Establishing connection |
+
+!!! tip "Connection tips"
+    - **Live** mode is the default and recommended. Data appears instantly.
+    - If you see **Poll** mode, check that the backend WebSocket endpoint is reachable. The system switches to polling automatically after 3 failed WebSocket reconnection attempts.
+
+### How Automatic Fallback Works
 
 ```mermaid
 flowchart TD
-    A[Dashboard mounts] --> B{WebSocket available?}
-    B -->|Yes| C[Stream via /ws/datapoints/stream]
-    B -->|No| D[HTTP Polling every N seconds]
-    C -->|Connection lost| E{Retry count < 3?}
-    E -->|Yes| C
-    E -->|No| D
+    A[Dashboard opens] --> B{WebSocket connects?}
+    B -->|Yes| C[Live mode — stream data]
+    B -->|No| D{Retry count < 3?}
+    D -->|Yes| B
+    D -->|No| E[Switch to HTTP polling]
+    C -->|Connection drops| D
+    E --> F[Poll GET /api/v1/datapoints/latest every 1.5 s]
 ```
-
-### Connection Indicator
-
-| Icon | Mode | Meaning |
-|---|---|---|
-| :material-web: Green | WebSocket | Live streaming active |
-| :material-sync: Amber | Polling | Fallback — WebSocket unavailable |
-| :material-close-circle: Red | Disconnected | No connection to backend |
 
 ---
 
-## WebSocket Transport
+## Sensor Cards
 
-The frontend connects to:
+Each sensor event gets its own card displaying:
 
-```
-ws://localhost:8000/ws/datapoints/stream
-```
+- **Name** — the sensor label (e.g. "Inlet Temperature")
+- **Current value** — large, easy-to-read number
+- **Unit** — measurement unit (°C, bar, L/min, …)
+- **Range bar** — visual min/max indicator showing where the current value falls
 
-Messages arrive as JSON:
-
-```json
-{
-  "public_id": "dp_abc123",
-  "value": 23.45,
-  "timestamp": "2025-01-15T14:32:10.000Z",
-  "event_public_id": "evt_temp01",
-  "experiment_public_id": "exp_001"
-}
-```
-
-When the WebSocket connection drops, the `useRealtimeDatapoints` composable automatically switches to HTTP polling after 3 failed reconnection attempts.
+Values update automatically whenever new data arrives via the real-time connection.
 
 ---
 
-## HTTP Polling Fallback
+## Actuator Controls
 
-In polling mode the frontend calls:
+Each actuator event is shown as an **ON / OFF toggle button**. Toggling sends a datapoint with value `1` (ON) or `0` (OFF) to the backend, which the IoT controller picks up to switch hardware outputs.
 
-```
-GET /api/v1/datapoints?limit=50
-```
-
-at a configurable interval (default: 2 seconds).
+!!! warning "Actuators affect physical hardware"
+    Toggling an actuator immediately sends a command to the controller. Make sure the connected equipment is in a safe state before switching.
 
 ---
 
-## Configuration
+## Range Controls
 
-| Setting | Type | Default | Description |
+Range events appear as **sliders** bounded by the event's `min_value` and `max_value`. Dragging the slider sends the selected value as a new datapoint.
+
+Use range controls for setpoints like target temperatures, flow rates, or motor speeds.
+
+---
+
+## Live Chart
+
+The bottom section shows a scrolling line chart powered by Chart.js:
+
+- **One line per sensor** — up to 8 colours are cycled automatically
+- **Last 60 data points** per sensor
+- **Smooth curves** — filled area under each line for easy visual separation
+- **Auto-scrolling** — oldest data drops off the left edge as new data arrives
+
+The chart updates every time a new datapoint batch is received.
+
+!!! info "Chart visibility"
+    The live chart section only appears when at least one sensor event exists.
+
+---
+
+## Typical Workflow
+
+1. **Create events** — go to [Events & Sensors](events.md) and define your sensors, actuators, and range controls
+2. **Start the controller** — the IoT controller reads hardware and pushes datapoints to the backend
+3. **Open the Dashboard** — sensor cards fill with live values, the chart starts plotting
+4. **Interact** — toggle actuators, adjust range sliders, monitor trends
+5. **(Optional) Start an experiment** — go to [Experiments](experiments.md) to begin grouping datapoints
+
+---
+
+## Configuration Reference
+
+| Setting | Where | Default | Description |
 |---|---|---|---|
-| Poll interval | Frontend | 2 s | Time between HTTP polls in fallback mode |
-| WS heartbeat | Backend | 30 s | Server-side heartbeat to keep WS alive |
-| Max retries | Frontend | 3 | WS reconnection attempts before switching to polling |
+| Poll interval | Frontend composable | 1.5 s | Time between HTTP polls in fallback mode |
+| WS heartbeat | Backend config | 30 s | Server-side ping to keep WebSocket alive |
+| Max WS retries | Frontend composable | 3 | Reconnection attempts before switching to polling |
 
 ---
 
 ## Next Steps
 
-- [Events & Sensors](events.md) — what data feeds the dashboard
-- [Architecture: WebSocket Design](../architecture/websocket.md) — full protocol details
+- [Events & Sensors](events.md) — define what data feeds the dashboard
+- [Experiments](experiments.md) — start grouping data into experiments
+- [Automation Rules](rules.md) — get alerted when values cross thresholds

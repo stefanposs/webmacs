@@ -6,6 +6,11 @@
 
     <div v-if="loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading logs...</div>
 
+    <div v-else-if="error" class="empty-state">
+      <i class="pi pi-exclamation-triangle" />
+      {{ error }}
+    </div>
+
     <table v-else-if="logs.length" class="data-table">
       <thead>
         <tr>
@@ -34,8 +39,8 @@
       <button class="btn-secondary" :disabled="page <= 1" @click="changePage(-1)">
         <i class="pi pi-chevron-left" /> Previous
       </button>
-      <span>Page {{ page }}</span>
-      <button class="btn-secondary" @click="changePage(1)">
+      <span>Page {{ page }} of {{ Math.max(1, Math.ceil(total / 50)) }}</span>
+      <button class="btn-secondary" :disabled="page * 50 >= total" @click="changePage(1)">
         Next <i class="pi pi-chevron-right" />
       </button>
     </div>
@@ -51,15 +56,21 @@ import type { LogEntry, PaginatedResponse } from '@/types'
 const { formatRelativeTime } = useFormatters()
 const logs = ref<LogEntry[]>([])
 const loading = ref(false)
+const error = ref<string | null>(null)
 const page = ref(1)
+const total = ref(0)
 
 async function fetchLogs() {
   loading.value = true
+  error.value = null
   try {
     const { data } = await api.get<PaginatedResponse<LogEntry>>('/logging/', {
       params: { page: page.value, page_size: 50 },
     })
     logs.value = data.data
+    total.value = data.total
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to fetch logs'
   } finally {
     loading.value = false
   }

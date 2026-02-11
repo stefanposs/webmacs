@@ -1,8 +1,11 @@
 """Logging endpoints."""
 
+from __future__ import annotations
+
 import uuid
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
+from sqlalchemy import select
 
 from webmacs_backend.dependencies import CurrentUser, DbSession
 from webmacs_backend.models import LogEntry
@@ -16,10 +19,11 @@ router = APIRouter()
 async def list_log_entries(
     db: DbSession,
     current_user: CurrentUser,
-    page: int = 1,
-    page_size: int = 25,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[LogEntryResponse]:
-    return await paginate(db, LogEntry, LogEntryResponse, page=page, page_size=page_size)
+    query = select(LogEntry).order_by(LogEntry.created_on.desc())
+    return await paginate(db, LogEntry, LogEntryResponse, page=page, page_size=page_size, base_query=query)
 
 
 @router.post("", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)

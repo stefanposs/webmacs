@@ -3,6 +3,10 @@
 Endpoints:
   - /ws/controller/telemetry  — Controller pushes sensor batches via WebSocket
   - /ws/datapoints/stream     — Browsers receive live datapoint updates
+
+Authentication:
+  All WebSocket endpoints require a valid JWT token passed as a query parameter:
+    ws://host/ws/controller/telemetry?token=<jwt>
 """
 
 from __future__ import annotations
@@ -15,7 +19,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlalchemy import insert, select
 
 from webmacs_backend.database import db_session
-from webmacs_backend.models import Datapoint, Experiment
+from webmacs_backend.models import BlacklistToken, Datapoint, Experiment, User
+from webmacs_backend.security import InvalidTokenError, decode_access_token
 from webmacs_backend.ws.connection_manager import manager
 
 logger = structlog.get_logger()
@@ -23,9 +28,55 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
+async def _authenticate_ws(ws: WebSocket) -> User | None:
+    """Validate JWT token from query parameter and return the User, or None on failure.
+
+    Accepts the WebSocket first, then closes with code 1008 (Policy Violation)
+    if authentication fails.  Accepting before closing is required for portable
+    behaviour across ASGI servers (Uvicorn, Hypercorn, Daphne).
+    """
+    token: str | None = ws.query_params.get("token")
+
+    # Accept first — required for reliable close() across ASGI servers
+    await ws.accept()
+
+    if not token:
+        await ws.close(code=1008, reason="Authentication required")
+        logger.warning("ws_auth_failed", reason="missing_token")
+        return None
+
+    try:
+        payload = decode_access_token(token)
+    except InvalidTokenError:
+        await ws.close(code=1008, reason="Invalid or expired token")
+        logger.warning("ws_auth_failed", reason="invalid_token")
+        return None
+
+    async with db_session() as session:
+        # Check blacklist
+        bl_result = await session.execute(select(BlacklistToken).where(BlacklistToken.token == token))
+        if bl_result.scalar_one_or_none():
+            await ws.close(code=1008, reason="Token has been revoked")
+            logger.warning("ws_auth_failed", reason="revoked_token")
+            return None
+
+        result = await session.execute(select(User).where(User.id == payload.user_id))
+        user = result.scalar_one_or_none()
+
+    if not user:
+        await ws.close(code=1008, reason="User not found")
+        logger.warning("ws_auth_failed", reason="user_not_found")
+        return None
+
+    logger.info("ws_authenticated", user_id=user.public_id)
+    return user
+
+
 @router.websocket("/controller/telemetry")
 async def controller_telemetry(ws: WebSocket) -> None:
     """Receive sensor data batches from the IoT controller via WebSocket.
+
+    Requires JWT token as query parameter: ``?token=<jwt>``
 
     Expected JSON message format:
     {
@@ -37,12 +88,34 @@ async def controller_telemetry(ws: WebSocket) -> None:
 
     Each batch is persisted and immediately broadcast to frontend subscribers.
     """
+    user = await _authenticate_ws(ws)
+    if user is None:
+        return
+
     await manager.connect("controller", ws)
     try:
         while True:
             data = await ws.receive_json()
-            datapoints = data.get("datapoints", [])
-            if not datapoints:
+            raw_datapoints = data.get("datapoints", [])
+            if not raw_datapoints:
+                continue
+
+            # Validate each datapoint has the required fields
+            valid_datapoints: list[dict[str, object]] = []
+            for dp in raw_datapoints:
+                if not isinstance(dp, dict):
+                    continue
+                value = dp.get("value")
+                event_pid = dp.get("event_public_id")
+                if value is None or event_pid is None:
+                    continue
+                try:
+                    valid_datapoints.append({"value": float(value), "event_public_id": str(event_pid)})
+                except (TypeError, ValueError):
+                    continue
+
+            if not valid_datapoints:
+                await ws.send_json({"type": "error", "message": "No valid datapoints in batch"})
                 continue
 
             # Persist batch using standalone session (not FastAPI DI)
@@ -61,7 +134,7 @@ async def controller_telemetry(ws: WebSocket) -> None:
                         "event_public_id": dp["event_public_id"],
                         "experiment_public_id": exp_id,
                     }
-                    for dp in datapoints
+                    for dp in valid_datapoints
                 ]
                 await session.execute(insert(Datapoint), rows)
 
@@ -75,7 +148,7 @@ async def controller_telemetry(ws: WebSocket) -> None:
                         "timestamp": now.isoformat(),
                         "experiment_public_id": exp_id,
                     }
-                    for dp in datapoints
+                    for dp in valid_datapoints
                 ],
             }
             await manager.broadcast("frontend", broadcast_payload)
@@ -92,11 +165,17 @@ async def controller_telemetry(ws: WebSocket) -> None:
 async def datapoints_stream(ws: WebSocket) -> None:
     """Stream live datapoint updates to browser clients.
 
+    Requires JWT token as query parameter: ``?token=<jwt>``
+
     This is a read-only subscription endpoint. Frontend clients connect here
     and receive real-time broadcast when the controller pushes new data.
 
     The client should send periodic ping/pong or a keep-alive JSON message.
     """
+    user = await _authenticate_ws(ws)
+    if user is None:
+        return
+
     await manager.connect("frontend", ws)
     try:
         # Send initial confirmation

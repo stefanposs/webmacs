@@ -1,5 +1,7 @@
 """Services package."""
 
+from __future__ import annotations
+
 from webmacs_controller.services.actuator_manager import ActuatorManager
 from webmacs_controller.services.api_client import APIClient
 from webmacs_controller.services.demo_seeder import DemoSeeder

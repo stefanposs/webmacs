@@ -1,5 +1,7 @@
 """Database engine and session management."""
 
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 

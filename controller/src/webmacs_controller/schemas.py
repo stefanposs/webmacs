@@ -1,5 +1,7 @@
 """Pydantic v2 schemas for controller data models."""
 
+from __future__ import annotations
+
 from enum import StrEnum
 
 from pydantic import BaseModel

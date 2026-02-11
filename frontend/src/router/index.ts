@@ -47,6 +47,24 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/webhooks',
+      name: 'webhooks',
+      component: () => import('@/views/WebhooksView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/rules',
+      name: 'rules',
+      component: () => import('@/views/RulesView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/ota',
+      name: 'ota',
+      component: () => import('@/views/OtaView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),

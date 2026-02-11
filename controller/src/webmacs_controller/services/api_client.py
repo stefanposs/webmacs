@@ -1,5 +1,7 @@
 """HTTP API client for backend communication with retry and auto-reauthentication."""
 
+from __future__ import annotations
+
 import asyncio
 from typing import Any
 

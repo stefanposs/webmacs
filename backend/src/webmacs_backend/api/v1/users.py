@@ -1,8 +1,10 @@
 """User management endpoints."""
 
+from __future__ import annotations
+
 import uuid
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from webmacs_backend.dependencies import AdminUser, CurrentUser, DbSession
@@ -18,14 +20,15 @@ router = APIRouter()
 async def list_users(
     db: DbSession,
     current_user: AdminUser,
-    page: int = 1,
-    page_size: int = 25,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[UserResponse]:
     return await paginate(db, User, UserResponse, page=page, page_size=page_size)
 
 
 @router.post("", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(data: UserCreate, db: DbSession) -> StatusResponse:
+async def create_user(data: UserCreate, db: DbSession, admin_user: AdminUser) -> StatusResponse:
+    """Create a new user (admin only)."""
     result = await db.execute(select(User).where(User.email == data.email))
     if result.scalar_one_or_none():
         raise ConflictError("User")
@@ -49,6 +52,9 @@ async def get_user(public_id: str, db: DbSession, current_user: CurrentUser) -> 
 
 @router.put("/{public_id}", response_model=StatusResponse)
 async def update_user(public_id: str, data: UserUpdate, db: DbSession, current_user: CurrentUser) -> StatusResponse:
+    """Update a user. Users may only update themselves; admins can update anyone."""
+    if not current_user.admin and current_user.public_id != public_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only update your own profile.")
     user = await get_or_404(db, User, public_id, entity_name="User")
     if data.email is not None:
         user.email = data.email

@@ -40,6 +40,9 @@ class ConflictError(HTTPException):
 # ─── Generic Operations ─────────────────────────────────────────────────────
 
 
+MAX_PAGE_SIZE = 100
+
+
 async def paginate[M: Base, S: BaseModel](
     db: AsyncSession,
     model: type[M],
@@ -50,6 +53,8 @@ async def paginate[M: Base, S: BaseModel](
     base_query: Select[Any] | None = None,
 ) -> PaginatedResponse[S]:
     """Generic paginated list query."""
+    page = max(1, page)
+    page_size = max(1, min(page_size, MAX_PAGE_SIZE))
     query = base_query if base_query is not None else select(model)
 
     total_result = await db.execute(select(func.count()).select_from(query.subquery()))

@@ -7,15 +7,18 @@ Covers the critical auth paths:
 - Health check (baseline sanity)
 """
 
-import pytest
-from httpx import AsyncClient
+from typing import TYPE_CHECKING
 
-from webmacs_backend.models import User
+import pytest
 
 # conftest provides: client, admin_user, auth_headers
 # conftest constants re-exported here for readability
 from .conftest import ADMIN_EMAIL, ADMIN_PASSWORD
 
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+
+    from webmacs_backend.models import User
 
 # ---------------------------------------------------------------------------
 # Login
@@ -127,4 +130,4 @@ class TestHealthCheck:
     async def test_health(self, client: AsyncClient) -> None:
         resp = await client.get("/health")
         assert resp.status_code == 200
-        assert resp.json()["status"] == "healthy"
+        assert resp.json()["status"] == "ok"

@@ -1,8 +1,10 @@
 """Event (sensor/actuator channel) endpoints."""
 
+from __future__ import annotations
+
 import uuid
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 from sqlalchemy import select
 
 from webmacs_backend.dependencies import CurrentUser, DbSession
@@ -17,8 +19,8 @@ router = APIRouter()
 async def list_events(
     db: DbSession,
     current_user: CurrentUser,
-    page: int = 1,
-    page_size: int = 25,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[EventResponse]:
     return await paginate(db, Event, EventResponse, page=page, page_size=page_size)
 

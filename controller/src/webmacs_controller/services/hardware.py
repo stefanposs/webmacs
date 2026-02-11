@@ -1,5 +1,7 @@
 """Hardware abstraction layer for RevolutionPi."""
 
+from __future__ import annotations
+
 import math
 import random
 import time
