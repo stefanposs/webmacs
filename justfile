@@ -178,7 +178,7 @@ clean:
 # Show project info
 info:
     @echo "Project: WebMACS"
-    @echo "Version: 2.0.0"
+    @grep '^version' pyproject.toml | head -1 | cut -d'"' -f2 | xargs -I{} echo "Version: {}"
     @echo "Backend:    backend/src/webmacs_backend"
     @echo "Controller: controller/src/webmacs_controller"
     @echo "Frontend:   frontend/src"

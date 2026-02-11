@@ -97,6 +97,7 @@ const mainItems = [
 
 const dataItems = [
   { to: '/datapoints', label: 'Datapoints', icon: 'pi pi-chart-line' },
+  { to: '/dashboards', label: 'Dashboards', icon: 'pi pi-th-large' },
   { to: '/logs', label: 'Logs', icon: 'pi pi-file-edit' },
 ]
 

@@ -8,15 +8,19 @@ export const useDatapointStore = defineStore('datapoints', () => {
   const latestDatapoints = ref<Datapoint[]>([])
   const total = ref(0)
   const loading = ref(false)
+  const error = ref<string | null>(null)
 
   async function fetchDatapoints(page = 1, pageSize = 50): Promise<void> {
     loading.value = true
+    error.value = null
     try {
       const { data } = await api.get<PaginatedResponse<Datapoint>>('/datapoints', {
         params: { page, page_size: pageSize },
       })
       datapoints.value = data.data
       total.value = data.total
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to fetch datapoints'
     } finally {
       loading.value = false
     }
@@ -35,5 +39,5 @@ export const useDatapointStore = defineStore('datapoints', () => {
     await api.post('/datapoints/batch', { datapoints: items })
   }
 
-  return { datapoints, latestDatapoints, total, loading, fetchDatapoints, fetchLatest, createDatapoint, createBatch }
+  return { datapoints, latestDatapoints, total, loading, error, fetchDatapoints, fetchLatest, createDatapoint, createBatch }
 })

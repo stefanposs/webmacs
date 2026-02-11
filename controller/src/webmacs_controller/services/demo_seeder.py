@@ -67,7 +67,7 @@ class DemoSeeder:
             {"content": "Controller started in development mode", "logging_type": "info"},
             {"content": "Demo events seeded successfully", "logging_type": "info"},
             {"content": "Simulated hardware initialized", "logging_type": "info"},
-            {"content": "Sensor polling active – 8 channels", "logging_type": "info"},
+            {"content": "Sensor polling active – 9 channels", "logging_type": "info"},
             {"content": "Actuator manager ready – 2 channels", "logging_type": "info"},
         ]
         for entry in demo_logs:

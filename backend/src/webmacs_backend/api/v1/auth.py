@@ -34,9 +34,11 @@ async def login(request: LoginRequest, db: DbSession) -> LoginResponse:
 async def logout(
     current_user: CurrentUser,
     db: DbSession,
-    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> StatusResponse:
     """Blacklist the current token."""
+    if not credentials:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing credentials.")
     blacklist_entry = BlacklistToken(token=credentials.credentials)
     db.add(blacklist_entry)
     return StatusResponse(status="success", message="Successfully logged out.")

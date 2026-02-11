@@ -79,3 +79,12 @@ class UpdateStatus(StrEnum):
     completed = "completed"
     failed = "failed"
     rolled_back = "rolled_back"
+
+
+class WidgetType(StrEnum):
+    """Dashboard widget types."""
+
+    line_chart = "line_chart"
+    gauge = "gauge"
+    stat_card = "stat_card"
+    actuator_toggle = "actuator_toggle"

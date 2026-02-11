@@ -66,7 +66,8 @@ Authenticate and receive a JWT token.
 | `GET` | `/api/v1/experiments` | JWT | List all experiments |
 | `GET` | `/api/v1/experiments/{id}` | JWT | Get single experiment |
 | `POST` | `/api/v1/experiments` | JWT | Create & start experiment |
-| `PUT` | `/api/v1/experiments/{id}` | JWT | Update (e.g. stop) |
+| `PUT` | `/api/v1/experiments/{id}` | JWT | Update experiment |
+| `PUT` | `/api/v1/experiments/{id}/stop` | JWT | Stop experiment |
 | `DELETE` | `/api/v1/experiments/{id}` | JWT | Delete experiment |
 | `GET` | `/api/v1/experiments/{id}/export/csv` | JWT | Download CSV |
 
@@ -105,7 +106,8 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
   "name": "Inlet Temperature",
   "type": "sensor",
   "unit": "°C",
-  "description": "Temperature at the fluidised-bed inlet"
+  "min_value": 0.0,
+  "max_value": 200.0
 }
 ```
 
@@ -119,15 +121,17 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 |---|---|---|---|
 | `GET` | `/api/v1/datapoints` | JWT | List datapoints (paginated) |
 | `POST` | `/api/v1/datapoints` | JWT | Create single datapoint |
-| `POST` | `/api/v1/datapoints/bulk` | JWT | Create multiple datapoints |
+| `POST` | `/api/v1/datapoints/batch` | JWT | Create multiple datapoints |
+| `GET` | `/api/v1/datapoints/latest` | JWT | Get latest datapoint per event |
+| `GET` | `/api/v1/datapoints/{id}` | JWT | Get single datapoint |
+| `DELETE` | `/api/v1/datapoints/{id}` | JWT | Delete datapoint |
 
 ### Create Datapoint
 
 ```json
 {
   "value": 23.45,
-  "event_public_id": "evt_temp01",
-  "experiment_public_id": "exp_001"
+  "event_public_id": "evt_temp01"
 }
 ```
 
@@ -135,10 +139,8 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 
 | Param | Type | Default | Description |
 |---|---|---|---|
-| `limit` | `int` | `50` | Max results per page |
-| `offset` | `int` | `0` | Pagination offset |
-| `event_id` | `string` | — | Filter by event |
-| `experiment_id` | `string` | — | Filter by experiment |
+| `page` | `int` | `1` | Page number (≥ 1) |
+| `page_size` | `int` | `25` | Results per page (1–100) |
 
 ---
 
@@ -188,7 +190,7 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 
 **Webhook Event Types:** `sensor.threshold_exceeded`, `sensor.reading`, `experiment.started`, `experiment.stopped`, `system.health_changed`
 
-**Delivery Statuses:** `pending`, `success`, `failed`, `retrying`
+**Delivery Statuses:** `pending`, `delivered`, `failed`, `dead_letter`
 
 !!! info "HMAC Verification"
     If a `secret` is provided, each delivery includes an `X-Webhook-Signature` header containing
@@ -247,8 +249,7 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 ```json
 {
   "version": "2.1.0",
-  "release_notes": "Performance improvements and bug fixes",
-  "firmware_url": "https://releases.example.com/firmware/v2.1.0.bin"
+  "changelog": "Performance improvements and bug fixes"
 }
 ```
 

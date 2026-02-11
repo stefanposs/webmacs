@@ -7,15 +7,19 @@ export const useExperimentStore = defineStore('experiments', () => {
   const experiments = ref<Experiment[]>([])
   const total = ref(0)
   const loading = ref(false)
+  const error = ref<string | null>(null)
 
   async function fetchExperiments(page = 1, pageSize = 50): Promise<void> {
     loading.value = true
+    error.value = null
     try {
       const { data } = await api.get<PaginatedResponse<Experiment>>('/experiments', {
         params: { page, page_size: pageSize },
       })
       experiments.value = data.data
       total.value = data.total
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to fetch experiments'
     } finally {
       loading.value = false
     }
@@ -32,9 +36,15 @@ export const useExperimentStore = defineStore('experiments', () => {
   }
 
   async function deleteExperiment(publicId: string): Promise<void> {
-    await api.delete(`/experiments/${publicId}`)
+    const backup = [...experiments.value]
     experiments.value = experiments.value.filter((e) => e.public_id !== publicId)
+    try {
+      await api.delete(`/experiments/${publicId}`)
+    } catch {
+      experiments.value = backup
+      throw new Error('Failed to delete experiment')
+    }
   }
 
-  return { experiments, total, loading, fetchExperiments, createExperiment, stopExperiment, deleteExperiment }
+  return { experiments, total, loading, error, fetchExperiments, createExperiment, stopExperiment, deleteExperiment }
 })

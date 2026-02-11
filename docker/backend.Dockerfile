@@ -12,6 +12,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Copy project files and install
 COPY backend/pyproject.toml ./pyproject.toml
 COPY backend/src/ ./src/
+COPY backend/alembic.ini ./alembic.ini
+COPY backend/alembic/ ./alembic/
 RUN uv pip install --system --no-cache .
 
 EXPOSE 8000

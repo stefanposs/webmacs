@@ -1,15 +1,15 @@
 # WebMACS — Web-based Monitoring and Control System
 
 Enterprise-grade IoT platform for monitoring and controlling fluidized bed (*Wirbelschicht*) experiments.  
-Built with **FastAPI**, **Vue 3**, and **Python 3.14**.
+Built with **FastAPI**, **Vue 3**, and **Python 3.13**.
 
 ---
 
 ## Architecture
 
 ```
-├── backend/          # FastAPI REST API (Python 3.14)
-├── controller/       # Async IoT Controller (Python 3.14)
+├── backend/          # FastAPI REST API (Python 3.13)
+├── controller/       # Async IoT Controller (Python 3.13)
 ├── frontend/         # Vue 3 + TypeScript SPA
 ├── docker/           # Dockerfiles
 ├── docker-compose.yml

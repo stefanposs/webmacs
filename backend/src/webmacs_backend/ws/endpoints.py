@@ -11,6 +11,7 @@ Authentication:
 
 from __future__ import annotations
 
+import asyncio
 import datetime
 import uuid
 
@@ -19,13 +20,19 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlalchemy import insert, select
 
 from webmacs_backend.database import db_session
+from webmacs_backend.enums import WebhookEventType
 from webmacs_backend.models import BlacklistToken, Datapoint, Experiment, User
 from webmacs_backend.security import InvalidTokenError, decode_access_token
+from webmacs_backend.services import build_payload, dispatch_event
+from webmacs_backend.services.rule_evaluator import evaluate_rules_for_datapoint
 from webmacs_backend.ws.connection_manager import manager
 
 logger = structlog.get_logger()
 
 router = APIRouter()
+
+# Store background tasks so they aren't garbage-collected (RUF006)
+_background_tasks: set[asyncio.Task[None]] = set()
 
 
 async def _authenticate_ws(ws: WebSocket) -> User | None:
@@ -73,7 +80,7 @@ async def _authenticate_ws(ws: WebSocket) -> User | None:
 
 
 @router.websocket("/controller/telemetry")
-async def controller_telemetry(ws: WebSocket) -> None:
+async def controller_telemetry(ws: WebSocket) -> None:  # noqa: PLR0912, PLR0915
     """Receive sensor data batches from the IoT controller via WebSocket.
 
     Requires JWT token as query parameter: ``?token=<jwt>``
@@ -137,6 +144,25 @@ async def controller_telemetry(ws: WebSocket) -> None:
                     for dp in valid_datapoints
                 ]
                 await session.execute(insert(Datapoint), rows)
+
+            # Evaluate rules and fire webhooks for each datapoint (best-effort)
+            for dp in valid_datapoints:
+                event_pid = str(dp["event_public_id"])
+                dp_value = float(dp["value"])  # type: ignore[arg-type]
+                payload = build_payload(WebhookEventType.sensor_reading, sensor=event_pid, value=dp_value)
+                task = asyncio.create_task(dispatch_event(WebhookEventType.sensor_reading, payload))
+                _background_tasks.add(task)
+                task.add_done_callback(_background_tasks.discard)
+            try:
+                async with db_session() as rule_session:
+                    for dp in valid_datapoints:
+                        await evaluate_rules_for_datapoint(
+                            rule_session,
+                            str(dp["event_public_id"]),
+                            float(dp["value"]),  # type: ignore[arg-type]
+                        )
+            except Exception:
+                logger.exception("ws_rule_evaluation_failed")
 
             # Broadcast to all frontend subscribers
             broadcast_payload = {

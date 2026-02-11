@@ -225,11 +225,11 @@ WebMACS can notify external systems when events occur via HTTP webhooks.
 
 | Event | Trigger |
 |---|---|
-| `sensor_reading` | New datapoint is recorded |
-| `experiment_started` | Experiment starts |
-| `experiment_stopped` | Experiment stops |
-| `rule_triggered` | An automation rule fires |
-| `system_alert` | Health or threshold alert |
+| `sensor.reading` | New datapoint is recorded |
+| `sensor.threshold_exceeded` | An automation rule fires |
+| `experiment.started` | Experiment starts |
+| `experiment.stopped` | Experiment stops |
+| `system.health_changed` | Health or threshold alert |
 
 ### Configuring Webhooks
 
@@ -249,7 +249,7 @@ WebMACS can notify external systems when events occur via HTTP webhooks.
       -H "Content-Type: application/json" \
       -d '{
         "url": "https://your-server.com/webhook",
-        "events": ["sensor_reading", "experiment_started"],
+        "events": ["sensor.reading", "experiment.started"],
         "secret": "optional-hmac-secret"
       }'
     ```
@@ -314,10 +314,10 @@ WebMACS can notify external systems when events occur via HTTP webhooks.
 ### Security
 
 Webhooks support HMAC-SHA256 signature verification. When a `secret` is configured,
-every request includes an `X-WebMACS-Signature` header:
+every request includes an `X-Webhook-Signature` header:
 
 ```
-X-WebMACS-Signature: sha256=<hex-digest>
+X-Webhook-Signature: sha256=<hex-digest>
 ```
 
 Verify the signature in your receiving endpoint to ensure authenticity.
