@@ -1899,6 +1899,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#balena-when-does-it-make-sense" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Balena — When Does It Make Sense?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2285,6 +2296,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#balena-when-does-it-make-sense" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Balena — When Does It Make Sense?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2316,6 +2338,13 @@
 
 
 <h1 id="docker-deployment">Docker Deployment<a class="headerlink" href="#docker-deployment" title="Permanent link">&para;</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Development vs. Production</p>
+<p>The <code>docker-compose.yml</code> in the project root is designed for <strong>local development</strong>.
+For production deployment on a RevPi or server, use <code>scripts/install.sh</code> which sets up
+<code>docker-compose.prod.yml</code> with proper credentials, systemd auto-start, and the OTA updater.
+See the <a href="../installation-guide/">Installation Guide</a> for details.</p>
+</div>
 <p>WebMACS runs as a four-container Docker Compose stack.</p>
 <hr />
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
@@ -2665,6 +2694,53 @@ every request includes an <code>X-WebMACS-Signature</code> header:</p>
 and included in the update bundle.</p>
 </div>
 <p>For detailed step-by-step instructions, see the <a href="../installation-guide/">Installation Guide</a>.</p>
+<hr />
+<h2 id="balena-when-does-it-make-sense">Balena — When Does It Make Sense?<a class="headerlink" href="#balena-when-does-it-make-sense" title="Permanent link">&para;</a></h2>
+<p>WebMACS includes its own OTA update system (see <a href="../../guide/ota/">OTA Updates</a>) which is ideal for <strong>single devices or small fleets</strong>.</p>
+<p><a href="https://www.balena.io/">Balena</a> can be interesting if you:</p>
+<ul>
+<li>Manage <strong>50+ devices</strong> across multiple locations</li>
+<li>Need fleet-wide rollouts with staged canary deployments</li>
+<li>Want delta updates (only changed layers) to save bandwidth</li>
+<li>Need a cloud dashboard for remote device management</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>WebMACS OTA</th>
+<th>Balena</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cost</strong></td>
+<td>Free (GitHub Actions)</td>
+<td>Paid (after 10 devices)</td>
+</tr>
+<tr>
+<td><strong>Offline</strong></td>
+<td>✅ Full offline support</td>
+<td>❌ Requires cloud connection</td>
+</tr>
+<tr>
+<td><strong>Dependencies</strong></td>
+<td>Docker only</td>
+<td>Balena OS + account</td>
+</tr>
+<tr>
+<td><strong>Control</strong></td>
+<td>Full — your code, your infra</td>
+<td>Vendor lock-in</td>
+</tr>
+<tr>
+<td><strong>Ideal for</strong></td>
+<td>1–50 devices</td>
+<td>50+ device fleets</td>
+</tr>
+</tbody>
+</table>
+<p>Since WebMACS runs in Docker containers, migrating to Balena later requires <strong>no code changes</strong> — only the deployment layer changes.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
