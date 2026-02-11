@@ -2,6 +2,14 @@
 
 Complete guide to WebMACS Over-The-Air updates — from building a release to customer deployment.
 
+!!! tip "Quick Start"
+    The `scripts/` directory contains two ready-to-use scripts that handle everything:
+
+    - **`scripts/build-update-bundle.sh <version>`** — builds a self-contained `.tar.gz` update bundle
+    - **`scripts/install.sh <bundle.tar.gz>`** — installs WebMACS on a fresh device (Docker, credentials, systemd — all automated)
+
+    See [Installation Guide](../deployment/installation-guide.md) for detailed first-time setup.
+
 ---
 
 ## How OTA Works
@@ -66,14 +74,27 @@ git push origin main --tags
 
 Download the bundle from the Releases page and deliver it to the customer.
 
-### Option B — Local Build
+### Option B — Local Build with `scripts/build-update-bundle.sh`
 
 Build manually on your machine (for testing or airgapped environments):
 
 ```bash
-just bundle 2.1.0
+./scripts/build-update-bundle.sh 2.1.0
 # Output: dist/webmacs-update-2.1.0.tar.gz
 ```
+
+The script performs these steps:
+
+| Step | Action |
+|---|---|
+| 1. Build | `docker compose build --no-cache` — builds all 3 images |
+| 2. Tag | Tags images as `webmacs-backend:2.1.0`, etc. |
+| 3. Export | `docker save` → `images.tar` |
+| 4. Checksum | SHA-256 hash of `images.tar` |
+| 5. Manifest | `manifest.json` with version, checksum, image list |
+| 6. Package | Combines everything into `dist/webmacs-update-2.1.0.tar.gz` |
+
+The bundle is fully self-contained and can be deployed to an airgapped device via USB stick.
 
 !!! warning "Architecture"
     `just bundle` builds for your **host architecture only**.
@@ -84,7 +105,7 @@ just bundle 2.1.0
 
 ## For Customers: Installation
 
-### First-Time Install
+### First-Time Install with `scripts/install.sh`
 
 You receive a `.tar.gz` bundle from your system integrator or download it from GitHub Releases.
 
@@ -109,12 +130,12 @@ You receive a `.tar.gz` bundle from your system integrator or download it from G
 ```bash
 ssh pi@<device-ip>
 
-# Extract install script from bundle
-tar -xzf /tmp/webmacs-update-2.0.0.tar.gz install.sh
-
-# Run installer
-sudo bash install.sh /tmp/webmacs-update-2.0.0.tar.gz
+# Run the install script with the bundle
+sudo bash scripts/install.sh /tmp/webmacs-update-2.0.0.tar.gz
 ```
+
+!!! tip "One Command Does Everything"
+    `scripts/install.sh` is a single, self-contained script. You don't need to install anything manually — it handles Docker, credentials, images, and systemd auto-start.
 
 The installer handles everything:
 
