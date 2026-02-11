@@ -150,7 +150,16 @@ async def update_widget(
     widget = await get_or_404(db, DashboardWidget, widget_id, entity_name="DashboardWidget")
     if widget.dashboard_id != dashboard.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Widget not on this dashboard.")
-    for field, value in data.model_dump(exclude_unset=True).items():
+
+    # Validate event exists when caller explicitly sets event_public_id
+    update_fields = data.model_dump(exclude_unset=True)
+    new_event_pid = update_fields.get("event_public_id")
+    if new_event_pid is not None:
+        ev = await db.execute(select(Event.public_id).where(Event.public_id == new_event_pid))
+        if not ev.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found.")
+
+    for field, value in update_fields.items():
         setattr(widget, field, value)
     return StatusResponse(status="success", message="Widget successfully updated.")
 

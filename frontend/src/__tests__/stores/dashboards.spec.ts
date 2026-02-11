@@ -160,4 +160,89 @@ describe('Dashboard Store', () => {
     await store.deleteWidget('dash-1', 'w-1')
     expect(store.currentDashboard?.widgets).toHaveLength(0)
   })
+
+  // ── updateWidget ──────────────────────────────────────────────────────
+
+  it('updateWidget() calls PUT and updates local widget state', async () => {
+    const widget = {
+      public_id: 'w-1',
+      widget_type: 'line_chart',
+      title: 'Original',
+      event_public_id: 'evt-1',
+      x: 0,
+      y: 0,
+      w: 6,
+      h: 4,
+      config_json: null,
+    }
+    ;(api.get as Mock).mockResolvedValueOnce({ data: { ...SAMPLE_DASHBOARD, widgets: [widget] } })
+    ;(api.put as Mock).mockResolvedValueOnce({ data: { status: 'success' } })
+
+    const store = useDashboardStore()
+    await store.fetchDashboard('dash-1')
+
+    await store.updateWidget('dash-1', 'w-1', { title: 'Updated', w: 8 })
+
+    expect(api.put).toHaveBeenCalledWith('/dashboards/dash-1/widgets/w-1', {
+      title: 'Updated',
+      w: 8,
+    })
+    // Local state should reflect the change immediately
+    expect(store.currentDashboard?.widgets[0].title).toBe('Updated')
+    expect(store.currentDashboard?.widgets[0].w).toBe(8)
+    // Unchanged fields preserved
+    expect(store.currentDashboard?.widgets[0].h).toBe(4)
+    expect(store.currentDashboard?.widgets[0].event_public_id).toBe('evt-1')
+  })
+
+  it('updateWidget() propagates API error', async () => {
+    const widget = {
+      public_id: 'w-1',
+      widget_type: 'gauge',
+      title: 'Gauge',
+      event_public_id: null,
+      x: 0,
+      y: 0,
+      w: 4,
+      h: 3,
+      config_json: null,
+    }
+    ;(api.get as Mock).mockResolvedValueOnce({ data: { ...SAMPLE_DASHBOARD, widgets: [widget] } })
+    ;(api.put as Mock).mockRejectedValueOnce(new Error('Server error'))
+
+    const store = useDashboardStore()
+    await store.fetchDashboard('dash-1')
+
+    await expect(store.updateWidget('dash-1', 'w-1', { title: 'Fail' })).rejects.toThrow(
+      'Server error',
+    )
+    // Local state should NOT have been updated (put throws before Object.assign)
+    expect(store.currentDashboard?.widgets[0].title).toBe('Gauge')
+  })
+
+  // ── updateDashboard ───────────────────────────────────────────────────
+
+  it('updateDashboard() calls PUT and re-fetches list', async () => {
+    const updated = { ...SAMPLE_DASHBOARD, name: 'Renamed' }
+    ;(api.put as Mock).mockResolvedValueOnce({ data: { status: 'success' } })
+    // updateDashboard calls fetchDashboards() internally
+    ;(api.get as Mock).mockResolvedValueOnce({
+      data: { page: 1, page_size: 50, total: 1, data: [updated] },
+    })
+
+    const store = useDashboardStore()
+    await store.updateDashboard('dash-1', { name: 'Renamed' })
+
+    expect(api.put).toHaveBeenCalledWith('/dashboards/dash-1', { name: 'Renamed' })
+    // After re-fetch, dashboards list should reflect the update
+    expect(store.dashboards).toHaveLength(1)
+    expect(store.dashboards[0].name).toBe('Renamed')
+  })
+
+  it('updateDashboard() propagates API error', async () => {
+    ;(api.put as Mock).mockRejectedValueOnce(new Error('Forbidden'))
+
+    const store = useDashboardStore()
+    await expect(store.updateDashboard('dash-1', { name: 'Nope' })).rejects.toThrow('Forbidden')
+  })
 })

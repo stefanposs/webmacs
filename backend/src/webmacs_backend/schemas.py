@@ -345,7 +345,7 @@ class DashboardWidgetCreate(BaseModel):
 
 
 class DashboardWidgetUpdate(BaseModel):
-    title: str | None = Field(default=None, max_length=255)
+    title: str | None = Field(default=None, min_length=1, max_length=255)
     event_public_id: str | None = None
     x: int | None = None
     y: int | None = None

@@ -93,6 +93,13 @@ export const useDashboardStore = defineStore('dashboards', () => {
     payload: Partial<DashboardWidgetCreatePayload>,
   ): Promise<void> {
     await api.put(`/dashboards/${dashboardId}/widgets/${widgetId}`, payload)
+    // Update local state so the UI reflects the change immediately
+    if (currentDashboard.value?.public_id === dashboardId) {
+      const widget = currentDashboard.value.widgets.find((w) => w.public_id === widgetId)
+      if (widget) {
+        Object.assign(widget, payload)
+      }
+    }
   }
 
   async function deleteWidget(dashboardId: string, widgetId: string): Promise<void> {

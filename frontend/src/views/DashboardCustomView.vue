@@ -41,6 +41,7 @@
           :is="widgetComponent(widget.widget_type)"
           :widget="widget"
           :editable="editing"
+          @edit="openEditDialog(widget)"
           @delete="handleDeleteWidget(widget.public_id)"
         />
       </div>
@@ -50,6 +51,7 @@
     <div v-if="showAddWidget" class="modal-overlay" @click.self="showAddWidget = false">
       <div class="modal">
         <h2>Add Widget</h2>
+        <p v-if="editError" class="error-msg">{{ editError }}</p>
         <form @submit.prevent="handleAddWidget">
           <label>Type</label>
           <select v-model="wType" required>
@@ -82,6 +84,36 @@
         </form>
       </div>
     </div>
+
+    <!-- Edit widget dialog -->
+    <div v-if="editingWidget" class="modal-overlay" @click.self="editingWidget = null">
+      <div class="modal">
+        <h2>Edit Widget <span class="widget-type-badge">{{ editingWidget.widget_type.replace('_', ' ') }}</span></h2>
+        <p v-if="editError" class="error-msg">{{ editError }}</p>
+        <form @submit.prevent="handleEditWidget">
+          <label>Title</label>
+          <input v-model="editTitle" type="text" placeholder="Widget title" required maxlength="255" />
+
+          <label>Event</label>
+          <select v-model="editEvent">
+            <option value="">-- none --</option>
+            <option v-for="ev in eventStore.events" :key="ev.public_id" :value="ev.public_id">
+              {{ ev.name }} ({{ ev.type }})
+            </option>
+          </select>
+
+          <div class="grid-fields">
+            <div><label>W</label><input v-model.number="editW" type="number" min="1" max="12" /></div>
+            <div><label>H</label><input v-model.number="editH" type="number" min="1" max="12" /></div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" @click="editingWidget = null">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -108,6 +140,13 @@ const wEvent = ref('')
 const wW = ref(4)
 const wH = ref(3)
 
+// Edit-widget state
+const editingWidget = ref<DashboardWidget | null>(null)
+const editTitle = ref('')
+const editEvent = ref('')
+const editW = ref(4)
+const editH = ref(3)
+
 const widgetMap: Record<WidgetType, Component> = {
   line_chart: LineChartWidget,
   gauge: GaugeWidget,
@@ -126,21 +165,28 @@ function gridStyle(widget: DashboardWidget) {
   }
 }
 
+const editError = ref<string | null>(null)
+
 async function handleAddWidget() {
   const dashId = store.currentDashboard?.public_id
   if (!dashId) return
-  await store.addWidget(dashId, {
-    widget_type: wType.value,
-    title: wTitle.value,
-    event_public_id: wEvent.value || null,
-    x: 0,
-    y: 0,
-    w: wW.value,
-    h: wH.value,
-  })
-  showAddWidget.value = false
-  wTitle.value = ''
-  wEvent.value = ''
+  editError.value = null
+  try {
+    await store.addWidget(dashId, {
+      widget_type: wType.value,
+      title: wTitle.value,
+      event_public_id: wEvent.value || null,
+      x: 0,
+      y: 0,
+      w: wW.value,
+      h: wH.value,
+    })
+    showAddWidget.value = false
+    wTitle.value = ''
+    wEvent.value = ''
+  } catch {
+    editError.value = 'Failed to add widget. Please try again.'
+  }
 }
 
 async function handleDeleteWidget(widgetId: string) {
@@ -148,6 +194,32 @@ async function handleDeleteWidget(widgetId: string) {
   if (!dashId) return
   if (confirm('Delete this widget?')) {
     await store.deleteWidget(dashId, widgetId)
+  }
+}
+
+function openEditDialog(widget: DashboardWidget) {
+  editingWidget.value = widget
+  editTitle.value = widget.title
+  editEvent.value = widget.event_public_id ?? ''
+  editW.value = widget.w
+  editH.value = widget.h
+}
+
+async function handleEditWidget() {
+  const dashId = store.currentDashboard?.public_id
+  const widget = editingWidget.value
+  if (!dashId || !widget) return
+  editError.value = null
+  try {
+    await store.updateWidget(dashId, widget.public_id, {
+      title: editTitle.value,
+      event_public_id: editEvent.value || null,
+      w: editW.value,
+      h: editH.value,
+    })
+    editingWidget.value = null
+  } catch {
+    editError.value = 'Failed to update widget. Please try again.'
   }
 }
 
@@ -274,4 +346,24 @@ onMounted(() => {
 .grid-fields > div { flex: 1; }
 .grid-fields input { width: 100%; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.error-msg {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+}
+.widget-type-badge {
+  font-size: 0.7rem;
+  font-weight: 400;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  text-transform: capitalize;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
 </style>
