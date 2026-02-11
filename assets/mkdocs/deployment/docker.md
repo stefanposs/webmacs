@@ -1,5 +1,11 @@
 # Docker Deployment
 
+!!! note "Development vs. Production"
+    The `docker-compose.yml` in the project root is designed for **local development**.
+    For production deployment on a RevPi or server, use `scripts/install.sh` which sets up
+    `docker-compose.prod.yml` with proper credentials, systemd auto-start, and the OTA updater.
+    See the [Installation Guide](installation-guide.md) for details.
+
 WebMACS runs as a four-container Docker Compose stack.
 
 ---
@@ -351,6 +357,29 @@ After installation, open `http://<device-ip>` in a browser and log in with the c
     and included in the update bundle.
 
 For detailed step-by-step instructions, see the [Installation Guide](installation-guide.md).
+
+---
+
+## Balena — When Does It Make Sense?
+
+WebMACS includes its own OTA update system (see [OTA Updates](../guide/ota.md)) which is ideal for **single devices or small fleets**.
+
+[Balena](https://www.balena.io/) can be interesting if you:
+
+- Manage **50+ devices** across multiple locations
+- Need fleet-wide rollouts with staged canary deployments
+- Want delta updates (only changed layers) to save bandwidth
+- Need a cloud dashboard for remote device management
+
+| | WebMACS OTA | Balena |
+|---|---|---|
+| **Cost** | Free (GitHub Actions) | Paid (after 10 devices) |
+| **Offline** | ✅ Full offline support | ❌ Requires cloud connection |
+| **Dependencies** | Docker only | Balena OS + account |
+| **Control** | Full — your code, your infra | Vendor lock-in |
+| **Ideal for** | 1–50 devices | 50+ device fleets |
+
+Since WebMACS runs in Docker containers, migrating to Balena later requires **no code changes** — only the deployment layer changes.
 
 ---
 

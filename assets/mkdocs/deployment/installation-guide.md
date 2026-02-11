@@ -20,9 +20,11 @@ Docker and Docker Compose are installed automatically by the installation script
 
 ## Installation
 
-### Option A — Automated Install (Recommended)
+### Option A — Automated Install with `scripts/install.sh` (Recommended)
 
-You will receive a **WebMACS update bundle** (`.tar.gz` file) from your system integrator. Copy it to the device via USB stick or SCP.
+The easiest way to install WebMACS is the install script in the `scripts/` directory. It handles everything automatically — Docker, credentials, services, and auto-start.
+
+You will receive a **WebMACS update bundle** (`.tar.gz` file) from your system integrator or download it from [GitHub Releases](https://github.com/stefanposs/webmacs/releases).
 
 ```bash
 # Copy the bundle to the device (from your workstation)
@@ -32,7 +34,7 @@ scp webmacs-update-2.0.0.tar.gz pi@<device-ip>:/tmp/
 ssh pi@<device-ip>
 
 # Run the installer
-sudo bash /tmp/install.sh /tmp/webmacs-update-2.0.0.tar.gz
+sudo bash scripts/install.sh /tmp/webmacs-update-2.0.0.tar.gz
 ```
 
 The installer will:

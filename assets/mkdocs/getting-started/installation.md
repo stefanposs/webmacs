@@ -1,42 +1,83 @@
 # Installation
 
-## Prerequisites
+## Two Deployment Paths
 
-| Tool | Version | Purpose |
+| Path | Target Audience | Method |
 |---|---|---|
-| **Docker** | 24+ | Container runtime |
-| **Docker Compose** | v2+ | Multi-container orchestration |
-| **Git** | 2.x | Source control |
-| **just** | 1.x | Task runner *(optional, recommended)* |
+| **Production (RevPi / Server)** | Operators, customers | `scripts/install.sh` — fully automated |
+| **Development (local)** | Developers | `docker compose up` or local services |
 
-For local development without Docker you also need:
-
-| Tool | Version | Purpose |
-|---|---|---|
-| **Python** | 3.14+ | Backend & Controller |
-| **Node.js** | 22+ | Frontend build |
-| **PostgreSQL** | 17+ | Database |
+!!! tip "For most users"
+    The **easiest way** to install and run WebMACS is the `install.sh` script in the `scripts/` directory.
+    It handles Docker installation, credential generation, and service startup — no manual setup required.
 
 ---
 
-## Clone the Repository
+## Production Installation (Recommended)
+
+### Using `scripts/install.sh`
+
+The install script is designed for **Revolution Pi, Raspberry Pi, or any Debian/Ubuntu server**.
+It performs a complete, hands-free installation:
 
 ```bash
-git clone https://github.com/stefanposs/webmacs.git
-cd webmacs
+# On the target device:
+sudo bash scripts/install.sh webmacs-update-2.0.0.tar.gz
 ```
 
----
+**What the script does (in order):**
 
-## Docker (Recommended)
+1. Installs Docker + Docker Compose (if missing)
+2. Creates `/opt/webmacs` with an `updates/` directory structure
+3. Generates a secure `.env` file with random `SECRET_KEY`, `DB_PASSWORD`, and admin password
+4. Extracts and loads Docker images from the bundle (SHA-256 verified)
+5. Starts all 4 containers via `docker-compose.prod.yml`
+6. Creates a **systemd service** (`webmacs.service`) for auto-start on boot
 
-The fastest way to run WebMACS:
+!!! danger "Save Your Credentials"
+    The admin password is shown **only once** during installation.
+    It is also stored in `/opt/webmacs/.env`.
+
+After installation, open `http://<device-ip>` in a browser and log in.
+
+### Using `scripts/build-update-bundle.sh`
+
+Developers use this script to **create the `.tar.gz` update bundle** that `install.sh` consumes:
 
 ```bash
-# Copy environment defaults
-cp .env.example .env
+./scripts/build-update-bundle.sh 2.1.0
+# Output: dist/webmacs-update-2.1.0.tar.gz
+```
 
-# Build & start all four services
+**What the script does:**
+
+1. Builds all Docker images via `docker compose build --no-cache`
+2. Tags images with the version number
+3. Exports images to a single `images.tar`
+4. Computes SHA-256 checksum
+5. Creates `manifest.json` with version, checksum, and image list
+6. Packages everything into a `.tar.gz` bundle
+
+The resulting bundle is fully self-contained — it can be deployed to an airgapped device via USB stick.
+
+!!! info "CI/CD Alternative"
+    Instead of building locally, push a git tag (`v2.1.0`) and GitHub Actions builds a multi-arch bundle automatically.
+    See [OTA Updates](../guide/ota.md) for details.
+
+---
+
+## Development Setup
+
+!!! note "Docker Compose for Development Only"
+    The `docker-compose.yml` in the project root is intended for **local development**.
+    For production deployments, always use `scripts/install.sh` with the production compose file.
+
+### Docker (Full Stack)
+
+The fastest way to spin up the entire stack locally:
+
+```bash
+cp .env.example .env
 docker compose up --build -d
 ```
 
@@ -55,9 +96,18 @@ Verify everything is healthy:
 docker compose ps
 ```
 
----
+### Local Services (Without Docker)
 
-## Local Development Setup
+For faster iteration without rebuilding containers:
+
+### Prerequisites (Development)
+
+| Tool | Version | Purpose |
+|---|---|---|
+| **Python** | 3.13+ | Backend & Controller |
+| **Node.js** | 22+ | Frontend build |
+| **PostgreSQL** | 17+ | Database |
+| **just** | 1.x | Task runner *(optional, recommended)* |
 
 ### Backend
 
