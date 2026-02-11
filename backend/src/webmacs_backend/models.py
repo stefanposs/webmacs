@@ -1,13 +1,23 @@
 """SQLAlchemy ORM models."""
 
+from __future__ import annotations
+
 import datetime
 import uuid
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from webmacs_backend.database import Base
-from webmacs_backend.enums import EventType, LoggingType, StatusType
+from webmacs_backend.enums import (
+    EventType,
+    LoggingType,
+    RuleActionType,
+    RuleOperator,
+    StatusType,
+    UpdateStatus,
+    WebhookDeliveryStatus,
+)
 
 
 class User(Base):
@@ -41,7 +51,7 @@ class Event(Base):
     max_value: Mapped[float] = mapped_column(Float, nullable=False)
     unit: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[EventType] = mapped_column(Enum(EventType), nullable=False)
-    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
 
     # Relationships
     user: Mapped[User] = relationship(back_populates="events")
@@ -58,7 +68,7 @@ class Experiment(Base):
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     started_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), default=func.now())
     stopped_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
 
     # Relationships
     user: Mapped[User] = relationship(back_populates="experiments")
@@ -73,9 +83,14 @@ class Datapoint(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
     value: Mapped[float] = mapped_column(Float, nullable=False)
-    timestamp: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    event_public_id: Mapped[str] = mapped_column(String, ForeignKey("events.public_id"))
-    experiment_public_id: Mapped[str | None] = mapped_column(String, ForeignKey("experiments.public_id"), nullable=True)
+    timestamp: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    event_public_id: Mapped[str] = mapped_column(String, ForeignKey("events.public_id"), index=True)
+    experiment_public_id: Mapped[str | None] = mapped_column(
+        String,
+        ForeignKey("experiments.public_id"),
+        nullable=True,
+        index=True,
+    )
 
     # Relationships
     event: Mapped[Event] = relationship(back_populates="datapoints")
@@ -102,8 +117,106 @@ class LogEntry(Base):
     content: Mapped[str] = mapped_column(String(500), nullable=False)
     logging_type: Mapped[LoggingType | None] = mapped_column(Enum(LoggingType), nullable=True)
     status_type: Mapped[StatusType] = mapped_column(Enum(StatusType), default=StatusType.unread)
-    created_on: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+    created_on: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        index=True,
+    )
     user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
 
     # Relationships
     user: Mapped[User] = relationship(back_populates="log_entries")
+
+
+class Webhook(Base):
+    """Webhook subscription — delivers payloads to external URLs on events."""
+
+    __tablename__ = "webhooks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    url: Mapped[str] = mapped_column(String(2048), nullable=False)
+    secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    events: Mapped[str] = mapped_column(Text, nullable=False)  # JSON array of WebhookEventType values
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+
+    # Relationships
+    user: Mapped[User] = relationship()
+    deliveries: Mapped[list[WebhookDelivery]] = relationship(back_populates="webhook", cascade="all, delete-orphan")
+
+
+class WebhookDelivery(Base):
+    """Record of a single webhook delivery attempt (including dead letters)."""
+
+    __tablename__ = "webhook_deliveries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    webhook_id: Mapped[int] = mapped_column(Integer, ForeignKey("webhooks.id"), nullable=False, index=True)
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    payload: Mapped[str] = mapped_column(Text, nullable=False)  # JSON payload
+    status: Mapped[WebhookDeliveryStatus] = mapped_column(
+        Enum(WebhookDeliveryStatus), default=WebhookDeliveryStatus.pending
+    )
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    response_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_on: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        index=True,
+    )
+    delivered_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Relationships
+    webhook: Mapped[Webhook] = relationship(back_populates="deliveries")
+
+
+class Rule(Base):
+    """Rule model — evaluates incoming datapoints against a condition and triggers actions."""
+
+    __tablename__ = "rules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    event_public_id: Mapped[str] = mapped_column(String, ForeignKey("events.public_id"), nullable=False, index=True)
+    operator: Mapped[RuleOperator] = mapped_column(Enum(RuleOperator), nullable=False)
+    threshold: Mapped[float] = mapped_column(Float, nullable=False)
+    threshold_high: Mapped[float | None] = mapped_column(Float, nullable=True)  # upper bound for between/not_between
+    action_type: Mapped[RuleActionType] = mapped_column(Enum(RuleActionType), nullable=False)
+    webhook_event_type: Mapped[str | None] = mapped_column(String(100), nullable=True)  # WebhookEventType value
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    cooldown_seconds: Mapped[int] = mapped_column(Integer, default=60)
+    last_triggered_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+
+    # Relationships
+    event: Mapped[Event] = relationship()
+    user: Mapped[User] = relationship()
+
+
+class FirmwareUpdate(Base):
+    """Firmware update record — tracks OTA update lifecycle."""
+
+    __tablename__ = "firmware_updates"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    version: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    changelog: Mapped[str | None] = mapped_column(Text, nullable=True)
+    file_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    file_hash_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    file_size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[UpdateStatus] = mapped_column(Enum(UpdateStatus), default=UpdateStatus.pending, index=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    started_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+
+    # Relationships
+    user: Mapped[User] = relationship()

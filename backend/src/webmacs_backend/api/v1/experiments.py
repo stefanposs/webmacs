@@ -1,12 +1,14 @@
 """Experiment endpoints."""
 
+from __future__ import annotations
+
 import csv
 import datetime
 import io
 import uuid
 from collections.abc import Generator
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 
@@ -20,6 +22,7 @@ from webmacs_backend.schemas import (
     PaginatedResponse,
     StatusResponse,
 )
+from webmacs_backend.services.log_service import create_log
 
 router = APIRouter()
 
@@ -28,8 +31,8 @@ router = APIRouter()
 async def list_experiments(
     db: DbSession,
     current_user: CurrentUser,
-    page: int = 1,
-    page_size: int = 25,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[ExperimentResponse]:
     return await paginate(db, Experiment, ExperimentResponse, page=page, page_size=page_size)
 
@@ -43,6 +46,7 @@ async def create_experiment(data: ExperimentCreate, db: DbSession, current_user:
             user_public_id=current_user.public_id,
         )
     )
+    await create_log(db, f"Experiment '{data.name}' started.", current_user.public_id)
     return StatusResponse(status="success", message="Experiment successfully created.")
 
 
@@ -66,6 +70,7 @@ async def update_experiment(
 async def stop_experiment(public_id: str, db: DbSession, current_user: CurrentUser) -> StatusResponse:
     exp = await get_or_404(db, Experiment, public_id, entity_name="Experiment")
     exp.stopped_on = datetime.datetime.now(datetime.UTC)
+    await create_log(db, f"Experiment '{exp.name}' stopped.", current_user.public_id)
     return StatusResponse(status="success", message="Experiment successfully stopped.")
 
 

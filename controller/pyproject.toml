@@ -2,7 +2,7 @@
 name = "webmacs-controller"
 version = "2.0.0"
 description = "WebMACS IoT Controller - Async sensor/actuator management"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 authors = [{ name = "Stefan Poß" }]
 dependencies = [
     "httpx>=0.28.0",

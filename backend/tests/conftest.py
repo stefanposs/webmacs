@@ -8,16 +8,21 @@ Strategy
 - auth_headers via create_access_token → no HTTP round-trip for every test
 """
 
-from collections.abc import AsyncGenerator
+
+from typing import TYPE_CHECKING
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from webmacs_backend.database import Base, get_db
+from webmacs_backend.enums import EventType, RuleActionType, RuleOperator, UpdateStatus
 from webmacs_backend.main import create_app
-from webmacs_backend.models import Event, EventType, User
+from webmacs_backend.models import Event, FirmwareUpdate, Rule, User, Webhook
 from webmacs_backend.security import create_access_token, hash_password
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 # ---------------------------------------------------------------------------
 # In-memory SQLite for tests (requires `aiosqlite` in dev deps)
@@ -128,6 +133,25 @@ async def sample_event(db_session: AsyncSession, admin_user: User) -> Event:
 
 
 @pytest_asyncio.fixture
+async def sample_webhook(db_session: AsyncSession, admin_user: User) -> Webhook:
+    """Insert a sample webhook subscription."""
+    import json
+
+    wh = Webhook(
+        public_id="wh-test-001",
+        url="https://example.com/hook",
+        secret="test-secret-123",  # noqa: S106
+        events=json.dumps(["sensor.threshold_exceeded"]),
+        enabled=True,
+        user_public_id=admin_user.public_id,
+    )
+    db_session.add(wh)
+    await db_session.commit()
+    await db_session.refresh(wh)
+    return wh
+
+
+@pytest_asyncio.fixture
 async def second_event(db_session: AsyncSession, admin_user: User) -> Event:
     """A second event — needed to verify /latest returns one row per event."""
     event = Event(
@@ -143,3 +167,40 @@ async def second_event(db_session: AsyncSession, admin_user: User) -> Event:
     await db_session.commit()
     await db_session.refresh(event)
     return event
+
+
+@pytest_asyncio.fixture
+async def sample_rule(db_session: AsyncSession, admin_user: User, sample_event: Event) -> Rule:
+    """Insert a sample rule — fires when temperature > 100."""
+    rule = Rule(
+        public_id="rule-temp-001",
+        name="High Temperature Alert",
+        event_public_id=sample_event.public_id,
+        operator=RuleOperator.gt,
+        threshold=100.0,
+        action_type=RuleActionType.webhook,
+        webhook_event_type="sensor.threshold_exceeded",
+        enabled=True,
+        cooldown_seconds=60,
+        user_public_id=admin_user.public_id,
+    )
+    db_session.add(rule)
+    await db_session.commit()
+    await db_session.refresh(rule)
+    return rule
+
+
+@pytest_asyncio.fixture
+async def sample_firmware_update(db_session: AsyncSession, admin_user: User) -> FirmwareUpdate:
+    """Insert a pending firmware update record."""
+    fw = FirmwareUpdate(
+        public_id="fw-update-001",
+        version="2.1.0",
+        changelog="Bug fixes and improvements",
+        status=UpdateStatus.pending,
+        user_public_id=admin_user.public_id,
+    )
+    db_session.add(fw)
+    await db_session.commit()
+    await db_session.refresh(fw)
+    return fw

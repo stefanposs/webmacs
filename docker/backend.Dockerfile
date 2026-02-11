@@ -1,5 +1,5 @@
 # Backend Dockerfile - multi-stage build
-FROM python:3.14-rc-slim AS base
+FROM python:3.13-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

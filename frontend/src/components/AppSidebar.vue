@@ -37,6 +37,22 @@
       </router-link>
 
       <template v-if="authStore.isAdmin">
+        <div class="sidebar-section-label">Automation</div>
+        <router-link to="/rules" class="sidebar-link" active-class="sidebar-link--active">
+          <i class="pi pi-bolt" />
+          <span>Rules</span>
+        </router-link>
+
+        <div class="sidebar-section-label">System</div>
+        <router-link to="/webhooks" class="sidebar-link" active-class="sidebar-link--active">
+          <i class="pi pi-link" />
+          <span>Webhooks</span>
+        </router-link>
+        <router-link to="/ota" class="sidebar-link" active-class="sidebar-link--active">
+          <i class="pi pi-cloud-download" />
+          <span>OTA Updates</span>
+        </router-link>
+
         <div class="sidebar-section-label">Admin</div>
         <router-link to="/users" class="sidebar-link" active-class="sidebar-link--active">
           <i class="pi pi-users" />

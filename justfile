@@ -135,6 +135,10 @@ status:
 restart service:
     docker compose restart {{service}}
 
+# Build OTA update bundle for customer deployment
+bundle version:
+    ./scripts/build-update-bundle.sh {{version}}
+
 # ============================================================================
 # Documentation
 # ============================================================================

@@ -1,5 +1,7 @@
 """Security utilities — password hashing, token creation/decoding."""
 
+from __future__ import annotations
+
 import datetime
 from dataclasses import dataclass
 

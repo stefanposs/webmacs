@@ -1,5 +1,6 @@
 """TimescaleDB repository stub — placeholder for future hypertable-based storage.
 
+from __future__ import annotations
 TimescaleDB extends PostgreSQL with automatic time-series partitioning (hypertables),
 continuous aggregates, and compression policies. This stub uses the same SQLAlchemy
 backend but is the designated extension point for:
@@ -10,6 +11,8 @@ backend but is the designated extension point for:
 
 To activate: set STORAGE_BACKEND=timescale in environment variables.
 """
+
+from __future__ import annotations
 
 from webmacs_backend.repositories.sqlalchemy_repo import (
     SQLAlchemyDatapointRepository,

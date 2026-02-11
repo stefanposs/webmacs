@@ -97,9 +97,14 @@ export function useRealtimeDatapoints(pollIntervalMs = 1500): RealtimeDatapoints
     // Start with an HTTP fetch so we always have data
     fetchLatestHttp()
 
-    // Try WebSocket
+    // Try WebSocket (requires JWT token for authentication)
+    const token = localStorage.getItem('access_token')
+    const wsUrl = token
+      ? `/ws/datapoints/stream?token=${encodeURIComponent(token)}`
+      : '/ws/datapoints/stream'
+
     wsClient = new WebSocketClient({
-      url: '/ws/datapoints/stream',
+      url: wsUrl,
       onMessage: handleWsMessage,
       onStateChange: handleWsStateChange,
     })

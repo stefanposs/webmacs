@@ -124,13 +124,24 @@ uv run mypy backend/src controller/src
 ├── repository.py        # Generic CRUD (paginate, get_or_404, delete, update)
 ├── security.py          # JWT create/decode, bcrypt hash/verify
 ├── dependencies.py      # DI: CurrentUser, AdminUser, DbSession
+├── middleware/
+│   └── logging.py       # Structured request logging
+├── services/
+│   ├── webhook_service.py  # Async webhook delivery + HMAC signing
+│   ├── rule_engine.py      # Rule evaluation on datapoint insert
+│   └── ota_service.py      # Firmware update state machine
+├── ws/
+│   └── telemetry.py     # WebSocket broadcast hub
 └── api/v1/
     ├── auth.py          # POST /login, /logout — GET /me
-    ├── users.py         # CRUD /users (admin-only list & delete)
+    ├── users.py         # CRUD /users (admin-only create, list & delete)
     ├── events.py        # CRUD /events (sensor, actuator, range, …)
-    ├── experiments.py   # CRUD /experiments + POST /stop
+    ├── experiments.py   # CRUD /experiments + POST /stop + GET /export/csv
     ├── datapoints.py    # CRUD + POST /batch (bulk insert) + GET /latest
-    └── logging.py       # CRUD /logging (no delete)
+    ├── logging.py       # CRUD /logging (no delete)
+    ├── webhooks.py      # CRUD /webhooks + GET /deliveries
+    ├── rules.py         # CRUD /rules (admin-only)
+    └── ota.py           # CRUD /ota + POST /apply, /rollback + GET /check
 ```
 
 **Key patterns:**
@@ -177,7 +188,10 @@ uv run mypy backend/src controller/src
 │   ├── auth.ts
 │   ├── events.ts
 │   ├── experiments.ts
-│   └── datapoints.ts
+│   ├── datapoints.ts
+│   ├── webhooks.ts      # Webhook CRUD + deliveries
+│   ├── rules.ts         # Rule CRUD store
+│   └── ota.ts           # OTA update store
 ├── composables/         # Reusable composition functions
 │   ├── useNotification.ts   # PrimeVue Toast wrapper
 │   ├── usePolling.ts        # Interval polling with auto cleanup
@@ -192,7 +206,10 @@ uv run mypy backend/src controller/src
 │   ├── ExperimentsView.vue
 │   ├── DatapointsView.vue
 │   ├── LogsView.vue
-│   └── UsersView.vue
+│   ├── UsersView.vue    # User CRUD with add user dialog
+│   ├── WebhooksView.vue # Webhook subscriptions + delivery log
+│   ├── RulesView.vue    # Automation rules management
+│   └── OtaView.vue      # Firmware update management
 └── assets/styles/
     ├── main.scss        # CSS custom properties design system
     └── _views-shared.scss  # Shared view styles + animations
@@ -215,27 +232,58 @@ uv run mypy backend/src controller/src
 | `POST` | `/api/v1/auth/login` | — | Authenticate, returns JWT |
 | `POST` | `/api/v1/auth/logout` | Bearer | Blacklist current token |
 | `GET` | `/api/v1/auth/me` | Bearer | Current user profile |
+| **Users** | | | |
+| `GET` | `/api/v1/users` | Admin | List users (paginated) |
+| `POST` | `/api/v1/users` | Admin | Create user |
+| `GET` | `/api/v1/users/{id}` | Bearer | Get user by public ID |
+| `PUT` | `/api/v1/users/{id}` | Bearer | Update user (own profile or admin) |
+| `DELETE` | `/api/v1/users/{id}` | Admin | Delete user |
+| **Events** | | | |
 | `GET` | `/api/v1/events` | Bearer | List events (paginated) |
 | `POST` | `/api/v1/events` | Bearer | Create event |
 | `GET` | `/api/v1/events/{id}` | Bearer | Get event by public ID |
 | `PUT` | `/api/v1/events/{id}` | Bearer | Update event |
 | `DELETE` | `/api/v1/events/{id}` | Bearer | Delete event |
+| **Experiments** | | | |
 | `GET` | `/api/v1/experiments` | Bearer | List experiments (paginated) |
 | `POST` | `/api/v1/experiments` | Bearer | Create / start experiment |
-| `POST` | `/api/v1/experiments/{id}/stop` | Bearer | Stop experiment |
+| `PUT` | `/api/v1/experiments/{id}/stop` | Bearer | Stop experiment |
+| `GET` | `/api/v1/experiments/{id}/export/csv` | Bearer | Export experiment data as CSV |
 | `DELETE` | `/api/v1/experiments/{id}` | Bearer | Delete experiment |
+| **Datapoints** | | | |
 | `GET` | `/api/v1/datapoints` | Bearer | List datapoints (paginated) |
+| `POST` | `/api/v1/datapoints` | Bearer | Create single datapoint |
 | `POST` | `/api/v1/datapoints/batch` | Bearer | Bulk insert datapoints |
 | `GET` | `/api/v1/datapoints/latest` | Bearer | Latest value per event |
 | `DELETE` | `/api/v1/datapoints/{id}` | Bearer | Delete datapoint |
+| **Logging** | | | |
 | `GET` | `/api/v1/logging` | Bearer | List log entries (paginated) |
 | `POST` | `/api/v1/logging` | Bearer | Create log entry |
-| `PUT` | `/api/v1/logging/{id}` | Bearer | Update log entry |
-| `GET` | `/api/v1/users` | Admin | List users (paginated) |
-| `POST` | `/api/v1/users` | Bearer | Create user |
-| `PUT` | `/api/v1/users/{id}` | Bearer | Update user |
-| `DELETE` | `/api/v1/users/{id}` | Admin | Delete user |
+| `PUT` | `/api/v1/logging/{id}` | Bearer | Update log entry (mark read) |
+| **Webhooks** | | | |
+| `GET` | `/api/v1/webhooks` | Admin | List webhook subscriptions |
+| `POST` | `/api/v1/webhooks` | Admin | Create webhook |
+| `GET` | `/api/v1/webhooks/{id}` | Admin | Get webhook by public ID |
+| `PUT` | `/api/v1/webhooks/{id}` | Admin | Update webhook |
+| `DELETE` | `/api/v1/webhooks/{id}` | Admin | Delete webhook |
+| `GET` | `/api/v1/webhooks/{id}/deliveries` | Admin | List webhook delivery log |
+| **Rules** | | | |
+| `GET` | `/api/v1/rules` | Admin | List automation rules |
+| `POST` | `/api/v1/rules` | Admin | Create rule |
+| `GET` | `/api/v1/rules/{id}` | Admin | Get rule by public ID |
+| `PUT` | `/api/v1/rules/{id}` | Admin | Update rule |
+| `DELETE` | `/api/v1/rules/{id}` | Admin | Delete rule |
+| **OTA Updates** | | | |
+| `GET` | `/api/v1/ota` | Admin | List firmware updates |
+| `POST` | `/api/v1/ota` | Admin | Create firmware update |
+| `GET` | `/api/v1/ota/{id}` | Admin | Get update by public ID |
+| `DELETE` | `/api/v1/ota/{id}` | Admin | Delete firmware update |
+| `POST` | `/api/v1/ota/{id}/apply` | Admin | Apply firmware update |
+| `POST` | `/api/v1/ota/{id}/rollback` | Admin | Rollback firmware update |
+| `GET` | `/api/v1/ota/check` | Admin | Check for available updates |
+| **System** | | | |
 | `GET` | `/health` | — | Health check |
+| `WS` | `/ws/telemetry` | Bearer | Real-time sensor data stream |
 
 Interactive docs: **http://localhost:8000/docs** (Swagger UI) or **/redoc** (ReDoc)
 
@@ -253,9 +301,12 @@ DB_PASSWORD=webmacs_dev_password
 SECRET_KEY=change-me-in-production
 
 # Initial admin (seeded on first start)
-ADMIN_EMAIL=admin@webmacs.io
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
+INITIAL_ADMIN_EMAIL=admin@webmacs.io
+INITIAL_ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=admin123
+
+# Environment (development | production)
+ENV=development
 
 # Controller
 WEBMACS_ENV=development

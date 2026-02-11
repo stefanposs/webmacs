@@ -4,7 +4,7 @@ version = "2.0.0"
 description = "WebMACS - Web-based Monitoring and Control System for IoT experiments (Wirbelschicht)"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 authors = [{ name = "Stefan Poß" }]
 
 [tool.uv.workspace]
@@ -26,7 +26,7 @@ dev = [
 ]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py313"
 line-length = 120
 src = ["backend/src", "controller/src"]
 

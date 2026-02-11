@@ -10,11 +10,14 @@ Covers:
 - Auth guard              → all endpoints require a token
 """
 
+from typing import TYPE_CHECKING
+
 import pytest
-from httpx import AsyncClient
 
-from webmacs_backend.models import Event
+if TYPE_CHECKING:
+    from httpx import AsyncClient
 
+    from webmacs_backend.models import Event
 
 # ---------------------------------------------------------------------------
 # Batch create

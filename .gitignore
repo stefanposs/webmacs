@@ -61,3 +61,8 @@ logs/
 # Database
 *.db
 *.sqlite3
+
+# mkdocs
+docs/*
+!docs/.gitkeep
+

@@ -77,3 +77,89 @@ export interface LoginResponse {
   public_id: string
   username: string
 }
+
+// Webhook types
+export type WebhookEventType =
+  | 'sensor.threshold_exceeded'
+  | 'sensor.reading'
+  | 'experiment.started'
+  | 'experiment.stopped'
+  | 'system.health_changed'
+
+export interface Webhook {
+  public_id: string
+  url: string
+  events: WebhookEventType[]
+  enabled: boolean
+  created_on: string
+  user_public_id: string
+}
+
+export interface WebhookCreatePayload {
+  url: string
+  secret?: string | null
+  events: WebhookEventType[]
+  enabled: boolean
+}
+
+export interface WebhookUpdatePayload {
+  url?: string
+  secret?: string | null
+  events?: WebhookEventType[]
+  enabled?: boolean
+}
+
+// Rule types
+export type RuleOperator = 'gt' | 'lt' | 'gte' | 'lte' | 'eq' | 'between' | 'not_between'
+export type RuleActionType = 'webhook' | 'log'
+
+export interface Rule {
+  public_id: string
+  name: string
+  event_public_id: string
+  operator: RuleOperator
+  threshold: number
+  threshold_high: number | null
+  action_type: RuleActionType
+  webhook_event_type: string | null
+  enabled: boolean
+  cooldown_seconds: number
+  last_triggered_at: string | null
+  created_on: string
+  user_public_id: string
+}
+
+// OTA types
+export type UpdateStatus =
+  | 'pending'
+  | 'downloading'
+  | 'verifying'
+  | 'applying'
+  | 'completed'
+  | 'failed'
+  | 'rolled_back'
+
+export interface FirmwareUpdate {
+  public_id: string
+  version: string
+  changelog: string | null
+  has_firmware_file: boolean
+  file_hash_sha256: string | null
+  file_size_bytes: number | null
+  status: UpdateStatus
+  error_message: string | null
+  created_on: string
+  started_on: string | null
+  completed_on: string | null
+  user_public_id: string
+}
+
+export interface UpdateCheckResponse {
+  current_version: string
+  latest_version: string | null
+  update_available: boolean
+  github_latest_version: string | null
+  github_download_url: string | null
+  github_release_url: string | null
+  github_error: string | null
+}

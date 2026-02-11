@@ -1,5 +1,7 @@
 """Controller application orchestrator - manages all async service loops."""
 
+from __future__ import annotations
+
 import asyncio
 import signal
 from collections.abc import Callable, Coroutine

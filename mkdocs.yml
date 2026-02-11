@@ -55,9 +55,15 @@ nav:
   - User Guide:
     - Overview: guide/index.md
     - Dashboard: guide/dashboard.md
-    - Experiments: guide/experiments.md
     - Events & Sensors: guide/events.md
+    - Experiments: guide/experiments.md
+    - Datapoints: guide/datapoints.md
+    - Automation Rules: guide/rules.md
+    - Webhooks: guide/webhooks.md
     - CSV Export: guide/csv-export.md
+    - OTA Updates: guide/ota.md
+    - Logs: guide/logs.md
+    - Users & Auth: guide/users.md
   - Architecture:
     - System Overview: architecture/overview.md
     - Backend (FastAPI): architecture/backend.md
@@ -74,6 +80,7 @@ nav:
     - Testing: development/testing.md
     - Code Style: development/code-style.md
   - Deployment:
+    - Installation Guide: deployment/installation-guide.md
     - Docker: deployment/docker.md
     - Production: deployment/production.md
     - Environment Variables: deployment/env-vars.md

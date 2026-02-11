@@ -1,5 +1,7 @@
 """Rule engine - manages valve interval cycling logic."""
 
+from __future__ import annotations
+
 import asyncio
 from typing import TYPE_CHECKING
 
