@@ -197,8 +197,8 @@ export interface DashboardWidgetCreatePayload {
   widget_type: WidgetType
   title: string
   event_public_id?: string | null
-  x: number
-  y: number
+  x?: number
+  y?: number
   w: number
   h: number
   config_json?: string | null

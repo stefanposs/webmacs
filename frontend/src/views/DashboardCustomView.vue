@@ -13,7 +13,7 @@
           <i :class="editing ? 'pi pi-lock' : 'pi pi-pencil'" />
           {{ editing ? 'Lock' : 'Edit' }}
         </button>
-        <button v-if="editing" class="btn-primary" @click="showAddWidget = true">
+        <button v-if="editing" class="btn-primary" @click="openAddDialog">
           <i class="pi pi-plus" /> Add Widget
         </button>
       </div>
@@ -29,8 +29,8 @@
       <p>No widgets yet. Click "Edit" then "Add Widget" to get started.</p>
     </div>
 
-    <!-- Widget grid (CSS Grid fallback — no dependency needed) -->
-    <div v-else class="widget-grid">
+    <!-- Widget grid -->
+    <div v-else class="widget-grid" :class="{ 'widget-grid--editing': editing }">
       <div
         v-for="widget in store.currentDashboard.widgets"
         :key="widget.public_id"
@@ -47,73 +47,166 @@
       </div>
     </div>
 
-    <!-- Add widget dialog -->
-    <div v-if="showAddWidget" class="modal-overlay" @click.self="showAddWidget = false">
-      <div class="modal">
-        <h2>Add Widget</h2>
-        <p v-if="editError" class="error-msg">{{ editError }}</p>
-        <form @submit.prevent="handleAddWidget">
-          <label>Type</label>
-          <select v-model="wType" required>
-            <option value="line_chart">Line Chart</option>
-            <option value="gauge">Gauge</option>
-            <option value="stat_card">Stat Card</option>
-            <option value="actuator_toggle">Actuator Toggle</option>
-          </select>
+    <!-- ─── Add Widget Dialog ────────────────────────────────────── -->
+    <Transition name="modal">
+      <div v-if="showAddWidget" class="modal-overlay" @click.self="showAddWidget = false">
+        <div class="modal modal--wide">
+          <h2><i class="pi pi-plus-circle" /> Add Widget</h2>
+          <p v-if="editError" class="error-msg">{{ editError }}</p>
 
-          <label>Title</label>
-          <input v-model="wTitle" type="text" placeholder="Widget title" required maxlength="255" />
+          <form @submit.prevent="handleAddWidget">
+            <!-- Widget Type Cards -->
+            <div class="form-section">
+              <label class="section-label">Widget Type</label>
+              <div class="type-cards">
+                <button
+                  v-for="wt in widgetTypes"
+                  :key="wt.value"
+                  type="button"
+                  class="type-card"
+                  :class="{ 'type-card--selected': wType === wt.value }"
+                  @click="wType = wt.value"
+                >
+                  <i :class="wt.icon" class="type-card__icon" />
+                  <span class="type-card__label">{{ wt.label }}</span>
+                  <span class="type-card__desc">{{ wt.description }}</span>
+                </button>
+              </div>
+            </div>
 
-          <label>Event</label>
-          <select v-model="wEvent">
-            <option value="">-- none --</option>
-            <option v-for="ev in eventStore.events" :key="ev.public_id" :value="ev.public_id">
-              {{ ev.name }} ({{ ev.type }})
-            </option>
-          </select>
+            <!-- Config -->
+            <div class="form-section">
+              <label class="section-label">Configuration</label>
+              <label>Title</label>
+              <input v-model="wTitle" type="text" placeholder="e.g. Temperature over Time" required maxlength="255" />
 
-          <div class="grid-fields">
-            <div><label>W</label><input v-model.number="wW" type="number" min="1" max="12" /></div>
-            <div><label>H</label><input v-model.number="wH" type="number" min="1" max="12" /></div>
-          </div>
+              <label>Data Source (Event)</label>
+              <select v-model="wEvent">
+                <option value="">-- no event linked --</option>
+                <option v-for="ev in eventStore.events" :key="ev.public_id" :value="ev.public_id">
+                  {{ ev.name }} ({{ ev.type }})
+                </option>
+              </select>
+            </div>
 
-          <div class="modal-actions">
-            <button type="button" class="btn-secondary" @click="showAddWidget = false">Cancel</button>
-            <button type="submit" class="btn-primary">Add</button>
-          </div>
-        </form>
+            <!-- Size Presets -->
+            <div class="form-section">
+              <label class="section-label">Size</label>
+              <div class="size-presets">
+                <button
+                  v-for="sp in sizePresets"
+                  :key="sp.label"
+                  type="button"
+                  class="size-preset"
+                  :class="{ 'size-preset--selected': wW === sp.w && wH === sp.h }"
+                  @click="wW = sp.w; wH = sp.h"
+                >
+                  <div class="size-preset__preview">
+                    <div class="size-preset__block" :style="previewBlockStyle(sp.w, sp.h)" />
+                  </div>
+                  <span class="size-preset__label">{{ sp.label }}</span>
+                  <span class="size-preset__dims">{{ sp.w }} &times; {{ sp.h }}</span>
+                </button>
+              </div>
+
+              <!-- Live Preview -->
+              <div class="grid-preview">
+                <div class="grid-preview__label">Preview (12-column grid)</div>
+                <div class="grid-preview__grid">
+                  <div v-for="r in 4" :key="r" class="grid-preview__row">
+                    <div
+                      v-for="c in 12"
+                      :key="c"
+                      class="grid-preview__cell"
+                      :class="{ 'grid-preview__cell--active': c <= wW && r <= wH }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" @click="showAddWidget = false">Cancel</button>
+              <button type="submit" class="btn-primary" :disabled="!wTitle.trim()">
+                <i class="pi pi-plus" /> Add Widget
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </Transition>
 
-    <!-- Edit widget dialog -->
-    <div v-if="editingWidget" class="modal-overlay" @click.self="editingWidget = null">
-      <div class="modal">
-        <h2>Edit Widget <span class="widget-type-badge">{{ editingWidget.widget_type.replace('_', ' ') }}</span></h2>
-        <p v-if="editError" class="error-msg">{{ editError }}</p>
-        <form @submit.prevent="handleEditWidget">
-          <label>Title</label>
-          <input v-model="editTitle" type="text" placeholder="Widget title" required maxlength="255" />
+    <!-- ─── Edit Widget Dialog ───────────────────────────────────── -->
+    <Transition name="modal">
+      <div v-if="editingWidget" class="modal-overlay" @click.self="editingWidget = null">
+        <div class="modal modal--wide">
+          <h2>
+            <i :class="widgetTypeIcon(editingWidget.widget_type)" />
+            Edit Widget
+            <span class="widget-type-badge">{{ editingWidget.widget_type.replace(/_/g, ' ') }}</span>
+          </h2>
+          <p v-if="editError" class="error-msg">{{ editError }}</p>
 
-          <label>Event</label>
-          <select v-model="editEvent">
-            <option value="">-- none --</option>
-            <option v-for="ev in eventStore.events" :key="ev.public_id" :value="ev.public_id">
-              {{ ev.name }} ({{ ev.type }})
-            </option>
-          </select>
+          <form @submit.prevent="handleEditWidget">
+            <div class="form-section">
+              <label class="section-label">Configuration</label>
+              <label>Title</label>
+              <input v-model="editTitle" type="text" placeholder="Widget title" required maxlength="255" />
 
-          <div class="grid-fields">
-            <div><label>W</label><input v-model.number="editW" type="number" min="1" max="12" /></div>
-            <div><label>H</label><input v-model.number="editH" type="number" min="1" max="12" /></div>
-          </div>
+              <label>Data Source (Event)</label>
+              <select v-model="editEvent">
+                <option value="">-- no event linked --</option>
+                <option v-for="ev in eventStore.events" :key="ev.public_id" :value="ev.public_id">
+                  {{ ev.name }} ({{ ev.type }})
+                </option>
+              </select>
+            </div>
 
-          <div class="modal-actions">
-            <button type="button" class="btn-secondary" @click="editingWidget = null">Cancel</button>
-            <button type="submit" class="btn-primary">Save</button>
-          </div>
-        </form>
+            <!-- Size Presets -->
+            <div class="form-section">
+              <label class="section-label">Size</label>
+              <div class="size-presets">
+                <button
+                  v-for="sp in sizePresets"
+                  :key="sp.label"
+                  type="button"
+                  class="size-preset"
+                  :class="{ 'size-preset--selected': editW === sp.w && editH === sp.h }"
+                  @click="editW = sp.w; editH = sp.h"
+                >
+                  <div class="size-preset__preview">
+                    <div class="size-preset__block" :style="previewBlockStyle(sp.w, sp.h)" />
+                  </div>
+                  <span class="size-preset__label">{{ sp.label }}</span>
+                  <span class="size-preset__dims">{{ sp.w }} &times; {{ sp.h }}</span>
+                </button>
+              </div>
+
+              <div class="grid-preview">
+                <div class="grid-preview__label">Preview (12-column grid)</div>
+                <div class="grid-preview__grid">
+                  <div v-for="r in 4" :key="r" class="grid-preview__row">
+                    <div
+                      v-for="c in 12"
+                      :key="c"
+                      class="grid-preview__cell"
+                      :class="{ 'grid-preview__cell--active': c <= editW && r <= editH }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" @click="editingWidget = null">Cancel</button>
+              <button type="submit" class="btn-primary" :disabled="!editTitle.trim()">
+                <i class="pi pi-check" /> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
@@ -122,6 +215,7 @@ import { onMounted, ref, type Component } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDashboardStore } from '@/stores/dashboards'
 import { useEventStore } from '@/stores/events'
+import { useNotification } from '@/composables/useNotification'
 import LineChartWidget from '@/components/widgets/LineChartWidget.vue'
 import GaugeWidget from '@/components/widgets/GaugeWidget.vue'
 import StatCardWidget from '@/components/widgets/StatCardWidget.vue'
@@ -131,22 +225,55 @@ import type { DashboardWidget, WidgetType } from '@/types'
 const route = useRoute()
 const store = useDashboardStore()
 const eventStore = useEventStore()
+const notify = useNotification()
 
 const editing = ref(false)
 const showAddWidget = ref(false)
+const editError = ref<string | null>(null)
+
+// ─── Add Widget State ───────────────────────────────────────────────────
 const wType = ref<WidgetType>('line_chart')
 const wTitle = ref('')
 const wEvent = ref('')
 const wW = ref(4)
 const wH = ref(3)
 
-// Edit-widget state
+// ─── Edit Widget State ──────────────────────────────────────────────────
 const editingWidget = ref<DashboardWidget | null>(null)
 const editTitle = ref('')
 const editEvent = ref('')
 const editW = ref(4)
 const editH = ref(3)
 
+// ─── Widget Type Definitions ────────────────────────────────────────────
+const widgetTypes: { value: WidgetType; label: string; icon: string; description: string }[] = [
+  { value: 'line_chart', label: 'Line Chart', icon: 'pi pi-chart-line', description: 'Time-series data trend' },
+  { value: 'gauge', label: 'Gauge', icon: 'pi pi-gauge', description: 'Live value with arc meter' },
+  { value: 'stat_card', label: 'Stat Card', icon: 'pi pi-hashtag', description: 'Large single number' },
+  { value: 'actuator_toggle', label: 'Toggle', icon: 'pi pi-power-off', description: 'ON/OFF switch control' },
+]
+
+function widgetTypeIcon(type: WidgetType): string {
+  return widgetTypes.find((wt) => wt.value === type)?.icon ?? 'pi pi-box'
+}
+
+// ─── Size Presets ───────────────────────────────────────────────────────
+const sizePresets = [
+  { label: 'Small', w: 3, h: 2 },
+  { label: 'Medium', w: 4, h: 3 },
+  { label: 'Wide', w: 6, h: 3 },
+  { label: 'Large', w: 6, h: 4 },
+  { label: 'Full Width', w: 12, h: 4 },
+]
+
+function previewBlockStyle(w: number, h: number) {
+  return {
+    width: `${(w / 12) * 100}%`,
+    height: `${(h / 4) * 100}%`,
+  }
+}
+
+// ─── Widget Component Map ───────────────────────────────────────────────
 const widgetMap: Record<WidgetType, Component> = {
   line_chart: LineChartWidget,
   gauge: GaugeWidget,
@@ -165,7 +292,16 @@ function gridStyle(widget: DashboardWidget) {
   }
 }
 
-const editError = ref<string | null>(null)
+// ─── Handlers ───────────────────────────────────────────────────────────
+function openAddDialog() {
+  editError.value = null
+  wType.value = 'line_chart'
+  wTitle.value = ''
+  wEvent.value = ''
+  wW.value = 4
+  wH.value = 3
+  showAddWidget.value = true
+}
 
 async function handleAddWidget() {
   const dashId = store.currentDashboard?.public_id
@@ -176,12 +312,11 @@ async function handleAddWidget() {
       widget_type: wType.value,
       title: wTitle.value,
       event_public_id: wEvent.value || null,
-      x: 0,
-      y: 0,
       w: wW.value,
       h: wH.value,
     })
     showAddWidget.value = false
+    notify.success('Widget added', `"${wTitle.value}" has been added to the dashboard.`)
     wTitle.value = ''
     wEvent.value = ''
   } catch {
@@ -192,12 +327,17 @@ async function handleAddWidget() {
 async function handleDeleteWidget(widgetId: string) {
   const dashId = store.currentDashboard?.public_id
   if (!dashId) return
-  if (confirm('Delete this widget?')) {
+  const widget = store.currentDashboard?.widgets.find((w) => w.public_id === widgetId)
+  try {
     await store.deleteWidget(dashId, widgetId)
+    notify.success('Widget removed', widget ? `"${widget.title}" has been deleted.` : undefined)
+  } catch {
+    notify.error('Delete failed', 'Could not remove widget. Please try again.')
   }
 }
 
 function openEditDialog(widget: DashboardWidget) {
+  editError.value = null
   editingWidget.value = widget
   editTitle.value = widget.title
   editEvent.value = widget.event_public_id ?? ''
@@ -218,6 +358,7 @@ async function handleEditWidget() {
       h: editH.value,
     })
     editingWidget.value = null
+    notify.success('Widget updated', `"${editTitle.value}" has been saved.`)
   } catch {
     editError.value = 'Failed to update widget. Please try again.'
   }
@@ -261,11 +402,15 @@ onMounted(() => {
 }
 .btn-back:hover { border-color: #3b82f6; color: #3b82f6; }
 
+/* ─── Widget Grid ──────────────────────────────────────────────────── */
 .widget-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 0.75rem;
   grid-auto-rows: 80px;
+}
+.widget-grid--editing .widget-cell {
+  transition: all 0.3s ease;
 }
 .widget-cell {
   min-height: 0;
@@ -282,6 +427,7 @@ onMounted(() => {
 }
 .empty-state i { font-size: 2rem; }
 
+/* ─── Buttons ──────────────────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -293,8 +439,10 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
   cursor: pointer;
+  transition: background 0.2s;
 }
 .btn-primary:hover { background: #2563eb; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -306,9 +454,11 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
   cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
 }
 .btn-secondary:hover { border-color: #3b82f6; color: #3b82f6; }
 
+/* ─── Modal ────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -324,9 +474,51 @@ onMounted(() => {
   border-radius: 12px;
   padding: 1.5rem;
   min-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
-.modal h2 { color: var(--wm-text, #e2e8f0); margin-bottom: 1rem; font-size: 1.1rem; }
-.modal label { display: block; font-size: 0.85rem; color: var(--wm-text-muted, #94a3b8); margin-bottom: 0.3rem; }
+.modal--wide { min-width: 520px; max-width: 600px; }
+.modal h2 {
+  color: var(--wm-text, #e2e8f0);
+  margin-bottom: 1.25rem;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ─── Modal Transitions ────────────────────────────────────────────── */
+.modal-enter-active { transition: opacity 0.2s ease; }
+.modal-enter-active .modal { transition: transform 0.2s ease, opacity 0.2s ease; }
+.modal-leave-active { transition: opacity 0.15s ease; }
+.modal-leave-active .modal { transition: transform 0.15s ease, opacity 0.15s ease; }
+.modal-enter-from { opacity: 0; }
+.modal-enter-from .modal { transform: scale(0.95); opacity: 0; }
+.modal-leave-to { opacity: 0; }
+.modal-leave-to .modal { transform: scale(0.95); opacity: 0; }
+
+/* ─── Form Sections ────────────────────────────────────────────────── */
+.form-section {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--wm-border, #334155);
+}
+.form-section:last-of-type { border-bottom: none; }
+.section-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--wm-text-muted, #94a3b8);
+  margin-bottom: 0.75rem;
+}
+.modal label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--wm-text-muted, #94a3b8);
+  margin-bottom: 0.3rem;
+}
 .modal input[type="text"],
 .modal input[type="number"],
 .modal select {
@@ -337,15 +529,150 @@ onMounted(() => {
   background: var(--wm-bg, #0f172a);
   color: var(--wm-text, #e2e8f0);
   margin-bottom: 0.75rem;
+  transition: border-color 0.2s;
 }
-.grid-fields {
+.modal input:focus, .modal select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* ─── Widget Type Cards ────────────────────────────────────────────── */
+.type-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.type-card {
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--wm-bg, #0f172a);
+  border: 2px solid var(--wm-border, #334155);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  text-align: center;
+}
+.type-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+.type-card--selected {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+.type-card__icon {
+  font-size: 1.25rem;
+  color: #60a5fa;
+  margin-bottom: 0.15rem;
+}
+.type-card--selected .type-card__icon { color: #3b82f6; }
+.type-card__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--wm-text, #e2e8f0);
+}
+.type-card__desc {
+  font-size: 0.65rem;
+  color: var(--wm-text-muted, #94a3b8);
+  line-height: 1.3;
+}
+
+/* ─── Size Presets ─────────────────────────────────────────────────── */
+.size-presets {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   margin-bottom: 0.75rem;
 }
-.grid-fields > div { flex: 1; }
-.grid-fields input { width: 100%; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.size-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem;
+  min-width: 72px;
+  background: var(--wm-bg, #0f172a);
+  border: 2px solid var(--wm-border, #334155);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.size-preset:hover { border-color: rgba(59, 130, 246, 0.4); }
+.size-preset--selected {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+.size-preset__preview {
+  width: 48px;
+  height: 24px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.size-preset__block {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.size-preset--selected .size-preset__block {
+  background: rgba(59, 130, 246, 0.4);
+  border-color: #3b82f6;
+}
+.size-preset__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--wm-text, #e2e8f0);
+}
+.size-preset__dims {
+  font-size: 0.6rem;
+  color: var(--wm-text-muted, #94a3b8);
+}
+
+/* ─── Grid Preview ─────────────────────────────────────────────────── */
+.grid-preview {
+  margin-top: 0.5rem;
+}
+.grid-preview__label {
+  font-size: 0.7rem;
+  color: var(--wm-text-muted, #94a3b8);
+  margin-bottom: 0.35rem;
+}
+.grid-preview__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.35rem;
+  background: var(--wm-bg, #0f172a);
+  border-radius: 6px;
+  border: 1px solid var(--wm-border, #334155);
+}
+.grid-preview__row {
+  display: flex;
+  gap: 2px;
+}
+.grid-preview__cell {
+  flex: 1;
+  height: 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 2px;
+  transition: background 0.2s, border-color 0.2s;
+  border: 1px solid transparent;
+}
+.grid-preview__cell--active {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* ─── Status ───────────────────────────────────────────────────────── */
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
 .error-msg {
   color: #ef4444;
   font-size: 0.85rem;
@@ -363,7 +690,6 @@ onMounted(() => {
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
   text-transform: capitalize;
-  margin-left: 0.5rem;
-  vertical-align: middle;
+  margin-left: auto;
 }
 </style>
