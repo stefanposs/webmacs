@@ -1,5 +1,5 @@
 <template>
-  <WidgetWrapper :title="widget.title" :editable="editable" @edit="$emit('edit')" @delete="$emit('delete')">
+  <WidgetWrapper :title="widget.title" :editable="editable" :loading="loading" @edit="$emit('edit')" @delete="$emit('delete')">
     <div class="toggle-container">
       <button
         class="toggle-btn"
@@ -20,15 +20,19 @@ import WidgetWrapper from './WidgetWrapper.vue'
 import api from '@/services/api'
 import type { DashboardWidget, Datapoint } from '@/types'
 
-const props = defineProps<{ widget: DashboardWidget; editable?: boolean }>()
+const props = defineProps<{ widget: DashboardWidget; editable?: boolean; timeRangeMinutes?: number }>()
 defineEmits<{ edit: []; delete: [] }>()
 
 const isOn = ref(false)
 const sending = ref(false)
+const loading = ref(true)
 let interval: ReturnType<typeof setInterval> | null = null
 
 async function fetchState() {
-  if (!props.widget.event_public_id) return
+  if (!props.widget.event_public_id) {
+    loading.value = false
+    return
+  }
   try {
     const { data } = await api.post<Record<string, Datapoint[]>>('/datapoints/series', {
       event_public_ids: [props.widget.event_public_id],
@@ -38,18 +42,23 @@ async function fetchState() {
     isOn.value = arr.length > 0 && arr[arr.length - 1].value >= 1
   } catch {
     // ignore
+  } finally {
+    loading.value = false
   }
 }
 
 async function toggle() {
   if (!props.widget.event_public_id || sending.value) return
   sending.value = true
+  const previousState = isOn.value
   try {
     await api.post('/datapoints', {
       value: isOn.value ? 0 : 1,
       event_public_id: props.widget.event_public_id,
     })
     isOn.value = !isOn.value
+  } catch {
+    isOn.value = previousState
   } finally {
     sending.value = false
   }

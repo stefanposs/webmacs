@@ -394,4 +394,5 @@ class DashboardResponse(BaseModel):
 
 class DatapointSeriesRequest(BaseModel):
     event_public_ids: list[str] = Field(min_length=1, max_length=20)
-    minutes: int = Field(default=60, ge=1, le=1440)
+    minutes: int = Field(default=60, ge=1, le=14400)
+    max_points: int = Field(default=500, ge=10, le=2000)

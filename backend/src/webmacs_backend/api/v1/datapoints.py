@@ -180,6 +180,14 @@ async def get_datapoint_series(
     for dp in result.scalars().all():
         if dp.event_public_id in series:
             series[dp.event_public_id].append(DatapointResponse.model_validate(dp))
+    # Downsample to max_points for mini-computer performance
+    for eid in series:
+        points = series[eid]
+        if len(points) > data.max_points:
+            step = len(points) / data.max_points
+            sampled = [points[int(i * step)] for i in range(data.max_points - 1)]
+            sampled.append(points[-1])
+            series[eid] = sampled
     return series
 
 

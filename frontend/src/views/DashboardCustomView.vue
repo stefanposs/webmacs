@@ -19,6 +19,23 @@
       </div>
     </div>
 
+    <!-- Time Range Bar -->
+    <div class="time-range-bar">
+      <button
+        v-for="tr in timeRanges"
+        :key="tr.minutes"
+        class="time-pill"
+        :class="{ 'time-pill--active': timeRangeMinutes === tr.minutes }"
+        @click="setTimeRange(tr.minutes)"
+        :title="tr.tooltip"
+      >
+        {{ tr.label }}
+      </button>
+      <span v-if="secondsAgo >= 0" class="time-updated">
+        <i class="pi pi-refresh" /> {{ lastUpdatedLabel }}
+      </span>
+    </div>
+
     <div v-if="store.loading" class="loading-state"><i class="pi pi-spin pi-spinner" /> Loading...</div>
 
     <div
@@ -41,6 +58,7 @@
           :is="widgetComponent(widget.widget_type)"
           :widget="widget"
           :editable="editing"
+          :time-range-minutes="timeRangeMinutes"
           @edit="openEditDialog(widget)"
           @delete="handleDeleteWidget(widget.public_id)"
         />
@@ -211,8 +229,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, type Component } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, onUnmounted, ref, computed, type Component } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useDashboardStore } from '@/stores/dashboards'
 import { useEventStore } from '@/stores/events'
 import { useNotification } from '@/composables/useNotification'
@@ -223,6 +241,7 @@ import ActuatorToggleWidget from '@/components/widgets/ActuatorToggleWidget.vue'
 import type { DashboardWidget, WidgetType } from '@/types'
 
 const route = useRoute()
+const router = useRouter()
 const store = useDashboardStore()
 const eventStore = useEventStore()
 const notify = useNotification()
@@ -230,6 +249,43 @@ const notify = useNotification()
 const editing = ref(false)
 const showAddWidget = ref(false)
 const editError = ref<string | null>(null)
+
+// ─── Time Range ───────────────────────────────────────────────────
+const timeRanges = [
+  { label: '20m', minutes: 20, tooltip: 'Last 20 minutes' },
+  { label: '1h', minutes: 60, tooltip: 'Last hour' },
+  { label: '6h', minutes: 360, tooltip: 'Last 6 hours' },
+  { label: '24h', minutes: 1440, tooltip: 'Last 24 hours' },
+  { label: '7d', minutes: 10080, tooltip: 'Last 7 days' },
+  { label: '10d', minutes: 14400, tooltip: 'Last 10 days' },
+]
+
+function getStoredRange(dashId: string): number {
+  try {
+    const v = localStorage.getItem(`dashboard:${dashId}:timeRange`)
+    return v ? Number(v) : 60
+  } catch { return 60 }
+}
+
+const timeRangeMinutes = ref(60)
+const secondsAgo = ref(0)
+
+const lastUpdatedLabel = computed(() => {
+  if (secondsAgo.value < 5) return 'just now'
+  if (secondsAgo.value < 60) return `${secondsAgo.value}s ago`
+  return `${Math.round(secondsAgo.value / 60)}m ago`
+})
+
+// Update the "ago" label every second
+let agoInterval: ReturnType<typeof setInterval> | null = null
+
+function setTimeRange(minutes: number) {
+  timeRangeMinutes.value = minutes
+  const dashId = route.params.id as string
+  try { localStorage.setItem(`dashboard:${dashId}:timeRange`, String(minutes)) } catch {}
+  router.replace({ query: { ...route.query, range: String(minutes) } })
+  secondsAgo.value = 0
+}
 
 // ─── Add Widget State ───────────────────────────────────────────────────
 const wType = ref<WidgetType>('line_chart')
@@ -366,8 +422,17 @@ async function handleEditWidget() {
 
 onMounted(() => {
   const id = route.params.id as string
+  // Restore time range: URL query > localStorage > default (60)
+  const queryRange = route.query.range ? Number(route.query.range) : null
+  const storedRange = getStoredRange(id)
+  timeRangeMinutes.value = queryRange || storedRange
   store.fetchDashboard(id)
   eventStore.fetchEvents()
+  agoInterval = setInterval(() => { secondsAgo.value++ }, 1000)
+})
+
+onUnmounted(() => {
+  if (agoInterval) clearInterval(agoInterval)
 })
 </script>
 
@@ -414,6 +479,48 @@ onMounted(() => {
 }
 .widget-cell {
   min-height: 0;
+}
+
+/* ─── Time Range Bar ────────────────────────────────────────────── */
+.time-range-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem;
+  background: var(--wm-surface, #1e293b);
+  border: 1px solid var(--wm-border, #334155);
+  border-radius: 10px;
+  width: fit-content;
+}
+.time-pill {
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--wm-text-muted, #94a3b8);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.time-pill:hover {
+  color: var(--wm-text, #e2e8f0);
+  background: rgba(255,255,255,0.05);
+}
+.time-pill--active {
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(59,130,246,0.3);
+}
+.time-updated {
+  font-size: 0.65rem;
+  color: var(--wm-text-muted, #94a3b8);
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
 }
 
 .loading-state, .empty-state {

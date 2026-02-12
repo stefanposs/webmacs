@@ -1,5 +1,5 @@
 <template>
-  <WidgetWrapper :title="widget.title" :editable="editable" @edit="$emit('edit')" @delete="$emit('delete')">
+  <WidgetWrapper :title="widget.title" :editable="editable" :loading="loading" @edit="$emit('edit')" @delete="$emit('delete')">
     <div class="gauge-container">
       <svg viewBox="0 0 120 80" class="gauge-svg">
         <!-- Background arc -->
@@ -18,14 +18,18 @@ import WidgetWrapper from './WidgetWrapper.vue'
 import api from '@/services/api'
 import type { DashboardWidget, Datapoint } from '@/types'
 
-const props = defineProps<{ widget: DashboardWidget; editable?: boolean; min?: number; max?: number; unit?: string }>()
+const props = defineProps<{ widget: DashboardWidget; editable?: boolean; timeRangeMinutes?: number; min?: number; max?: number; unit?: string }>()
 defineEmits<{ edit: []; delete: [] }>()
 
 const latestValue = ref<number | null>(null)
+const loading = ref(true)
 let interval: ReturnType<typeof setInterval> | null = null
 
 async function fetchLatest() {
-  if (!props.widget.event_public_id) return
+  if (!props.widget.event_public_id) {
+    loading.value = false
+    return
+  }
   try {
     const { data } = await api.post<Record<string, Datapoint[]>>('/datapoints/series', {
       event_public_ids: [props.widget.event_public_id],
@@ -35,6 +39,8 @@ async function fetchLatest() {
     latestValue.value = arr.length ? arr[arr.length - 1].value : null
   } catch {
     // ignore
+  } finally {
+    loading.value = false
   }
 }
 

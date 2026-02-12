@@ -25,15 +25,20 @@
       </div>
     </div>
     <div class="widget-body">
+      <Transition name="fade">
+        <div v-if="loading" class="widget-loading">
+          <i class="pi pi-spin pi-spinner" />
+        </div>
+      </Transition>
       <slot />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 
-defineProps<{ title: string; editable?: boolean }>()
+defineProps<{ title: string; editable?: boolean; loading?: boolean }>()
 defineEmits<{ edit: []; delete: [] }>()
 
 const confirmingDelete = ref(false)
@@ -46,6 +51,10 @@ function startDelete() {
     confirmingDelete.value = false
   }, 3000)
 }
+
+onUnmounted(() => {
+  if (resetTimeout) clearTimeout(resetTimeout)
+})
 </script>
 
 <style scoped>
@@ -119,5 +128,27 @@ function startDelete() {
   flex: 1;
   padding: 0.5rem;
   overflow: hidden;
+  position: relative;
 }
+.widget-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.5rem;
+  align-items: flex-start;
+  z-index: 5;
+  font-size: 0.9rem;
+  color: #60a5fa;
+  pointer-events: none;
+}
+.widget-loading + * {
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+.fade-enter-active,
+.fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from,
+.fade-leave-to { opacity: 0; }
 </style>
