@@ -120,6 +120,14 @@ The chart updates every time a new datapoint batch is received.
     let you build purpose-built views with only the widgets you need — one for
     the reactor, one for the cooling loop, one for the client demo.
 
+<div class="video-container" style="margin: 1.5rem 0;">
+  <video controls playsinline muted width="100%" style="border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.15);">
+    <source src="../videos/feature-custom-dashboard.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <figcaption style="text-align: center; margin-top: 0.5rem; color: var(--md-default-fg-color--light); font-size: 0.85rem;">Custom Dashboard — create widgets, resize them, and monitor your process in real time</figcaption>
+</div>
+
 ### Creating a Dashboard
 
 1. Navigate to **Dashboards** in the sidebar
