@@ -6,6 +6,12 @@ All endpoints are mounted under `/api/v1/`. Authentication uses JWT Bearer token
 
 ## Authentication
 
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/login` | Public | Authenticate and receive JWT |
+| `POST` | `/api/v1/auth/logout` | JWT | Revoke current token |
+| `GET` | `/api/v1/auth/me` | JWT | Get current user info |
+
 ### `POST /api/v1/auth/login`
 
 Authenticate and receive a JWT token.
@@ -34,6 +40,32 @@ Authenticate and receive a JWT token.
 !!! note "Token usage"
     Include the token in all subsequent requests:
     `Authorization: Bearer <access_token>`
+
+### `POST /api/v1/auth/logout`
+
+Blacklists the current JWT so it cannot be reused.
+
+**Response** `200`:
+
+```json
+{ "status": "success", "message": "Successfully logged out." }
+```
+
+### `GET /api/v1/auth/me`
+
+Returns the authenticated user's profile.
+
+**Response** `200`:
+
+```json
+{
+  "public_id": "usr_abc123",
+  "email": "admin@webmacs.io",
+  "username": "admin",
+  "admin": true,
+  "created_on": "2025-01-01T00:00:00"
+}
+```
 
 ---
 
@@ -329,13 +361,25 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 
 ### `GET /health`
 
-Returns `200 OK` — used by Docker healthcheck.
+Returns system health — no authentication required. Used by Docker healthcheck.
 
 ```json
 {
-  "status": "healthy"
+  "status": "ok",
+  "version": "0.1.0",
+  "database": "ok",
+  "last_datapoint": "2025-01-15T14:30:00.123456",
+  "uptime_seconds": 3621.5
 }
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `"ok"` or `"degraded"` |
+| `version` | string | Application version |
+| `database` | string | `"ok"` or `"error"` |
+| `last_datapoint` | string \| null | ISO timestamp of last datapoint, or `null` |
+| `uptime_seconds` | number | Seconds since application start |
 
 ---
 

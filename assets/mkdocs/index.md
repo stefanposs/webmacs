@@ -1,66 +1,83 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
 # WebMACS
 
-**Web-based Monitoring and Control System** for IoT experiments.
+## Monitor. Automate. Control. — From Any Browser.
 
-WebMACS provides real-time sensor monitoring, experiment management, and telemetry for industrial IoT setups — specifically designed for **Wirbelschicht** (fluidised-bed) experiments at the TU Kaiserslautern Chair of Mechanical Process Engineering.
+WebMACS is an **open-source control system** that turns your Raspberry Pi or Revolution Pi into a real-time monitoring and automation hub for lab experiments and industrial processes.
+
+**No cloud. No subscriptions. No vendor lock-in.** Your data stays on your hardware.
+
+![WebMACS Dashboard — Real-Time Monitoring](images/web_gui_dashboard-v2.png){ .screenshot }
 
 ---
 
-## Features
-
-![WebMACS Dashboard — Real-Time Monitoring](images/web_gui_dashboard-v2.png){ .screenshot }
+## Who Is WebMACS For?
 
 <div class="grid-container" markdown>
 
 <div class="grid-item" markdown>
-### :material-monitor-dashboard: Real-Time Dashboard
-Live sensor readings with auto-updating charts, WebSocket-first with HTTP polling fallback.
+### :material-flask-outline: Process Engineers & Researchers
+Monitor fluidised-bed reactors, temperature profiles, pressure readings, and flow rates — all from your browser. Export experiment data to CSV for analysis in Excel, Python, or MATLAB.
 </div>
 
 <div class="grid-item" markdown>
-### :material-flask-outline: Experiment Management
-Create, start, and stop experiments. All datapoints are automatically linked to the active experiment.
+### :material-cog-outline: Lab Technicians & Operators
+Toggle valves, adjust setpoints, and track sensor trends on a live dashboard. Get alerted via Slack or email when values go out of range.
 </div>
 
 <div class="grid-item" markdown>
-### :material-lan-connect: WebSocket Telemetry
-Dual-mode controller telemetry (HTTP / WebSocket). Frontend streams via `/ws/datapoints/stream`.
-</div>
-
-<div class="grid-item" markdown>
-### :material-file-delimited-outline: CSV Export
-One-click download of all experiment datapoints as a CSV file — streamed via `StreamingResponse`.
-</div>
-
-<div class="grid-item" markdown>
-### :material-database-cog-outline: Pluggable Storage
-Protocol-based repository layer. Switch between **PostgreSQL** and **TimescaleDB** via a single env var.
-</div>
-
-<div class="grid-item" markdown>
-### :material-docker: Docker Compose
-Four-container stack (PostgreSQL, FastAPI, Vue/Nginx, Controller) — one command to start.
+### :material-code-braces: Developers & Integrators
+Extend the system with a clean REST + WebSocket API. Add new sensor types, build custom dashboards, or integrate with external systems via webhooks.
 </div>
 
 </div>
 
 ---
 
-## Quick Start
+## What Can You Do With WebMACS?
 
-```bash
-# Clone the repository
-git clone https://github.com/stefanposs/webmacs.git
-cd webmacs
+| Capability | What It Means For You |
+|---|---|
+| :material-monitor-dashboard: **Real-Time Dashboard** | See every sensor value live, toggle actuators, build custom widget layouts — updated via WebSocket in under 100 ms |
+| :material-flask: **Experiment Management** | Group all readings into named experiments. Start, stop, and export with one click |
+| :material-chart-line: **Custom Dashboards** | Build your own dashboards with line charts, gauges, stat cards, and actuator toggles on a 12-column grid |
+| :material-alert: **Threshold Alerts** | Define rules like "if temperature > 200 °C → notify Slack". No code required |
+| :material-webhook: **Webhook Integrations** | Push events to Slack, Teams, Node-RED, Home Assistant, or any HTTP endpoint |
+| :material-file-delimited: **CSV Export** | Download millions of datapoints as a CSV — streamed, instant, ready for pandas or Excel |
+| :material-update: **Over-The-Air Updates** | Deploy new versions via USB, file upload, or network — works fully offline |
+| :material-docker: **One-Command Install** | Single script installs Docker, generates credentials, starts all services, and enables auto-boot |
 
-# Copy environment defaults
-cp .env.example .env
+---
 
-# Spin up all services
-docker compose up --build -d
-```
+## Get Started in 5 Minutes
 
-Open **http://localhost** and log in with the seeded admin account (`admin@webmacs.io` / `admin123`).
+=== "Production (RevPi / Raspberry Pi)"
+
+    ```bash
+    # Transfer the bundle to your device and run:
+    sudo bash scripts/install.sh webmacs-update-2.0.0.tar.gz
+    ```
+
+    Open `http://<device-ip>` and log in with the credentials shown during install.
+    See the [Installation Guide](deployment/installation-guide.md) for step-by-step details.
+
+=== "Development (Local)"
+
+    ```bash
+    git clone https://github.com/stefanposs/webmacs.git
+    cd webmacs
+    docker compose up --build -d
+    ```
+
+    Open `http://localhost` and log in. See [Quick Start](getting-started/quick-start.md) for default credentials.
+
+[**Quick Start Guide →**](getting-started/quick-start.md){ .md-button .md-button--primary }
+[**View on GitHub →**](https://github.com/stefanposs/webmacs){ .md-button }
 
 ---
 
@@ -68,33 +85,54 @@ Open **http://localhost** and log in with the seeded admin account (`admin@webma
 
 ```mermaid
 graph LR
-    Controller["IoT Controller<br/>(Python)"] -->|HTTP / WS| Backend["FastAPI Backend"]
+    Hardware["Sensors & Actuators"] -->|I/O| Controller["IoT Controller<br/>(Python)"]
+    Controller -->|HTTP / WebSocket| Backend["FastAPI Backend"]
     Backend -->|async| DB[(PostgreSQL)]
-    Frontend["Vue 3 SPA<br/>(Nginx)"] -->|REST + WS| Backend
+    Frontend["Vue 3 Dashboard<br/>(Browser)"] -->|REST + WS| Backend
+    Backend -->|Webhooks| External["Slack / Teams / APIs"]
 ```
 
-| Layer | Tech Stack |
+| Layer | Technology |
 |---|---|
-| **Backend** | FastAPI · SQLAlchemy 2 async · Pydantic v2 · Python 3.14 |
+| **Backend** | FastAPI · SQLAlchemy 2 async · Pydantic v2 · Python 3.13 |
 | **Frontend** | Vue 3 · TypeScript · Vite · PrimeVue · Pinia |
-| **Controller** | Python 3.14 · HTTPX · Async WebSocket |
-| **Database** | PostgreSQL 17 (TimescaleDB optional) |
-| **Infrastructure** | Docker Compose · Nginx reverse-proxy |
+| **Controller** | Python 3.13 · HTTPX · RevPi I/O |
+| **Database** | PostgreSQL 17 |
+| **Deployment** | Docker Compose · Nginx · systemd |
 
-[**Learn more → Architecture Overview**](architecture/overview.md)
+[**Architecture Deep Dive →**](architecture/overview.md)
 
 ---
 
-## Documentation
+## Documentation Map
 
-| Section | Audience | Description |
+| Section | For | What You'll Find |
 |---|---|---|
-| [Getting Started](getting-started/installation.md) | Everyone | Install, configure, run |
-| [User Guide](guide/index.md) | Operators | Dashboard, experiments, CSV export |
-| [Architecture](architecture/overview.md) | Developers | System design, WebSocket, DB protocols |
-| [API Reference](api/rest.md) | Developers | REST + WebSocket endpoint docs |
-| [Development](development/contributing.md) | Contributors | Code style, testing, CI/CD |
-| [Deployment](deployment/docker.md) | DevOps | Docker, production, env vars |
+| [Getting Started](getting-started/quick-start.md) | Everyone | Install, configure, first login |
+| [User Guide](guide/index.md) | Operators & Engineers | Dashboard, experiments, rules, CSV export, OTA |
+| [Architecture](architecture/overview.md) | Developers | System design, WebSocket protocol, database layer |
+| [API Reference](api/rest.md) | Developers | REST + WebSocket endpoint docs, Pydantic schemas |
+| [Development](development/contributing.md) | Contributors | Code style, testing, CI/CD, how to contribute |
+| [Deployment](deployment/docker.md) | DevOps | Docker, production hardening, environment variables |
+
+---
+
+## Built With
+
+<div class="grid-container" markdown>
+<div class="grid-item" markdown>
+:material-language-python: **Python 3.13** — Backend & Controller
+</div>
+<div class="grid-item" markdown>
+:material-vuejs: **Vue 3** — Reactive SPA with TypeScript
+</div>
+<div class="grid-item" markdown>
+:material-database: **PostgreSQL 17** — Reliable, proven storage
+</div>
+<div class="grid-item" markdown>
+:material-docker: **Docker Compose** — One command, all services
+</div>
+</div>
 
 ---
 

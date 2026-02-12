@@ -1,108 +1,114 @@
-# System Overview
+# System Architecture
 
-WebMACS is a four-component system connected via REST, WebSocket, and a shared PostgreSQL database.
+WebMACS is a **four-component system** for real-time sensor monitoring, data acquisition, and process automation.
 
 ---
 
-## High-Level Architecture
+## High-Level Diagram
 
-```mermaid
-graph TB
-    subgraph Docker Compose
-        DB[(PostgreSQL 17)]
-        Backend["FastAPI Backend<br/>:8000"]
-        Frontend["Vue 3 SPA<br/>Nginx :80"]
-        Controller["IoT Controller<br/>Python"]
-    end
-
-    Controller -->|"HTTP POST /api/v1/datapoints<br/>or WS /ws/controller/telemetry"| Backend
-    Backend -->|"SQLAlchemy 2 async"| DB
-    Frontend -->|"REST + WS"| Backend
-
-    User((User)) -->|"Browser"| Frontend
-    Hardware["RevPi / Sensors"] -->|"I/O"| Controller
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Nginx Reverse Proxy                     │
+│                  (TLS termination, WebSocket upgrade)            │
+├─────────────────────┬──────────────────┬────────────────────────┤
+│                     │                  │                        │
+│   ┌─────────────┐   │  ┌────────────┐  │  ┌──────────────────┐ │
+│   │  Frontend    │   │  │  Backend   │  │  │  PostgreSQL 17   │ │
+│   │  Vue 3 SPA   │◄─┼─►│  FastAPI   │◄─┼─►│  12 tables       │ │
+│   │  PrimeVue 4  │   │  │  10 routes │  │  │  async (asyncpg) │ │
+│   └─────────────┘   │  └─────┬──────┘  │  └──────────────────┘ │
+│                     │        │ WS      │                        │
+│                     │  ┌─────▼──────┐  │                        │
+│                     │  │ Controller │  │                        │
+│                     │  │ RevPi HW   │  │                        │
+│                     │  │ Python 3.13│  │                        │
+│                     │  └────────────┘  │                        │
+└─────────────────────┴──────────────────┴────────────────────────┘
+                              │
+                     ┌────────▼────────┐
+                     │  External APIs  │
+                     │  • Webhooks     │
+                     │  • GitHub OTA   │
+                     └─────────────────┘
 ```
 
 ---
 
-## Components
+## Four Components
 
-### Backend (FastAPI)
+### 1. Frontend — Vue 3 Single Page Application
 
-The backend is the central hub. It:
+| Aspect | Detail |
+|---|---|
+| Framework | Vue 3 (Composition API) + TypeScript 5.7 |
+| UI Library | PrimeVue 4 (Aura Dark theme) |
+| State | Pinia — 8 stores |
+| Views | 12 views + 404 page |
+| Real-time | Native WebSocket with automatic reconnection |
+| Build | Vite 6, served as static files via Nginx |
 
-- Exposes a versioned REST API (`/api/v1/`) with 6 routers
-- Serves two WebSocket endpoints for real-time data
-- Uses SQLAlchemy 2 async ORM with a repository protocol layer
-- Handles JWT authentication with bcrypt password hashing
-- Seeds an initial admin user on first boot
+See [Frontend Architecture](frontend.md).
 
-**Key files:** `main.py`, `config.py`, `models.py`, `schemas.py`, `security.py`
+### 2. Backend — FastAPI REST + WebSocket Server
 
-[**Details → Backend Architecture**](backend.md)
+| Aspect | Detail |
+|---|---|
+| Framework | FastAPI + Uvicorn (async) |
+| Language | Python 3.13 |
+| ORM | SQLAlchemy 2.0 (async) |
+| Schemas | Pydantic v2 |
+| Auth | JWT (HS256, 24h) + bcrypt |
+| API Routers | 10 (auth, users, experiments, events, datapoints, logging, rules, webhooks, ota, dashboards) |
+| Services | Webhook dispatcher, Rule evaluator, OTA manager |
 
----
+See [Backend Architecture](backend.md).
 
-### Frontend (Vue 3)
+### 3. Controller — RevPi Hardware Bridge
 
-A single-page application served by Nginx:
+| Aspect | Detail |
+|---|---|
+| Role | Reads sensors, pushes data to backend via WebSocket |
+| Language | Python 3.13 (async) |
+| Protocol | WebSocket client → backend `/ws/controller/telemetry` |
+| Hardware | RevPi Connect / DIO / AIO via `revpimodio2` |
 
-- **Vue 3** with Composition API and `<script setup>`
-- **TypeScript** throughout
-- **Pinia** for state management (auth, experiments, events, datapoints, logs)
-- **PrimeVue** component library
-- Custom `useRealtimeDatapoints` composable (WS + HTTP fallback)
-- Custom `AppToast` notification system
+See [Controller Architecture](controller.md).
 
-**Key views:** Dashboard, Experiments, Events, Datapoints, Logs, Users, Login
+### 4. PostgreSQL Database
 
-[**Details → Frontend Architecture**](frontend.md)
+| Aspect | Detail |
+|---|---|
+| Version | PostgreSQL 17 |
+| Driver | `asyncpg` (fully async) |
+| Tables | 12 (users, events, experiments, datapoints, log_entries, blacklist_tokens, rules, webhooks, webhook_deliveries, firmware_updates, dashboards, dashboard_widgets) |
+| Key | composite index on `(event_public_id, created_on)` for time-series queries |
 
----
-
-### Controller (IoT Agent)
-
-A headless Python process that:
-
-- Reads sensor values from hardware (or generates dummy data in dev mode)
-- Authenticates with the backend via JWT
-- Pushes datapoints via HTTP or WebSocket (configurable)
-- Implements auto-reauthentication on 401 responses
-- Has retry logic with exponential backoff
-
-**Telemetry modes:** `http` (default) or `websocket`
-
-[**Details → Controller Architecture**](controller.md)
-
----
-
-### Database (PostgreSQL)
-
-- **PostgreSQL 17-alpine** in Docker
-- Async driver: `asyncpg`
-- Tables: `users`, `experiments`, `events`, `datapoints`, `logs`
-- Protocol-based repository abstraction for swapping backends
-
-[**Details → Database Abstraction**](database.md)
+See [Database Layer](database.md).
 
 ---
 
 ## Data Flow
 
-```mermaid
-sequenceDiagram
-    participant S as Sensor Hardware
-    participant C as Controller
-    participant B as Backend
-    participant DB as PostgreSQL
-    participant F as Frontend
-
-    S->>C: Read sensor value
-    C->>B: POST /api/v1/datapoints (or WS)
-    B->>DB: INSERT INTO datapoints
-    B-->>F: WebSocket broadcast
-    F->>F: Update dashboard chart
 ```
+Sensor → Controller → WS (batch JSON) → Backend → DB (INSERT)
+                                            │
+                                            ├──► WS broadcast → Frontend (live chart)
+                                            ├──► Rule evaluator → trigger actions
+                                            └──► Webhook dispatcher → external APIs
+```
+
+### Step-by-step
+
+1. **Controller** reads sensor values from RevPi hardware at a configured poll interval.
+2. Controller sends a **batch** of datapoints over WebSocket to the backend:
+   ```json
+   {"datapoints": [{"value": 23.5, "event_public_id": "abc-123"}, ...]}
+   ```
+3. **Backend** validates, persists to PostgreSQL, and triggers three side-effects:
+     - **Broadcast** to all connected dashboards via WebSocket.
+     - **Rule evaluation** against threshold-based rules (e.g., "if temperature > 80°C, send alert").
+     - **Webhook dispatch** if subscribed events match.
+4. **Frontend** receives the broadcast and updates live charts in real-time with no page reload.
 
 ---
 
@@ -110,18 +116,28 @@ sequenceDiagram
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Python 3.14 | Latest RC | StrEnum, PEP 695 generics, performance |
-| FastAPI | Async framework | Native async, Pydantic v2, OpenAPI docs |
-| SQLAlchemy 2 | Async ORM | Mature, type-safe, async session support |
-| Vue 3 | Frontend framework | Composition API, TypeScript, reactive |
-| Pinia | State management | Official Vue store, devtools support |
-| Docker Compose | Orchestration | Simple, reproducible, single-command |
-| Protocol pattern | DB abstraction | PEP 544 structural subtyping, plug-and-play |
+| Python 3.13 | Backend + Controller | Native async, type-hinting, modern stdlib |
+| FastAPI | Web framework | Best-in-class async Python, auto-generated OpenAPI |
+| SQLAlchemy 2.0 | ORM | Async-first, 2.0 style uses `select()` instead of legacy query |
+| asyncpg | DB driver | Fastest PostgreSQL driver for Python async |
+| Vue 3 + TS | Frontend | Composition API for clean composable logic |
+| PrimeVue 4 | UI | Rich component library with accessible dark theme |
+| WebSocket | Real-time | Low latency bidirectional, native browser support |
+| Docker Compose | Deployment | One-command production deployment |
+| Alembic | Migrations | De-facto standard for SQLAlchemy schema migrations |
 
 ---
 
-## Next Steps
+## Deployment Model
 
-- [Backend](backend.md) — FastAPI internals
-- [WebSocket Design](websocket.md) — real-time protocol details
-- [Database Abstraction](database.md) — Protocol-based storage layer
+WebMACS ships as a **Docker Compose** stack:
+
+```yaml
+services:
+  backend:    # FastAPI + Uvicorn
+  frontend:   # Nginx serving built Vue SPA
+  db:         # PostgreSQL 17
+  # controller runs on RevPi hardware (optional)
+```
+
+See [Docker Deployment](../deployment/docker.md) for full setup.

@@ -116,7 +116,7 @@ GitHub Actions runs the full test matrix:
 
 | Job | Python | OS | Services |
 |---|---|---|---|
-| `python` | 3.14 | ubuntu-latest | PostgreSQL 17 |
+| `python` | 3.13 | ubuntu-latest | PostgreSQL 17 |
 | `frontend` | — | ubuntu-latest | — |
 
 Coverage reports are uploaded to [Codecov](https://codecov.io/).

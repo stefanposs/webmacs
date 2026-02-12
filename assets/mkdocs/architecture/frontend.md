@@ -1,6 +1,6 @@
 # Frontend Architecture
 
-The frontend is a **Vue 3** single-page application built with **Vite**, **TypeScript**, and **PrimeVue**.
+The frontend is a **Vue 3 Single Page Application** built with TypeScript, PrimeVue 4, and Vite 6.
 
 ---
 
@@ -8,118 +8,162 @@ The frontend is a **Vue 3** single-page application built with **Vite**, **TypeS
 
 ```
 frontend/src/
-├── main.ts                  # App entry point (createApp, plugins)
-├── App.vue                  # Root component (router-view, AppToast)
-├── router/                  # Vue Router (7 views + 404)
-├── stores/                  # Pinia stores
-│   ├── auth.ts              # JWT auth, login/logout
-│   ├── experiments.ts       # Experiment CRUD
-│   ├── events.ts            # Events CRUD
-│   └── datapoints.ts        # Datapoints fetch
+├── main.ts                 # App bootstrap, plugin registration
+├── App.vue                 # Root component (sidebar + router view)
+├── router/
+│   └── index.ts            # Vue Router routes (12 views + 404)
 ├── views/
-│   ├── DashboardView.vue    # Real-time sensor data
-│   ├── ExperimentsView.vue  # Experiment management + CSV export
-│   ├── EventsView.vue       # Events listing
-│   ├── DatapointsView.vue   # Raw datapoints table
-│   ├── LogsView.vue         # System logs
-│   ├── UsersView.vue        # User management (admin)
-│   ├── LoginView.vue        # Authentication
-│   └── NotFoundView.vue     # 404 page
-├── composables/
-│   ├── useRealtimeDatapoints.ts   # WS-first + polling fallback
-│   ├── useNotification.ts         # Toast notification system
-│   ├── useFormatters.ts           # Date, number, relative time formatting
-│   └── usePolling.ts              # Generic polling composable
-├── services/
-│   ├── api.ts               # Axios wrapper with JWT interceptor
-│   └── websocket.ts         # Generic reconnecting WebSocket client
+│   ├── LoginView.vue       # Public — JWT authentication
+│   ├── DashboardView.vue   # Default overview dashboard
+│   ├── DashboardsView.vue  # Dashboard list (CRUD)
+│   ├── DashboardCustomView.vue  # User-built widget dashboard
+│   ├── ExperimentsView.vue # Experiment lifecycle management
+│   ├── EventsView.vue      # Sensor/channel definitions
+│   ├── DatapointsView.vue  # Time-series data explorer
+│   ├── LogsView.vue        # System log viewer
+│   ├── UsersView.vue       # User management (admin)
+│   ├── RulesView.vue       # Automation rule builder (admin)
+│   ├── WebhooksView.vue    # Webhook management (admin)
+│   ├── OtaView.vue         # Firmware OTA updates (admin)
+│   └── NotFoundView.vue    # 404 page
 ├── components/
-│   ├── AppSidebar.vue        # Navigation sidebar
-│   ├── AppToast.vue          # Custom toast notifications
-│   └── AppTopbar.vue         # Top navigation bar
-├── types/                    # TypeScript interfaces
-└── assets/                   # Styles, images
+│   ├── AppSidebar.vue      # Navigation sidebar
+│   ├── AppTopbar.vue       # Top bar with user menu
+│   ├── AppToast.vue        # Global toast container
+│   └── widgets/
+│       ├── WidgetWrapper.vue       # Grid drag-drop wrapper
+│       ├── LineChartWidget.vue     # Time-series line chart
+│       ├── GaugeWidget.vue         # Radial gauge display
+│       ├── StatCardWidget.vue      # KPI stat card
+│       └── ActuatorToggleWidget.vue # On/off toggle control
+├── stores/                 # Pinia state stores (8)
+│   ├── auth.ts             # JWT token, user info, login/logout
+│   ├── experiments.ts      # Experiment CRUD + active tracking
+│   ├── events.ts           # Event/channel CRUD
+│   ├── datapoints.ts       # Datapoint queries + time-series
+│   ├── dashboards.ts       # Dashboard + widget CRUD
+│   ├── rules.ts            # Rule CRUD
+│   ├── webhooks.ts         # Webhook CRUD + delivery history
+│   └── ota.ts              # OTA update management
+├── composables/
+│   ├── useRealtimeDatapoints.ts  # WS-first with HTTP polling fallback
+│   ├── usePolling.ts             # Generic polling composable
+│   ├── useNotification.ts       # Toast notification helper
+│   └── useFormatters.ts         # Date/number formatting
+├── services/
+│   ├── api.ts              # Axios instance with JWT interceptor
+│   └── websocket.ts        # Reconnecting WebSocket client
+├── types/
+│   └── index.ts            # TypeScript interfaces + enums
+└── assets/
+    └── main.css            # Global styles
 ```
 
 ---
 
-## State Management (Pinia)
+## State Management — Pinia
 
-Each store encapsulates a domain:
+Eight stores manage application state, each corresponding to a backend resource:
 
-```typescript
-// stores/experiments.ts
-export const useExperimentsStore = defineStore('experiments', () => {
-  const experiments = ref<Experiment[]>([])
-  const loading = ref(false)
-
-  async function fetchAll() { /* ... */ }
-  async function create(name: string) { /* ... */ }
-  async function stop(id: string) { /* ... */ }
-
-  return { experiments, loading, fetchAll, create, stop }
-})
-```
-
----
-
-## Real-Time Data Composable
-
-The `useRealtimeDatapoints` composable implements the **WS-first, polling-fallback** strategy:
-
-```mermaid
-stateDiagram-v2
-    [*] --> WebSocket: Mount
-    WebSocket --> WebSocket: onMessage
-    WebSocket --> Retry: onClose
-    Retry --> WebSocket: attempt ≤ 3
-    Retry --> Polling: attempt > 3
-    Polling --> Polling: setInterval
-```
-
-```typescript
-const { datapoints, connectionMode } = useRealtimeDatapoints({
-  wsUrl: '/ws/datapoints/stream',
-  pollUrl: '/api/v1/datapoints',
-  pollInterval: 2000,
-  maxWsRetries: 3,
-})
-```
-
-Returns:
-
-| Property | Type | Description |
+| Store | Key State | Key Actions |
 |---|---|---|
-| `datapoints` | `Ref<Datapoint[]>` | Latest datapoints |
-| `connectionMode` | `Ref<'ws' \| 'polling' \| 'disconnected'>` | Current transport |
+| `auth` | `user`, `token`, `isAuthenticated` | `login()`, `logout()`, `fetchMe()` |
+| `experiments` | `experiments`, `activeExperiment` | `fetchAll()`, `create()`, `stop()`, `exportCsv()` |
+| `events` | `events` | `fetchAll()`, `create()`, `update()`, `delete()` |
+| `datapoints` | `datapoints`, `series` | `fetchAll()`, `fetchSeries()`, `fetchLatest()` |
+| `dashboards` | `dashboards`, `currentDashboard` | `fetchAll()`, `createWidget()`, `updateWidget()` |
+| `rules` | `rules` | `fetchAll()`, `create()`, `update()`, `toggleActive()` |
+| `webhooks` | `webhooks`, `deliveries` | `fetchAll()`, `create()`, `fetchDeliveries()` |
+| `ota` | `updates`, `checking` | `fetchAll()`, `checkForUpdate()`, `applyUpdate()` |
 
 ---
 
-## Custom Toast Notifications
+## Real-Time Data — `useRealtimeDatapoints`
 
-`AppToast.vue` replaces PrimeVue's toast with a custom system:
+The core composable implements a **WebSocket-first strategy with automatic HTTP polling fallback**:
 
-- Gradient variants: `success`, `error`, `warning`, `info`
-- Slide-in/out animations via `<TransitionGroup>`
-- Rendered via `<Teleport to="body">`
-- Uses design tokens for consistent theming
-
----
-
-## Build & Dev
-
-```bash
-npm run dev          # Vite dev server → http://localhost:5173
-npm run build        # Production build → dist/
-npm run lint         # ESLint
-npm run type-check   # vue-tsc
+```
+┌──────────────┐    Connected     ┌──────────────┐
+│  connecting  │ ───────────────► │  websocket   │
+└──────┬───────┘                  └──────┬───────┘
+       │ 3 failures                      │ disconnect
+       ▼                                 │
+┌──────────────┐                         │
+│   polling    │ ◄───────────────────────┘
+└──────────────┘   WS reconnects → back to 'websocket'
 ```
 
-In production, **Nginx** serves the built SPA and proxies `/api/` and `/ws/` to the backend.
+- **Default poll interval**: 1500ms (configurable)
+- **WS max failures before fallback**: 3 attempts
+- **WS reconnect**: Exponential back-off (1s → 30s max)
+- **WS keep-alive**: Ping every 25s
+
+```typescript
+type ConnectionMode = 'websocket' | 'polling' | 'connecting'
+
+const { latestDatapoints, connectionMode, isConnected } = useRealtimeDatapoints()
+```
+
+---
+
+## WebSocket Client
+
+The `WebSocketClient` class in `services/websocket.ts` is a generic reconnecting wrapper:
+
+- **Auto-reconnect** with exponential back-off (1s initial, 30s max)
+- **Ping/pong** keep-alive (25s interval)
+- **Protocol auto-detection** (`ws:` / `wss:` based on page protocol)
+- **Clean dispose** for component unmount
+
+---
+
+## Dashboard Widgets
+
+The custom dashboard system uses a **grid layout** with drag-and-drop positioning:
+
+| Widget | Type Enum | Purpose |
+|---|---|---|
+| `LineChartWidget` | `line_chart` | Time-series chart (Chart.js) |
+| `GaugeWidget` | `gauge` | Radial gauge for single values |
+| `StatCardWidget` | `stat_card` | KPI card with current value |
+| `ActuatorToggleWidget` | `actuator_toggle` | On/off toggle control |
+
+Each widget has a JSON `config` object and grid position (`x`, `y`, `w`, `h`).
+
+---
+
+## API Service
+
+All HTTP requests go through a single Axios instance (`services/api.ts`):
+
+- **Base URL**: `/api/v1/` (proxied by Vite dev server or Nginx)
+- **JWT interceptor**: Attaches `Authorization: Bearer <token>` to every request
+- **401 handling**: Auto-logout on expired tokens
+- **Error transform**: Normalizes API errors for toast notifications
+
+---
+
+## Routing
+
+Vue Router with navigation guards:
+
+- **Public routes**: `/login`
+- **Protected routes**: Everything else (redirects to `/login` if no token)
+- **Admin routes**: Users, Rules, Webhooks, OTA (hidden from non-admins)
+- **404 catch-all**: `NotFoundView`
+
+---
+
+## UI Framework — PrimeVue 4
+
+- **Theme**: Aura Dark (customized via CSS variables)
+- **Key components**: DataTable, Dialog, Chart, InputNumber, Dropdown, Toast, Sidebar
+- **Accessibility**: ARIA labels on all icon-only buttons
 
 ---
 
 ## Next Steps
 
-- [Controller Architecture](controller.md) — the IoT agent
-- [WebSocket Design](../architecture/websocket.md) — protocol details
+- [WebSocket Protocol](websocket.md) — message formats and authentication
+- [Dashboard Guide](../guide/dashboard.md) — creating custom dashboards
+- [REST API](../api/rest.md) — backend endpoints

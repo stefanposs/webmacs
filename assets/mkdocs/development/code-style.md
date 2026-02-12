@@ -45,7 +45,7 @@ ignore = ["S101", "TRY003", "PLR0913"]
 
 ```toml
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.13"
 strict = true
 disallow_untyped_defs = true
 ```

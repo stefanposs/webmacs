@@ -125,23 +125,30 @@ uv run mypy backend/src controller/src
 ├── security.py          # JWT create/decode, bcrypt hash/verify
 ├── dependencies.py      # DI: CurrentUser, AdminUser, DbSession
 ├── middleware/
-│   └── logging.py       # Structured request logging
+│   ├── rate_limit.py    # Request rate limiting
+│   └── request_id.py    # X-Request-ID header injection
 ├── services/
-│   ├── webhook_service.py  # Async webhook delivery + HMAC signing
-│   ├── rule_engine.py      # Rule evaluation on datapoint insert
-│   └── ota_service.py      # Firmware update state machine
+│   ├── __init__.py         # build_payload, dispatch_event
+│   ├── webhook_dispatcher.py  # Async webhook delivery + HMAC signing
+│   ├── rule_evaluator.py      # Rule evaluation on datapoint insert
+│   ├── ota_service.py         # Firmware update state machine
+│   ├── updater.py             # System update application
+│   └── log_service.py         # Logging service
 ├── ws/
-│   └── telemetry.py     # WebSocket broadcast hub
+│   ├── connection_manager.py  # Pub/sub hub for WS groups
+│   └── endpoints.py           # /ws/controller/telemetry, /ws/datapoints/stream
 └── api/v1/
     ├── auth.py          # POST /login, /logout — GET /me
     ├── users.py         # CRUD /users (admin-only create, list & delete)
     ├── events.py        # CRUD /events (sensor, actuator, range, …)
     ├── experiments.py   # CRUD /experiments + POST /stop + GET /export/csv
-    ├── datapoints.py    # CRUD + POST /batch (bulk insert) + GET /latest
+    ├── datapoints.py    # CRUD + POST /batch, /series + GET /latest
     ├── logging.py       # CRUD /logging (no delete)
     ├── webhooks.py      # CRUD /webhooks + GET /deliveries
     ├── rules.py         # CRUD /rules (admin-only)
-    └── ota.py           # CRUD /ota + POST /apply, /rollback + GET /check
+    ├── ota.py           # CRUD /ota + POST /apply, /rollback + GET /check
+    ├── dashboards.py    # CRUD /dashboards + widget CRUD
+    └── health.py        # GET /health
 ```
 
 **Key patterns:**
@@ -184,15 +191,17 @@ uv run mypy backend/src controller/src
 ├── router/index.ts      # Vue Router with auth guards
 ├── services/api.ts      # Axios instance with error extraction
 ├── types/index.ts       # TypeScript interfaces + enums
-├── stores/              # Pinia state management
+├── stores/              # Pinia state management (8 stores)
 │   ├── auth.ts
 │   ├── events.ts
 │   ├── experiments.ts
 │   ├── datapoints.ts
+│   ├── dashboards.ts    # Dashboard + widget CRUD
 │   ├── webhooks.ts      # Webhook CRUD + deliveries
 │   ├── rules.ts         # Rule CRUD store
 │   └── ota.ts           # OTA update store
 ├── composables/         # Reusable composition functions
+│   ├── useRealtimeDatapoints.ts  # WS-first with HTTP polling fallback
 │   ├── useNotification.ts   # PrimeVue Toast wrapper
 │   ├── usePolling.ts        # Interval polling with auto cleanup
 │   └── useFormatters.ts     # Date, number, relative time formatters
@@ -201,7 +210,9 @@ uv run mypy backend/src controller/src
 │   └── AppTopbar.vue    # Live clock + environment badge
 ├── views/
 │   ├── LoginView.vue    # Gradient login with icons
-│   ├── DashboardView.vue# Stats bar + sensor cards + live chart
+│   ├── DashboardView.vue     # Default overview dashboard
+│   ├── DashboardsView.vue   # Dashboard list (CRUD)
+│   ├── DashboardCustomView.vue  # User-built widget dashboard
 │   ├── EventsView.vue
 │   ├── ExperimentsView.vue
 │   ├── DatapointsView.vue
@@ -209,10 +220,10 @@ uv run mypy backend/src controller/src
 │   ├── UsersView.vue    # User CRUD with add user dialog
 │   ├── WebhooksView.vue # Webhook subscriptions + delivery log
 │   ├── RulesView.vue    # Automation rules management
-│   └── OtaView.vue      # Firmware update management
-└── assets/styles/
-    ├── main.scss        # CSS custom properties design system
-    └── _views-shared.scss  # Shared view styles + animations
+│   ├── OtaView.vue      # Firmware update management
+│   └── NotFoundView.vue # 404 page
+└── assets/
+    └── main.css         # Global styles + CSS custom properties design system
 ```
 
 **Key patterns:**
@@ -254,6 +265,7 @@ uv run mypy backend/src controller/src
 | `GET` | `/api/v1/datapoints` | Bearer | List datapoints (paginated) |
 | `POST` | `/api/v1/datapoints` | Bearer | Create single datapoint |
 | `POST` | `/api/v1/datapoints/batch` | Bearer | Bulk insert datapoints |
+| `POST` | `/api/v1/datapoints/series` | Bearer | Time-series data (for charts) |
 | `GET` | `/api/v1/datapoints/latest` | Bearer | Latest value per event |
 | `DELETE` | `/api/v1/datapoints/{id}` | Bearer | Delete datapoint |
 | **Logging** | | | |
@@ -281,9 +293,18 @@ uv run mypy backend/src controller/src
 | `POST` | `/api/v1/ota/{id}/apply` | Admin | Apply firmware update |
 | `POST` | `/api/v1/ota/{id}/rollback` | Admin | Rollback firmware update |
 | `GET` | `/api/v1/ota/check` | Admin | Check for available updates |
+| **Dashboards** | | | |
+| `GET` | `/api/v1/dashboards` | Bearer | List dashboards |
+| `POST` | `/api/v1/dashboards` | Bearer | Create dashboard |
+| `GET` | `/api/v1/dashboards/{id}` | Bearer | Get dashboard with widgets |
+| `PUT` | `/api/v1/dashboards/{id}` | Bearer | Update dashboard |
+| `DELETE` | `/api/v1/dashboards/{id}` | Bearer | Delete dashboard |
+| `POST` | `/api/v1/dashboards/{id}/widgets` | Bearer | Add widget |
+| `PUT` | `/api/v1/dashboards/{id}/widgets/{wid}` | Bearer | Update widget |
+| `DELETE` | `/api/v1/dashboards/{id}/widgets/{wid}` | Bearer | Delete widget |
 | **System** | | | |
 | `GET` | `/health` | — | Health check |
-| `WS` | `/ws/telemetry` | Bearer | Real-time sensor data stream |
+| `WS` | `/ws/controller/telemetry` | Bearer | Controller → backend sensor data |\n| `WS` | `/ws/datapoints/stream` | Bearer | Backend → browser live updates |
 
 Interactive docs: **http://localhost:8000/docs** (Swagger UI) or **/redoc** (ReDoc)
 

@@ -1,111 +1,196 @@
 # WebSocket API
 
-WebMACS exposes two WebSocket endpoints for real-time communication.
+WebMACS uses WebSockets for **real-time sensor data streaming** between the IoT controller, backend, and browser dashboards.
 
 ---
 
 ## Endpoints
 
-### `/ws/controller/telemetry`
+| Endpoint | Direction | Purpose |
+|---|---|---|
+| `/ws/controller/telemetry` | Controller → Backend | Push sensor readings in batches |
+| `/ws/datapoints/stream` | Backend → Browser | Live dashboard updates |
 
-**Direction:** Controller → Backend
+Both endpoints are mounted under the `/ws/` prefix.
 
-Used by the IoT controller to push sensor readings in real time.
+---
 
-**Connection:**
+## Authentication
+
+**All WebSocket endpoints require a valid JWT token** passed as a query parameter:
 
 ```
-ws://localhost:8000/ws/controller/telemetry?token=<JWT>
+ws://your-host/ws/controller/telemetry?token=<jwt>
+wss://your-host/ws/datapoints/stream?token=<jwt>
 ```
 
-**Inbound Message (Controller → Backend):**
+!!! warning "Token required"
+    Connections without a valid token are immediately closed with code **1008** (Policy Violation) and one of:
+
+    - `"Authentication required"` — no token provided
+    - `"Invalid or expired token"` — JWT decoding failed
+    - `"Token has been revoked"` — token was blacklisted (user logged out)
+    - `"User not found"` — user deleted after token issued
+
+---
+
+## Controller Telemetry — `/ws/controller/telemetry`
+
+This endpoint receives **batches of sensor readings** from the IoT controller and persists them.
+
+### Inbound Message Format
 
 ```json
 {
-  "event_public_id": "evt_temp01",
-  "value": 23.45,
-  "timestamp": "2025-01-15T14:32:10.000Z"
+  "datapoints": [
+    { "value": 23.5, "event_public_id": "abc-123" },
+    { "value": 1013.2, "event_public_id": "def-456" },
+    { "value": 7.14, "event_public_id": "ghi-789" }
+  ]
 }
 ```
 
-**Behaviour:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `datapoints` | array | Yes | Batch of readings |
+| `datapoints[].value` | number | Yes | Sensor reading value |
+| `datapoints[].event_public_id` | string (UUID) | Yes | Matches an Event's `public_id` |
 
-1. Backend validates JWT from query parameter
-2. Persists datapoint to database
-3. Broadcasts to all `/ws/datapoints/stream` subscribers
-4. Sends periodic heartbeat pings (configurable: `WS_HEARTBEAT_INTERVAL`)
+### Processing Pipeline
+
+For each valid batch, the backend:
+
+1. **Validates** each datapoint (must have `value` and `event_public_id`)
+2. **Persists** to PostgreSQL (bulk `INSERT` with `experiment_public_id` from active experiment)
+3. **Evaluates rules** — checks all threshold rules against each datapoint value
+4. **Dispatches webhooks** — fires `sensor_reading` webhook events
+5. **Broadcasts** to all connected frontends (see below)
+
+### Error Response
+
+If no valid datapoints are found in a batch:
+
+```json
+{ "type": "error", "message": "No valid datapoints in batch" }
+```
 
 ---
 
-### `/ws/datapoints/stream`
+## Datapoint Stream — `/ws/datapoints/stream`
 
-**Direction:** Backend → Frontend
+This is a **read-only subscription** endpoint for browser dashboards. Clients connect and receive real-time broadcasts.
 
-Used by the Vue frontend to receive live datapoint updates.
-
-**Connection:**
+### Connection Flow
 
 ```
-ws://localhost:8000/ws/datapoints/stream
+Browser                         Backend
+  │                                │
+  │──── WebSocket connect ────────►│
+  │     ?token=<jwt>               │
+  │                                │
+  │◄─── { type: "connected" } ────│  (1) confirmation
+  │                                │
+  │     { type: "ping" }  ────────►│  (2) keep-alive (optional)
+  │◄─── { type: "pong" }  ────────│
+  │                                │
+  │◄─── datapoints_batch ─────────│  (3) live data
+  │◄─── datapoints_batch ─────────│
+  │     ...                        │
 ```
 
-**Outbound Message (Backend → Frontend):**
+### 1. Connection Confirmation
+
+Immediately after authentication, the server sends:
 
 ```json
 {
-  "public_id": "dp_abc123",
-  "value": 23.45,
-  "timestamp": "2025-01-15T14:32:10.000Z",
-  "event_public_id": "evt_temp01",
-  "experiment_public_id": "exp_001"
+  "type": "connected",
+  "message": "Subscribed to live datapoint stream."
 }
 ```
 
-**Behaviour:**
+### 2. Keep-Alive (Ping/Pong)
 
-1. Client connects — added to broadcast group
-2. Receives every new datapoint as JSON
-3. Connection kept alive via heartbeat pings
-4. On disconnect — client removed from broadcast group
+Clients can send periodic pings to prevent connection timeouts:
+
+```json
+{ "type": "ping" }
+```
+
+Server responds:
+
+```json
+{ "type": "pong" }
+```
+
+!!! tip "Frontend default"
+    The built-in Vue frontend sends a ping every **25 seconds**.
+
+### 3. Broadcast Messages
+
+When the controller pushes new sensor data, all connected frontends receive:
+
+```json
+{
+  "type": "datapoints_batch",
+  "datapoints": [
+    {
+      "value": 23.5,
+      "event_public_id": "abc-123",
+      "timestamp": "2025-01-15T14:30:00.123456",
+      "experiment_public_id": "exp-001"
+    },
+    {
+      "value": 1013.2,
+      "event_public_id": "def-456",
+      "timestamp": "2025-01-15T14:30:00.123456",
+      "experiment_public_id": "exp-001"
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `type` | string | Always `"datapoints_batch"` |
+| `datapoints` | array | Array of persisted datapoints |
+| `datapoints[].value` | number | Sensor reading |
+| `datapoints[].event_public_id` | string | Event UUID |
+| `datapoints[].timestamp` | string | ISO 8601 timestamp |
+| `datapoints[].experiment_public_id` | string \| null | Active experiment UUID, or `null` if none |
 
 ---
 
-## Message Flow
+## Connection Manager
 
-```mermaid
-sequenceDiagram
-    participant C as Controller
-    participant B as Backend
-    participant DB as PostgreSQL
-    participant F1 as Frontend 1
-    participant F2 as Frontend 2
+The backend uses a **pub/sub connection manager** with named groups:
 
-    C->>B: WS /ws/controller/telemetry
-    F1->>B: WS /ws/datapoints/stream
-    F2->>B: WS /ws/datapoints/stream
+| Group | Members | Purpose |
+|---|---|---|
+| `"controller"` | IoT controller(s) | Data ingestion |
+| `"frontend"` | Browser clients | Data consumption |
 
-    C->>B: {"event_public_id": "...", "value": 23.4}
-    B->>DB: INSERT INTO datapoints
-    B-->>F1: {"public_id": "...", "value": 23.4, ...}
-    B-->>F2: {"public_id": "...", "value": 23.4, ...}
+The `broadcast("frontend", payload)` call sends to all connected browsers simultaneously.
+
+---
+
+## Frontend Fallback Strategy
+
+The Vue frontend implements **WebSocket-first with automatic HTTP polling fallback**:
+
+1. Attempts WebSocket connection to `/ws/datapoints/stream`
+2. After **3 consecutive failures**, falls back to `GET /api/v1/datapoints/latest` every **1500ms**
+3. When WebSocket reconnects, polling is automatically stopped
+
+```typescript
+type ConnectionMode = 'websocket' | 'polling' | 'connecting'
 ```
 
 ---
 
-## Frontend Reconnection Strategy
+## Nginx Proxy Configuration
 
-The `useRealtimeDatapoints` composable handles reconnection:
-
-| Attempt | Action |
-|---|---|
-| 1–3 | Reconnect WebSocket with exponential backoff |
-| &gt; 3 | Switch to HTTP polling (`GET /api/v1/datapoints`) |
-
----
-
-## Nginx Proxy
-
-For WebSocket support through Nginx, the config must include upgrade headers:
+For production, Nginx must proxy WebSocket connections:
 
 ```nginx
 location /ws/ {
@@ -114,7 +199,7 @@ location /ws/ {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_set_header Host $host;
-    proxy_read_timeout 86400;
+    proxy_read_timeout 86400;  # 24h — prevent premature close
 }
 ```
 
@@ -122,5 +207,6 @@ location /ws/ {
 
 ## Next Steps
 
+- [Backend Architecture](../architecture/backend.md) — application structure
 - [REST API](rest.md) — HTTP endpoint reference
-- [WebSocket Architecture](../architecture/websocket.md) — design deep-dive
+- [Schema Reference](schemas.md) — request/response models
