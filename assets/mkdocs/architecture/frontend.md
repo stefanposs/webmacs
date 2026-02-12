@@ -31,7 +31,7 @@ frontend/src/
 │   ├── AppTopbar.vue       # Top bar with user menu
 │   ├── AppToast.vue        # Global toast container
 │   └── widgets/
-│       ├── WidgetWrapper.vue       # Grid drag-drop wrapper
+│       ├── WidgetWrapper.vue       # Widget chrome (title, edit, delete)
 │       ├── LineChartWidget.vue     # Time-series line chart
 │       ├── GaugeWidget.vue         # Radial gauge display
 │       ├── StatCardWidget.vue      # KPI stat card
@@ -119,7 +119,7 @@ The `WebSocketClient` class in `services/websocket.ts` is a generic reconnecting
 
 ## Dashboard Widgets
 
-The custom dashboard system uses a **grid layout** with drag-and-drop positioning:
+The custom dashboard system uses a **12-column CSS grid** with size presets:
 
 | Widget | Type Enum | Purpose |
 |---|---|---|

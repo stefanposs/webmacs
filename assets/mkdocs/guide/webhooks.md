@@ -1,6 +1,15 @@
 # Webhooks
 
-Webhooks let WebMACS push real-time notifications to external systems whenever specific events occur. Use them to integrate with Slack, Microsoft Teams, custom dashboards, or any HTTP endpoint.
+## Push Events to Any System — Automatically
+
+Webhooks turn WebMACS into an **active participant** in your infrastructure.
+Instead of polling for changes, external systems receive instant notifications
+the moment something happens — a sensor spikes, an experiment ends, or the
+system health degrades.
+
+Combined with the [REST API](../api/rest.md) and [WebSocket streaming](../api/websocket.md),
+webhooks complete the integration trifecta: **pull, stream, and push**. See
+[Integrations & Extensibility](integrations.md) for the full picture.
 
 !!! info "Admin only"
     Webhook management requires an **admin** account.
@@ -104,7 +113,7 @@ If you set a **secret**, every delivery includes two headers for security:
 
 | Header | Value |
 |---|---|
-| `X-Webhook-Signature` | `sha256=<hex-digest>` |
+| `X-Webhook-Signature` | `<hex-digest>` (bare HMAC-SHA256 hex) |
 | `X-Webhook-Timestamp` | Unix timestamp of the delivery |
 
 The HMAC is computed over `{timestamp}.{payload_body}` using SHA-256.
@@ -117,7 +126,7 @@ import hmac, hashlib
 def verify(secret: str, timestamp: str, body: bytes, signature: str) -> bool:
     message = f"{timestamp}.".encode() + body
     expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(f"sha256={expected}", signature)
+    return hmac.compare_digest(expected, signature)
 ```
 
 !!! tip "Replay protection"
@@ -127,7 +136,7 @@ def verify(secret: str, timestamp: str, body: bytes, signature: str) -> bool:
 
 ## Delivery Log
 
-Each webhook has a delivery log accessible from the UI or API. Every delivery attempt is recorded with:
+Each webhook has a delivery log accessible via the API. Every delivery attempt is recorded with:
 
 | Field | Description |
 |---|---|
@@ -141,11 +150,14 @@ Each webhook has a delivery log accessible from the UI or API. Every delivery at
 
 | Attempt | Delay | Total Wait |
 |---|---|---|
-| 1st retry | 2 seconds | 2 s |
-| 2nd retry | 4 seconds | 6 s |
-| 3rd retry | 8 seconds | 14 s |
+| 1st attempt | Immediate | — |
+| 2nd attempt | 2 seconds | 2 s |
+| 3rd attempt | 4 seconds | 6 s |
 
-After 3 failed retries, the delivery is marked as **dead_letter**. It will not be retried automatically.
+After 3 total attempts, the delivery is marked as **dead_letter** and will not be retried.
+
+!!! note "Delivery log"
+    Delivery history is available via the API (`GET /webhooks/{id}/deliveries`). A UI delivery log viewer is planned for a future release.
 
 ### Viewing Deliveries via API
 

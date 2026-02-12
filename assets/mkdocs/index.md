@@ -54,6 +54,41 @@ Extend the system with a clean REST + WebSocket API. Add new sensor types, build
 
 ---
 
+## Your Process. Your Dashboard.
+
+Traditional SCADA systems lock you into predefined screens. WebMACS lets every
+operator **build their own dashboard** — no programming required.
+
+Pick from line charts, gauges, stat cards, and actuator toggles. Place them on a
+12-column grid with size presets from compact to full-width. Each widget
+connects to a live sensor event and refreshes automatically. Create as many
+dashboards as you need: one for the reactor, one for the chiller loop, one for
+the client demo.
+
+**10 minutes, not 10 days.**
+
+[**Build Your First Dashboard →**](guide/dashboard.md#custom-dashboards){ .md-button }
+
+---
+
+## Connect WebMACS to Everything
+
+WebMACS isn't a closed box — it's a **Lego building block** that fits into your
+existing infrastructure.
+
+- **30+ REST endpoints** — read and write every resource programmatically
+- **WebSocket streaming** — sub-second live data for custom UIs
+- **HMAC-signed webhooks** — push events to Slack, Node-RED, Home Assistant,
+  or any HTTP endpoint
+- **CSV export** — pipe data into pandas, Excel, or MATLAB
+
+Think of it as a **Swiss army knife** for lab and plant data: one tool,
+unlimited integrations.
+
+[**See Integration Examples →**](guide/integrations.md){ .md-button }
+
+---
+
 ## Get Started in 5 Minutes
 
 === "Production (RevPi / Raspberry Pi)"

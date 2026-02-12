@@ -10,12 +10,13 @@ WebMACS (**Web-based Monitoring and Control System**) is designed for operators 
 
 | Feature | What It Does |
 |---|---|
-| :material-monitor-dashboard: [Dashboard](dashboard.md) | See all sensor values live, toggle actuators, adjust range controls, view a real-time chart |
+| :material-monitor-dashboard: [Dashboard](dashboard.md) | See all sensors live, toggle actuators — plus build **custom dashboards** with line charts, gauges, stat cards, and actuator toggles |
 | :material-format-list-bulleted: [Events & Sensors](events.md) | Define sensors, actuators, and range controls that the controller reads from hardware |
 | :material-flask: [Experiments](experiments.md) | Group datapoints into time-bounded experiments for later analysis |
 | :material-database: [Datapoints](datapoints.md) | Browse the raw data stream collected from every sensor |
 | :material-alert: [Automation Rules](rules.md) | Trigger alerts or webhooks when sensor values exceed thresholds |
-| :material-webhook: [Webhooks](webhooks.md) | Push notifications to external systems (Slack, Teams, custom APIs) |
+| :material-webhook: [Webhooks](webhooks.md) | Push HMAC-signed events to Slack, Teams, Node-RED, Home Assistant — or any HTTP endpoint |
+| :material-puzzle: [Integrations](integrations.md) | Connect WebMACS to anything: REST API + WebSocket + webhooks — your Swiss army knife for lab data |
 | :material-file-delimited: [CSV Export](csv-export.md) | Download experiment data as a spreadsheet-ready CSV file |
 | :material-update: [OTA Updates](ota.md) | Update the system firmware over the network |
 | :material-text-box: [Logs](logs.md) | View system log entries (info, warnings, errors) |

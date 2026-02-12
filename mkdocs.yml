@@ -61,6 +61,7 @@ nav:
     - Datapoints: guide/datapoints.md
     - Automation Rules: guide/rules.md
     - Webhooks: guide/webhooks.md
+    - Integrations: guide/integrations.md
     - CSV Export: guide/csv-export.md
     - OTA Updates: guide/ota.md
     - Logs: guide/logs.md
