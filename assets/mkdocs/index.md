@@ -12,7 +12,7 @@ WebMACS is an **open-source control system** that turns your Raspberry Pi or Rev
 
 **No cloud. No subscriptions. No vendor lock-in.** Your data stays on your hardware.
 
-![WebMACS Dashboard — Real-Time Monitoring](images/web_gui_dashboard-v2.png){ .screenshot }
+![WebMACS Custom Dashboard — Real-Time Monitoring](images/feature-custom-dashboard.gif){ .screenshot }
 
 ---
 
