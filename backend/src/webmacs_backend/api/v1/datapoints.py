@@ -18,6 +18,7 @@ from webmacs_backend.schemas import (
     DatapointBatchCreate,
     DatapointCreate,
     DatapointResponse,
+    DatapointSeriesRequest,
     PaginatedResponse,
     StatusResponse,
 )
@@ -160,6 +161,33 @@ async def create_datapoints_batch(
         )
 
     return StatusResponse(status="success", message=f"{len(rows)} datapoints successfully created.")
+
+
+@router.post("/series", response_model=dict[str, list[DatapointResponse]])
+async def get_datapoint_series(
+    data: DatapointSeriesRequest,
+    db: DbSession,
+    current_user: CurrentUser,
+) -> dict[str, list[DatapointResponse]]:
+    """Return recent datapoints grouped by event_public_id (for dashboard charts)."""
+    cutoff = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=data.minutes)
+    result = await db.execute(
+        select(Datapoint)
+        .where(Datapoint.event_public_id.in_(data.event_public_ids), Datapoint.timestamp >= cutoff)
+        .order_by(Datapoint.timestamp)
+    )
+    series: dict[str, list[DatapointResponse]] = {eid: [] for eid in data.event_public_ids}
+    for dp in result.scalars().all():
+        if dp.event_public_id in series:
+            series[dp.event_public_id].append(DatapointResponse.model_validate(dp))
+    # Downsample to max_points for mini-computer performance
+    for eid, points in series.items():
+        if len(points) > data.max_points:
+            step = len(points) / data.max_points
+            sampled = [points[int(i * step)] for i in range(data.max_points - 1)]
+            sampled.append(points[-1])
+            series[eid] = sampled
+    return series
 
 
 @router.get("/latest", response_model=list[DatapointResponse])

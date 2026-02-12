@@ -1,7 +1,7 @@
 site_name: WebMACS Documentation
 site_description: >-
-  Web-based Monitoring and Control System for IoT experiments.
-  Real-time sensor data, WebSocket telemetry, and experiment management.
+  Open-source monitoring, automation, and control system for IoT experiments.
+  Real-time sensor streaming, custom dashboards, rule-based automation, and OTA updates.
 
 repo_name: stefanposs/webmacs
 repo_url: https://github.com/stefanposs/webmacs
@@ -48,6 +48,7 @@ extra_css:
 
 nav:
   - Home: index.md
+  - Why WebMACS: why-webmacs.md
   - Getting Started:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quick-start.md
@@ -60,6 +61,7 @@ nav:
     - Datapoints: guide/datapoints.md
     - Automation Rules: guide/rules.md
     - Webhooks: guide/webhooks.md
+    - Integrations: guide/integrations.md
     - CSV Export: guide/csv-export.md
     - OTA Updates: guide/ota.md
     - Logs: guide/logs.md

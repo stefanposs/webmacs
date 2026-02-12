@@ -54,11 +54,16 @@ export interface Datapoint {
   experiment_public_id: string | null
 }
 
+export enum StatusType {
+  read = 'read',
+  unread = 'unread',
+}
+
 export interface LogEntry {
   public_id: string
   content: string
-  logging_type: string | null
-  status_type: string | null
+  logging_type: LoggingType | null
+  status_type: StatusType | null
   created_on: string | null
   user_public_id: string
 }
@@ -162,4 +167,44 @@ export interface UpdateCheckResponse {
   github_download_url: string | null
   github_release_url: string | null
   github_error: string | null
+}
+
+// Dashboard types
+export type WidgetType = 'line_chart' | 'gauge' | 'stat_card' | 'actuator_toggle'
+
+export interface DashboardWidget {
+  public_id: string
+  widget_type: WidgetType
+  title: string
+  event_public_id: string | null
+  x: number
+  y: number
+  w: number
+  h: number
+  config_json: string | null
+}
+
+export interface Dashboard {
+  public_id: string
+  name: string
+  is_global: boolean
+  created_on: string
+  user_public_id: string
+  widgets: DashboardWidget[]
+}
+
+export interface DashboardCreatePayload {
+  name: string
+  is_global: boolean
+}
+
+export interface DashboardWidgetCreatePayload {
+  widget_type: WidgetType
+  title: string
+  event_public_id?: string | null
+  x?: number
+  y?: number
+  w: number
+  h: number
+  config_json?: string | null
 }

@@ -15,6 +15,7 @@ from sqlalchemy import delete, select
 
 from webmacs_backend import __version__
 from webmacs_backend.api.v1 import auth, datapoints, events, experiments, users
+from webmacs_backend.api.v1 import dashboards as dashboards_api
 from webmacs_backend.api.v1 import health as health_api
 from webmacs_backend.api.v1 import logging as logging_api
 from webmacs_backend.api.v1 import ota as ota_api
@@ -122,6 +123,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Application startup and shutdown lifecycle."""
     _configure_structlog()
     validate_secret_key()
+
+    # Optional Sentry error tracking
+    if settings.sentry_dsn:
+        import sentry_sdk
+
+        sentry_sdk.init(dsn=settings.sentry_dsn, traces_sample_rate=0.2, release=f"webmacs@{__version__}")
+        logger.info("Sentry initialized")
+
     logger.info("Starting WebMACS Backend", version=__version__)
     await init_db()
     await _seed_admin()
@@ -182,6 +191,7 @@ def create_app() -> FastAPI:
     application.include_router(webhooks_api.router, prefix=f"{api_prefix}/webhooks", tags=["Webhooks"])
     application.include_router(rules_api.router, prefix=f"{api_prefix}/rules", tags=["Rules"])
     application.include_router(ota_api.router, prefix=f"{api_prefix}/ota", tags=["OTA Updates"])
+    application.include_router(dashboards_api.router, prefix=f"{api_prefix}/dashboards", tags=["Dashboards"])
 
     # WebSocket endpoints
     application.include_router(ws_endpoints.router, prefix="/ws", tags=["WebSocket"])

@@ -28,7 +28,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://webmacs:${DB_PASSWORD:-webmacs_dev_password}@db:5432/webmacs
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      CORS_ORIGINS: '["http://localhost:5173", "http://localhost:80"]'
+      CORS_ORIGINS: '["http://localhost:5173", "http://localhost"]'
       ENV: development
       INITIAL_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@webmacs.io}
       INITIAL_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}

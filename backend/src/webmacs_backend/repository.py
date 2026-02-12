@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import Select, func, select
+from sqlalchemy.exc import IntegrityError
 
 from webmacs_backend.database import Base
 from webmacs_backend.schemas import PaginatedResponse, StatusResponse
@@ -111,4 +112,9 @@ async def update_from_schema[M: Base](
     entity = await get_or_404(db, model, public_id, entity_name=entity_name)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(entity, field, value)
+    try:
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise ConflictError(entity_name) from None
     return StatusResponse(status="success", message=f"{entity_name} successfully updated.")

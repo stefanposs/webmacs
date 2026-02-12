@@ -1,124 +1,157 @@
-# Database Abstraction
+# Database Layer
 
-WebMACS uses **PEP 544 Protocols** to abstract the persistence layer. This allows swapping database backends without changing application code.
-
----
-
-## Design
-
-```mermaid
-classDiagram
-    class DatapointRepository {
-        <<Protocol>>
-        +create(public_id, value, ...) DatapointRecord
-        +get_by_experiment(experiment_id, ...) Sequence~DatapointRecord~
-        +get_latest(limit) Sequence~DatapointRecord~
-    }
-
-    class ExperimentRepository {
-        <<Protocol>>
-        +create(public_id, name, ...) ExperimentRecord
-        +get_all() Sequence~ExperimentRecord~
-        +update(public_id, ...) ExperimentRecord
-    }
-
-    class SQLAlchemyDatapointRepo {
-        +session: AsyncSession
-    }
-    class TimescaleDatapointRepo {
-        +session: AsyncSession
-    }
-
-    DatapointRepository <|.. SQLAlchemyDatapointRepo
-    DatapointRepository <|.. TimescaleDatapointRepo
-```
+WebMACS uses **PostgreSQL 17** with **SQLAlchemy 2.0** async ORM and the **asyncpg** driver for high-throughput time-series storage.
 
 ---
 
-## Protocols
-
-Two Protocols define the storage contracts:
-
-### DatapointRepository
+## Connection Setup
 
 ```python
-class DatapointRepository(Protocol):
-    async def create(self, public_id: str, value: float, timestamp: datetime,
-                     event_public_id: str, experiment_public_id: str | None) -> DatapointRecord: ...
-    async def get_by_experiment(self, experiment_public_id: str,
-                                limit: int, offset: int) -> Sequence[DatapointRecord]: ...
-    async def get_latest(self, limit: int) -> Sequence[DatapointRecord]: ...
+# database.py
+engine = create_async_engine(settings.database_url, echo=False)
+async_session = async_sessionmaker(engine, expire_on_commit=False)
+
+async def init_db() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 ```
 
-### ExperimentRepository
-
-```python
-class ExperimentRepository(Protocol):
-    async def create(self, public_id: str, name: str,
-                     started_on: datetime, user_public_id: str) -> ExperimentRecord: ...
-    async def get_all(self) -> Sequence[ExperimentRecord]: ...
-    async def update(self, public_id: str, **kwargs) -> ExperimentRecord: ...
-```
+Sessions are injected via `Depends(get_db)` in every route.
 
 ---
 
-## Data Transfer Objects
+## Tables (12)
 
-Instead of returning raw ORM models, repositories use lightweight DTOs:
+| Table | Purpose | Key Columns |
+|---|---|---|
+| `users` | Admin and operator accounts | `username`, `hashed_password`, `admin` |
+| `events` | Sensor/channel definitions | `name`, `unit`, `min_value`, `max_value`, `event_type` |
+| `experiments` | Time-bounded data campaigns | `name`, `started_on`, `stopped_on` |
+| `datapoints` | Time-series sensor readings | `value`, `event_public_id`, `experiment_public_id`, `created_on` |
+| `log_entries` | System and user logs | `content`, `logging_type`, `status_type`, `read` |
+| `blacklist_tokens` | Revoked JWTs (logout) | `token`, `blacklisted_on` |
+| `rules` | Automation threshold triggers | `event_public_id`, `operator`, `threshold`, `action_type`, `action_target` |
+| `webhooks` | HTTP callback subscriptions | `url`, `secret`, `events` (JSON list), `active` |
+| `webhook_deliveries` | Delivery audit trail | `webhook_public_id`, `status`, `response_code`, `payload` |
+| `firmware_updates` | OTA firmware records | `version`, `filename`, `file_path`, `status` |
+| `dashboards` | Custom dashboard layouts | `name`, `description` |
+| `dashboard_widgets` | Widget positioning & config | `dashboard_public_id`, `widget_type`, `config` (JSON), `x`, `y`, `w`, `h` |
 
-```python
-class DatapointRecord:
-    __slots__ = ("public_id", "value", "timestamp", "event_public_id", "experiment_public_id")
-```
-
-This decouples the API layer from the ORM and keeps the Protocol implementations substitutable.
-
----
-
-## Dependency Injection
-
-The `STORAGE_BACKEND` environment variable selects the implementation:
-
-```python
-# repositories/dependencies.py
-def get_datapoint_repo(session: AsyncSession = Depends(get_session)) -> DatapointRepository:
-    match settings.storage_backend:
-        case "postgresql":
-            return SQLAlchemyDatapointRepo(session)
-        case "timescale":
-            return TimescaleDatapointRepo(session)
-        case _:
-            raise ValueError(f"Unknown storage backend: {settings.storage_backend}")
-```
-
-Routers declare the dependency via FastAPI's `Depends()`:
-
-```python
-@router.get("/datapoints")
-async def list_datapoints(repo: DatapointRepository = Depends(get_datapoint_repo)):
-    return await repo.get_latest(limit=50)
-```
+All tables use `public_id` (UUID) as the external-facing identifier and an integer `id` as the internal primary key.
 
 ---
 
-## Adding a New Backend
+## Model Conventions
 
-1. Create `repositories/my_backend_repo.py`
-2. Implement `DatapointRepository` and `ExperimentRepository`
-3. Add a case in `dependencies.py`
-4. Set `STORAGE_BACKEND=my_backend`
+Every model inherits from a common `Base` with shared columns:
 
-No changes to routers, schemas, or tests needed.
+```python
+class Base(DeclarativeBase):
+    pass
+
+class CommonMixin:
+    id: Mapped[int] = mapped_column(primary_key=True)
+    public_id: Mapped[str] = mapped_column(unique=True, default=lambda: str(uuid4()))
+    created_on: Mapped[datetime] = mapped_column(default=func.now())
+    updated_on: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+```
+
+### Key Indexes
+
+```python
+# Composite index for time-series queries (datapoints filtered by event + time)
+__table_args__ = (
+    Index("ix_datapoint_event_created", "event_public_id", "created_on"),
+)
+```
+
+This composite index dramatically accelerates the most common query pattern: "give me datapoints for event X between time A and time B."
 
 ---
 
-## TimescaleDB Support
+## Generic Repository
 
-The `timescale_repo.py` is currently a **stub** — it inherits from the SQLAlchemy implementation. When TimescaleDB-specific features are needed (hypertables, continuous aggregates, compression), this module will diverge.
+Instead of per-model repositories, WebMACS uses a **single `repository.py`** with generic async helpers:
+
+### `paginate[M, S]`
+
+```python
+async def paginate(
+    db: AsyncSession,
+    model: type[M],
+    schema: type[S],
+    page: int,
+    page_size: int,
+    base_query: Select | None = None,
+) -> PaginatedResponse[S]:
+```
+
+Returns a `PaginatedResponse` with `items`, `total`, `page`, `page_size`, and `pages`. Used by every list endpoint.
+
+### `get_or_404`
+
+```python
+async def get_or_404(
+    db: AsyncSession,
+    model: type[M],
+    public_id: str,
+    entity_name: str = "Entity",
+) -> M:
+```
+
+Loads by `public_id` or raises `HTTPException(404)`.
+
+### `delete_by_public_id`
+
+```python
+async def delete_by_public_id(
+    db: AsyncSession,
+    model: type[M],
+    public_id: str,
+    entity_name: str = "Entity",
+) -> StatusResponse:
+```
+
+Deletes by `public_id` or raises `HTTPException(404)`. Returns a `StatusResponse` confirmation.
+
+### `ConflictError`
+
+Raised when a uniqueness constraint is violated (e.g., duplicate username).
+
+---
+
+## Migrations
+
+WebMACS uses **Alembic** for schema migrations:
+
+```bash
+# Generate a migration after changing models
+cd backend
+alembic revision --autogenerate -m "add dashboard tables"
+
+# Apply migrations
+alembic upgrade head
+```
+
+The migration environment is configured in [alembic/env.py](https://github.com/stefanposs/webmacs) for async support.
+
+---
+
+## Relationships
+
+```
+users ──────────────────────────────────────────────
+events ──┬── datapoints (event_public_id)
+         └── rules (event_public_id)
+experiments ── datapoints (experiment_public_id)
+webhooks ── webhook_deliveries (webhook_public_id)
+dashboards ── dashboard_widgets (dashboard_public_id)
+```
 
 ---
 
 ## Next Steps
 
-- [Backend Architecture](backend.md) — full backend structure
-- [Deployment: Environment Variables](../deployment/env-vars.md) — configuring `STORAGE_BACKEND`
+- [Backend Architecture](backend.md) — where the repository is consumed
+- [Schema Reference](../api/schemas.md) — Pydantic models for all tables
+- [REST API](../api/rest.md) — endpoint documentation

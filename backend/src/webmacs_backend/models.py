@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 import uuid
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from webmacs_backend.database import Base
@@ -17,6 +17,7 @@ from webmacs_backend.enums import (
     StatusType,
     UpdateStatus,
     WebhookDeliveryStatus,
+    WidgetType,
 )
 
 
@@ -66,7 +67,7 @@ class Experiment(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     public_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    started_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), default=func.now())
+    started_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
     stopped_on: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
 
@@ -79,6 +80,7 @@ class Datapoint(Base):
     """Datapoint model - a single sensor/actuator measurement."""
 
     __tablename__ = "datapoints"
+    __table_args__ = (Index("ix_datapoints_event_ts", "event_public_id", "timestamp"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
@@ -122,7 +124,7 @@ class LogEntry(Base):
         server_default=func.now(),
         index=True,
     )
-    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
 
     # Relationships
     user: Mapped[User] = relationship(back_populates="log_entries")
@@ -140,7 +142,7 @@ class Webhook(Base):
     events: Mapped[str] = mapped_column(Text, nullable=False)  # JSON array of WebhookEventType values
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
 
     # Relationships
     user: Mapped[User] = relationship()
@@ -192,7 +194,7 @@ class Rule(Base):
     cooldown_seconds: Mapped[int] = mapped_column(Integer, default=60)
     last_triggered_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"))
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
 
     # Relationships
     event: Mapped[Event] = relationship()
@@ -220,3 +222,46 @@ class FirmwareUpdate(Base):
 
     # Relationships
     user: Mapped[User] = relationship()
+
+
+class Dashboard(Base):
+    """Custom dashboard — user-defined layout with widgets."""
+
+    __tablename__ = "dashboards"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_global: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
+
+    # Relationships
+    user: Mapped[User] = relationship()
+    widgets: Mapped[list[DashboardWidget]] = relationship(
+        back_populates="dashboard", cascade="all, delete-orphan", order_by="DashboardWidget.id"
+    )
+
+
+class DashboardWidget(Base):
+    """A single widget placed on a dashboard grid."""
+
+    __tablename__ = "dashboard_widgets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    dashboard_id: Mapped[int] = mapped_column(Integer, ForeignKey("dashboards.id"), nullable=False, index=True)
+    widget_type: Mapped[WidgetType] = mapped_column(Enum(WidgetType), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    event_public_id: Mapped[str | None] = mapped_column(String, ForeignKey("events.public_id"), nullable=True)
+    # Grid position (grid-layout-plus convention)
+    x: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    y: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    w: Mapped[int] = mapped_column(Integer, nullable=False, default=4)
+    h: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
+    # Widget-specific config stored as JSON text
+    config_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Relationships
+    dashboard: Mapped[Dashboard] = relationship(back_populates="widgets")
+    event: Mapped[Event | None] = relationship()

@@ -113,8 +113,140 @@ The chart updates every time a new datapoint batch is received.
 
 ---
 
+## Custom Dashboards
+
+!!! success "Build your own monitoring view"
+    The system dashboard above shows everything at once. **Custom dashboards**
+    let you build purpose-built views with only the widgets you need — one for
+    the reactor, one for the cooling loop, one for the client demo.
+
+<div class="video-container" style="margin: 1.5rem 0;">
+  <video controls playsinline muted width="100%" style="border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.15);">
+    <source src="../videos/feature-custom-dashboard.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <figcaption style="text-align: center; margin-top: 0.5rem; color: var(--md-default-fg-color--light); font-size: 0.85rem;">Custom Dashboard — create widgets, resize them, and monitor your process in real time</figcaption>
+</div>
+
+### Creating a Dashboard
+
+1. Navigate to **Dashboards** in the sidebar
+2. Click **New Dashboard**
+3. Enter a name (e.g., "Reactor Zone A")
+4. Optionally check **"Visible to all users"** to make it a global dashboard
+5. Click **Create**
+
+!!! info "Visibility"
+    Each user sees their own dashboards plus any dashboard marked as **global**.
+    Only the dashboard owner can edit or delete it.
+
+### Widget Types
+
+Click **Add Widget** to choose from four types:
+
+| Widget | Type | Purpose | Refresh Rate |
+|---|---|---|---|
+| :material-chart-line: **Line Chart** | `line_chart` | Time-series trend for any sensor | 5 seconds |
+| :material-gauge: **Gauge** | `gauge` | Radial meter with colour coding (green/yellow/red) | 3 seconds |
+| :material-card-text: **Stat Card** | `stat_card` | Large current value with label and unit | 3 seconds |
+| :material-toggle-switch: **Actuator Toggle** | `actuator_toggle` | ON/OFF button for valves, relays, motors | 3 seconds |
+
+Each widget connects to a **sensor event** and refreshes automatically via HTTP
+polling at the rate shown above.
+
+### Size Presets
+
+When adding a widget, pick a size:
+
+| Preset | Columns | Rows | Good For |
+|---|---|---|---|
+| Small | 3 | 2 | Stat cards, toggles |
+| Medium | 4 | 3 | Gauges |
+| Wide | 6 | 3 | Charts with moderate detail |
+| Large | 6 | 4 | Primary charts |
+| Full Width | 12 | 4 | Full-width trend lines |
+
+The dashboard uses a **12-column CSS grid** with 80 px row height. Widgets
+flow automatically into available space.
+
+### Grid Layout Example
+
+```
+┌──────────────┬──────────────┬──────────────┐
+│  Stat Card   │  Stat Card   │    Gauge     │
+│  (3 col)     │  (3 col)     │   (3 col)   │
+├──────────────┴──────────────┼──────────────┤
+│         Line Chart          │   Actuator   │
+│         (6 col, 2 rows)     │   Toggle     │
+│                             │   (3 col)    │
+└─────────────────────────────┴──────────────┘
+```
+
+### Edit & Lock Mode
+
+- Click **Edit** to reveal pencil and trash icons on each widget
+- Click **Lock** to hide edit controls and prevent accidental changes
+- Widgets can be edited (change title, data source, size) or deleted with a
+  two-step confirmation
+
+### Time Range Selector
+
+Each custom dashboard has a **time range selector** with six presets:
+
+| Preset | Minutes | Typical Use |
+|---|---|---|
+| 20 min | 20 | Live troubleshooting |
+| 1 hour | 60 | Short experiment |
+| 6 hours | 360 | Half-shift monitoring |
+| 24 hours | 1440 | Daily overview |
+| 7 days | 10080 | Weekly trends |
+| 10 days | 14400 | Extended campaign |
+
+The selected range is remembered per dashboard in your browser and synced to
+the URL (`?range=60`), so you can bookmark a specific view.
+
+### Managing via API
+
+```bash
+# Create a dashboard
+curl -X POST http://localhost:8000/api/v1/dashboards \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Reactor Overview", "is_global": false}'
+
+# Add a line chart widget
+curl -X POST http://localhost:8000/api/v1/dashboards/$DASH_ID/widgets \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "widget_type": "line_chart",
+    "title": "Inlet Temperature",
+    "event_public_id": "evt_abc123",
+    "x": 0, "y": 0, "w": 6, "h": 3
+  }'
+
+# List all dashboards
+curl http://localhost:8000/api/v1/dashboards \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Example: Reactor Monitoring Dashboard
+
+1. Create dashboard **"Reactor Zone A"**
+2. Add a `stat_card` (Small) → "Inlet Temp" sensor
+3. Add a `stat_card` (Small) → "Outlet Temp" sensor
+4. Add a `gauge` (Medium) → "Pressure" sensor
+5. Add an `actuator_toggle` (Small) → "Emergency Valve"
+6. Add a `line_chart` (Full Width) → "Inlet Temp" sensor
+
+**Result:** A single-screen view with live values, a safety gauge, an emergency
+control, and a trend line — all updating automatically every few seconds.
+
+---
+
 ## Next Steps
 
+- [Integrations & Extensibility](integrations.md) — connect WebMACS to Slack, Node-RED, and more
 - [Events & Sensors](events.md) — define what data feeds the dashboard
 - [Experiments](experiments.md) — start grouping data into experiments
 - [Automation Rules](rules.md) — get alerted when values cross thresholds

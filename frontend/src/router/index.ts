@@ -65,6 +65,18 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
+      path: '/dashboards',
+      name: 'dashboards',
+      component: () => import('@/views/DashboardsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboards/:id',
+      name: 'dashboard-custom',
+      component: () => import('@/views/DashboardCustomView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),

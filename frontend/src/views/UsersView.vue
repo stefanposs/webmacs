@@ -26,7 +26,7 @@
           <td><span class="badge" :class="user.admin ? 'badge--admin' : ''">{{ user.admin ? 'Admin' : 'User' }}</span></td>
           <td>{{ formatDate(user.registered_on) }}</td>
           <td>
-            <button class="btn-icon" @click="handleDelete(user)" title="Delete user">
+            <button class="btn-icon" @click="handleDelete(user)" title="Delete user" aria-label="Delete user">
               <i class="pi pi-trash" />
             </button>
           </td>

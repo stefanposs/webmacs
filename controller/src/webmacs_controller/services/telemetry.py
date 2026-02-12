@@ -70,7 +70,13 @@ class WebSocketTelemetry:
         delay = self._reconnect_delay
         while True:
             try:
-                self._ws = await websockets.connect(self._ws_url)
+                url = self._ws_url
+                if self._get_token:
+                    token = self._get_token()
+                    if token:
+                        sep = "&" if "?" in url else "?"
+                        url = f"{url}{sep}token={token}"
+                self._ws = await websockets.connect(url)
                 self._reconnect_delay = 1.0  # Reset on success
                 logger.info("ws_telemetry_connected")
                 return

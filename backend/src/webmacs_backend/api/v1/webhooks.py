@@ -6,7 +6,7 @@ import json
 import uuid
 
 from fastapi import APIRouter, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from webmacs_backend.dependencies import AdminUser, DbSession
 from webmacs_backend.models import Webhook, WebhookDelivery
@@ -44,8 +44,8 @@ async def list_webhooks(
 ) -> PaginatedResponse[WebhookResponse]:
     """List all webhooks (admin only)."""
     query = select(Webhook)
-    total_result = await db.execute(select(Webhook.id).select_from(Webhook))
-    total = len(total_result.all())
+    total_result = await db.execute(select(func.count()).select_from(Webhook))
+    total = total_result.scalar_one()
 
     result = await db.execute(query.offset((page - 1) * page_size).limit(page_size))
     rows = result.scalars().all()

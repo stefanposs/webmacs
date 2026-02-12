@@ -6,6 +6,12 @@ All endpoints are mounted under `/api/v1/`. Authentication uses JWT Bearer token
 
 ## Authentication
 
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/login` | Public | Authenticate and receive JWT |
+| `POST` | `/api/v1/auth/logout` | JWT | Revoke current token |
+| `GET` | `/api/v1/auth/me` | JWT | Get current user info |
+
 ### `POST /api/v1/auth/login`
 
 Authenticate and receive a JWT token.
@@ -34,6 +40,32 @@ Authenticate and receive a JWT token.
 !!! note "Token usage"
     Include the token in all subsequent requests:
     `Authorization: Bearer <access_token>`
+
+### `POST /api/v1/auth/logout`
+
+Blacklists the current JWT so it cannot be reused.
+
+**Response** `200`:
+
+```json
+{ "status": "success", "message": "Successfully logged out." }
+```
+
+### `GET /api/v1/auth/me`
+
+Returns the authenticated user's profile.
+
+**Response** `200`:
+
+```json
+{
+  "public_id": "usr_abc123",
+  "email": "admin@webmacs.io",
+  "username": "admin",
+  "admin": true,
+  "created_on": "2025-01-01T00:00:00"
+}
+```
 
 ---
 
@@ -66,7 +98,8 @@ Authenticate and receive a JWT token.
 | `GET` | `/api/v1/experiments` | JWT | List all experiments |
 | `GET` | `/api/v1/experiments/{id}` | JWT | Get single experiment |
 | `POST` | `/api/v1/experiments` | JWT | Create & start experiment |
-| `PUT` | `/api/v1/experiments/{id}` | JWT | Update (e.g. stop) |
+| `PUT` | `/api/v1/experiments/{id}` | JWT | Update experiment |
+| `PUT` | `/api/v1/experiments/{id}/stop` | JWT | Stop experiment |
 | `DELETE` | `/api/v1/experiments/{id}` | JWT | Delete experiment |
 | `GET` | `/api/v1/experiments/{id}/export/csv` | JWT | Download CSV |
 
@@ -105,11 +138,56 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
   "name": "Inlet Temperature",
   "type": "sensor",
   "unit": "°C",
-  "description": "Temperature at the fluidised-bed inlet"
+  "min_value": 0.0,
+  "max_value": 200.0
 }
 ```
 
 **Event Types:** `sensor`, `actuator`, `range`, `cmd_button`, `cmd_opened`, `cmd_closed`
+
+---
+
+## Dashboards
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/dashboards` | JWT | List dashboards (own + global) |
+| `POST` | `/api/v1/dashboards` | JWT | Create dashboard |
+| `GET` | `/api/v1/dashboards/{id}` | JWT | Get dashboard with widgets |
+| `PUT` | `/api/v1/dashboards/{id}` | JWT | Update dashboard |
+| `DELETE` | `/api/v1/dashboards/{id}` | JWT | Delete dashboard |
+| `POST` | `/api/v1/dashboards/{id}/widgets` | JWT | Add widget to dashboard |
+| `PUT` | `/api/v1/dashboards/{id}/widgets/{wid}` | JWT | Update widget |
+| `DELETE` | `/api/v1/dashboards/{id}/widgets/{wid}` | JWT | Delete widget |
+
+### Create Dashboard
+
+```json
+{
+  "name": "Production Overview",
+  "is_global": false
+}
+```
+
+### Add Widget
+
+```json
+{
+  "widget_type": "line_chart",
+  "title": "Inlet Temperature",
+  "event_public_id": "evt_temp01",
+  "x": 0,
+  "y": 0,
+  "w": 6,
+  "h": 3
+}
+```
+
+**Widget Types:** `line_chart`, `gauge`, `stat_card`, `actuator_toggle`
+
+!!! info "Visibility"
+    Users see their own dashboards plus any dashboard marked `is_global: true`.
+    Only the dashboard owner can modify or delete it.
 
 ---
 
@@ -119,15 +197,18 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 |---|---|---|---|
 | `GET` | `/api/v1/datapoints` | JWT | List datapoints (paginated) |
 | `POST` | `/api/v1/datapoints` | JWT | Create single datapoint |
-| `POST` | `/api/v1/datapoints/bulk` | JWT | Create multiple datapoints |
+| `POST` | `/api/v1/datapoints/batch` | JWT | Create multiple datapoints |
+| `POST` | `/api/v1/datapoints/series` | JWT | Get time-series data (for charts) |
+| `GET` | `/api/v1/datapoints/latest` | JWT | Get latest datapoint per event |
+| `GET` | `/api/v1/datapoints/{id}` | JWT | Get single datapoint |
+| `DELETE` | `/api/v1/datapoints/{id}` | JWT | Delete datapoint |
 
 ### Create Datapoint
 
 ```json
 {
   "value": 23.45,
-  "event_public_id": "evt_temp01",
-  "experiment_public_id": "exp_001"
+  "event_public_id": "evt_temp01"
 }
 ```
 
@@ -135,10 +216,31 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 
 | Param | Type | Default | Description |
 |---|---|---|---|
-| `limit` | `int` | `50` | Max results per page |
-| `offset` | `int` | `0` | Pagination offset |
-| `event_id` | `string` | — | Filter by event |
-| `experiment_id` | `string` | — | Filter by experiment |
+| `page` | `int` | `1` | Page number (≥ 1) |
+| `page_size` | `int` | `25` | Results per page (1–100) |
+
+### Time-Series Query
+
+`POST /api/v1/datapoints/series` — returns datapoints grouped by event, with server-side downsampling for dashboard performance.
+
+```json
+{
+  "event_public_ids": ["evt_temp01", "evt_pressure"],
+  "minutes": 60,
+  "max_points": 500
+}
+```
+
+| Param | Type | Default | Range | Description |
+|---|---|---|---|---|
+| `event_public_ids` | `list[str]` | — | 1–20 | Events to query |
+| `minutes` | `int` | `60` | 1–14400 | Time window (up to 10 days) |
+| `max_points` | `int` | `500` | 10–2000 | Max points per event (downsampled) |
+
+**Response:** `{ "evt_temp01": [...], "evt_pressure": [...] }`
+
+!!! tip "Performance"
+    Use `max_points` to limit data transferred to the frontend — the server uniformly samples large datasets while always preserving the latest value.
 
 ---
 
@@ -188,7 +290,7 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 
 **Webhook Event Types:** `sensor.threshold_exceeded`, `sensor.reading`, `experiment.started`, `experiment.stopped`, `system.health_changed`
 
-**Delivery Statuses:** `pending`, `success`, `failed`, `retrying`
+**Delivery Statuses:** `pending`, `delivered`, `failed`, `dead_letter`
 
 !!! info "HMAC Verification"
     If a `secret` is provided, each delivery includes an `X-Webhook-Signature` header containing
@@ -247,8 +349,7 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 ```json
 {
   "version": "2.1.0",
-  "release_notes": "Performance improvements and bug fixes",
-  "firmware_url": "https://releases.example.com/firmware/v2.1.0.bin"
+  "changelog": "Performance improvements and bug fixes"
 }
 ```
 
@@ -260,13 +361,25 @@ Returns `text/csv` as a streaming response. See [CSV Export Guide](../guide/csv-
 
 ### `GET /health`
 
-Returns `200 OK` — used by Docker healthcheck.
+Returns system health — no authentication required. Used by Docker healthcheck.
 
 ```json
 {
-  "status": "healthy"
+  "status": "ok",
+  "version": "0.1.0",
+  "database": "ok",
+  "last_datapoint": "2025-01-15T14:30:00.123456",
+  "uptime_seconds": 3621.5
 }
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `"ok"` or `"degraded"` |
+| `version` | string | Application version |
+| `database` | string | `"ok"` or `"error"` |
+| `last_datapoint` | string \| null | ISO timestamp of last datapoint, or `null` |
+| `uptime_seconds` | number | Seconds since application start |
 
 ---
 
