@@ -37,10 +37,10 @@
           </td>
           <td>{{ formatDate(webhook.created_on) }}</td>
           <td>
-            <button class="btn-icon" @click="openEdit(webhook)" title="Edit">
+            <button class="btn-icon" @click="openEdit(webhook)" title="Edit" aria-label="Edit webhook">
               <i class="pi pi-pencil" />
             </button>
-            <button class="btn-icon" @click="confirmDelete(webhook)" title="Delete">
+            <button class="btn-icon" @click="confirmDelete(webhook)" title="Delete" aria-label="Delete webhook">
               <i class="pi pi-trash" />
             </button>
           </td>

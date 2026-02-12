@@ -29,7 +29,7 @@
           {{ db.widgets.length }} widget{{ db.widgets.length !== 1 ? 's' : '' }}
         </div>
         <div class="dashboard-card__actions" @click.stop>
-          <button class="btn-icon" @click="confirmDelete(db.public_id)" title="Delete">
+          <button class="btn-icon" @click="confirmDelete(db.public_id)" title="Delete" aria-label="Delete dashboard">
             <i class="pi pi-trash" />
           </button>
         </div>

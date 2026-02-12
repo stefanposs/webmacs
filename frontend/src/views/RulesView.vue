@@ -45,10 +45,10 @@
           <td>{{ formatDate(rule.last_triggered_at) }}</td>
           <td>{{ formatDate(rule.created_on) }}</td>
           <td>
-            <button class="btn-icon" @click="openEdit(rule)" title="Edit">
+            <button class="btn-icon" @click="openEdit(rule)" title="Edit" aria-label="Edit rule">
               <i class="pi pi-pencil" />
             </button>
-            <button class="btn-icon" @click="confirmDelete(rule)" title="Delete">
+            <button class="btn-icon" @click="confirmDelete(rule)" title="Delete" aria-label="Delete rule">
               <i class="pi pi-trash" />
             </button>
           </td>

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import datetime
+from typing import Any
 
-from pydantic import BaseModel, EmailStr, Field, computed_field, model_validator
+from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator, model_validator
 
 from webmacs_backend.enums import (
     EventType,
@@ -205,6 +206,17 @@ class WebhookResponse(BaseModel):
     created_on: datetime.datetime | None = None
     user_public_id: str
     model_config = {"from_attributes": True}
+
+    @field_validator("events", mode="before")
+    @classmethod
+    def _parse_events_json(cls, v: Any) -> list[str]:
+        """Deserialize JSON text from DB column to list."""
+        if isinstance(v, str):
+            import json
+
+            parsed: list[str] = json.loads(v)
+            return parsed
+        return list(v)
 
 
 class WebhookDeliveryResponse(BaseModel):

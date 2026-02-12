@@ -54,11 +54,22 @@ export interface Datapoint {
   experiment_public_id: string | null
 }
 
+export enum LoggingType {
+  error = 'error',
+  warning = 'warning',
+  info = 'info',
+}
+
+export enum StatusType {
+  read = 'read',
+  unread = 'unread',
+}
+
 export interface LogEntry {
   public_id: string
   content: string
-  logging_type: string | null
-  status_type: string | null
+  logging_type: LoggingType | null
+  status_type: StatusType | null
   created_on: string | null
   user_public_id: string
 }

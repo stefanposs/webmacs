@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 import uuid
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from webmacs_backend.database import Base
@@ -80,6 +80,7 @@ class Datapoint(Base):
     """Datapoint model - a single sensor/actuator measurement."""
 
     __tablename__ = "datapoints"
+    __table_args__ = (Index("ix_datapoints_event_ts", "event_public_id", "timestamp"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))

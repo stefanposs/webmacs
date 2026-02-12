@@ -2,7 +2,7 @@
   <div class="custom-dashboard">
     <div class="view-header">
       <div class="header-left">
-        <button class="btn-back" @click="$router.push({ name: 'dashboards' })">
+        <button class="btn-back" @click="$router.push({ name: 'dashboards' })" aria-label="Back to dashboards">
           <i class="pi pi-arrow-left" />
         </button>
         <h1 v-if="store.currentDashboard">{{ store.currentDashboard.name }}</h1>

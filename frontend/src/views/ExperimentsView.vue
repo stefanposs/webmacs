@@ -30,13 +30,13 @@
           <td>{{ formatDate(exp.started_on) }}</td>
           <td>{{ formatDate(exp.stopped_on) }}</td>
           <td class="action-cell">
-            <button class="btn-icon btn-csv" @click="handleExport(exp)" title="Download CSV">
+            <button class="btn-icon btn-csv" @click="handleExport(exp)" title="Download CSV" aria-label="Download CSV">
               <i class="pi pi-download" />
             </button>
-            <button v-if="!exp.stopped_on" class="btn-icon btn-stop" @click="handleStop(exp)" title="Stop">
+            <button v-if="!exp.stopped_on" class="btn-icon btn-stop" @click="handleStop(exp)" title="Stop" aria-label="Stop experiment">
               <i class="pi pi-stop-circle" />
             </button>
-            <button class="btn-icon" @click="handleDelete(exp)" title="Delete">
+            <button class="btn-icon" @click="handleDelete(exp)" title="Delete" aria-label="Delete experiment">
               <i class="pi pi-trash" />
             </button>
           </td>

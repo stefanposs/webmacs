@@ -154,7 +154,7 @@
             >
               <i class="pi pi-undo" />
             </button>
-            <button class="btn-icon" @click="confirmDelete(update)" title="Delete">
+            <button class="btn-icon" @click="confirmDelete(update)" title="Delete" aria-label="Delete firmware update">
               <i class="pi pi-trash" />
             </button>
           </td>

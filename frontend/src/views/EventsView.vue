@@ -28,10 +28,10 @@
           <td>{{ event.min_value }} – {{ event.max_value }}</td>
           <td class="mono">{{ event.public_id.slice(0, 8) }}…</td>
           <td>
-            <button class="btn-icon" @click="openEdit(event)" title="Edit">
+            <button class="btn-icon" @click="openEdit(event)" title="Edit" aria-label="Edit event">
               <i class="pi pi-pencil" />
             </button>
-            <button class="btn-icon" @click="confirmDelete(event)" title="Delete">
+            <button class="btn-icon" @click="confirmDelete(event)" title="Delete" aria-label="Delete event">
               <i class="pi pi-trash" />
             </button>
           </td>
