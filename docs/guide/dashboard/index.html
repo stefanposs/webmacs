@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Web-based Monitoring and Control System for IoT experiments. Real-time sensor data, WebSocket telemetry, and experiment management.">
+        <meta name="description" content="Open-source monitoring, automation, and control system for IoT experiments. Real-time sensor streaming, custom dashboards, rule-based automation, and OTA updates.">
       
       
       
@@ -248,6 +248,25 @@
   
   
   
+    <li class="md-tabs__item">
+      <a href="../../why-webmacs/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Why WebMACS
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
     
     
       <li class="md-tabs__item">
@@ -443,6 +462,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../why-webmacs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why WebMACS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -459,10 +505,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -480,8 +526,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -607,10 +653,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -628,8 +674,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -839,6 +885,111 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-dashboards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Dashboards
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Dashboards">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#widget-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Widget Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#size-presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Size Presets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grid-layout-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid Layout Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edit-lock-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edit &amp; Lock Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time-range-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time Range Selector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-via-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing via API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-reactor-monitoring-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Reactor Monitoring Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1005,6 +1156,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../csv-export/" class="md-nav__link">
         
   
@@ -1139,10 +1318,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -1160,8 +1339,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1368,10 +1547,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1389,8 +1568,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1513,10 +1692,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -1534,8 +1713,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1658,10 +1837,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -1679,8 +1858,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1941,6 +2120,111 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-dashboards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Dashboards
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Dashboards">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#widget-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Widget Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#size-presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Size Presets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grid-layout-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid Layout Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edit-lock-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edit &amp; Lock Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time-range-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time Range Selector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managing-via-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing via API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-reactor-monitoring-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Reactor Monitoring Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2128,8 +2412,219 @@
 </tbody>
 </table>
 <hr />
+<h2 id="custom-dashboards">Custom Dashboards<a class="headerlink" href="#custom-dashboards" title="Permanent link">&para;</a></h2>
+<div class="admonition success">
+<p class="admonition-title">Build your own monitoring view</p>
+<p>The system dashboard above shows everything at once. <strong>Custom dashboards</strong>
+let you build purpose-built views with only the widgets you need — one for
+the reactor, one for the cooling loop, one for the client demo.</p>
+</div>
+<div class="video-container" style="margin: 1.5rem 0;">
+  <video controls playsinline muted width="100%" style="border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.15);">
+    <source src="../videos/feature-custom-dashboard.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <figcaption style="text-align: center; margin-top: 0.5rem; color: var(--md-default-fg-color--light); font-size: 0.85rem;">Custom Dashboard — create widgets, resize them, and monitor your process in real time</figcaption>
+</div>
+
+<h3 id="creating-a-dashboard">Creating a Dashboard<a class="headerlink" href="#creating-a-dashboard" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Navigate to <strong>Dashboards</strong> in the sidebar</li>
+<li>Click <strong>New Dashboard</strong></li>
+<li>Enter a name (e.g., "Reactor Zone A")</li>
+<li>Optionally check <strong>"Visible to all users"</strong> to make it a global dashboard</li>
+<li>Click <strong>Create</strong></li>
+</ol>
+<div class="admonition info">
+<p class="admonition-title">Visibility</p>
+<p>Each user sees their own dashboards plus any dashboard marked as <strong>global</strong>.
+Only the dashboard owner can edit or delete it.</p>
+</div>
+<h3 id="widget-types">Widget Types<a class="headerlink" href="#widget-types" title="Permanent link">&para;</a></h3>
+<p>Click <strong>Add Widget</strong> to choose from four types:</p>
+<table>
+<thead>
+<tr>
+<th>Widget</th>
+<th>Type</th>
+<th>Purpose</th>
+<th>Refresh Rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m16 11.78 4.24-7.33 1.73 1-5.23 9.05-6.51-3.75L5.46 19H22v2H2V3h2v14.54L9.5 8z"/></svg></span> <strong>Line Chart</strong></td>
+<td><code>line_chart</code></td>
+<td>Time-series trend for any sensor</td>
+<td>5 seconds</td>
+</tr>
+<tr>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 2a8 8 0 0 1 8 8c0 2.4-1 4.5-2.7 6-1.4-1.3-3.3-2-5.3-2s-3.8.7-5.3 2C5 16.5 4 14.4 4 12a8 8 0 0 1 8-8m2 1.89c-.38.01-.74.26-.9.65l-1.29 3.23-.1.23c-.71.13-1.3.6-1.57 1.26-.41 1.03.09 2.19 1.12 2.6s2.19-.09 2.6-1.12c.26-.66.14-1.42-.29-1.98l.1-.26 1.29-3.21.01-.03c.2-.51-.05-1.09-.56-1.3-.13-.05-.26-.07-.41-.07M10 6a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1M7 9a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m10 0a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"/></svg></span> <strong>Gauge</strong></td>
+<td><code>gauge</code></td>
+<td>Radial meter with colour coding (green/yellow/red)</td>
+<td>3 seconds</td>
+</tr>
+<tr>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2M5 13v2h11v-2zm0-4v2h14V9z"/></svg></span> <strong>Stat Card</strong></td>
+<td><code>stat_card</code></td>
+<td>Large current value with label and unit</td>
+<td>3 seconds</td>
+</tr>
+<tr>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg></span> <strong>Actuator Toggle</strong></td>
+<td><code>actuator_toggle</code></td>
+<td>ON/OFF button for valves, relays, motors</td>
+<td>3 seconds</td>
+</tr>
+</tbody>
+</table>
+<p>Each widget connects to a <strong>sensor event</strong> and refreshes automatically via HTTP
+polling at the rate shown above.</p>
+<h3 id="size-presets">Size Presets<a class="headerlink" href="#size-presets" title="Permanent link">&para;</a></h3>
+<p>When adding a widget, pick a size:</p>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Columns</th>
+<th>Rows</th>
+<th>Good For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Small</td>
+<td>3</td>
+<td>2</td>
+<td>Stat cards, toggles</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>4</td>
+<td>3</td>
+<td>Gauges</td>
+</tr>
+<tr>
+<td>Wide</td>
+<td>6</td>
+<td>3</td>
+<td>Charts with moderate detail</td>
+</tr>
+<tr>
+<td>Large</td>
+<td>6</td>
+<td>4</td>
+<td>Primary charts</td>
+</tr>
+<tr>
+<td>Full Width</td>
+<td>12</td>
+<td>4</td>
+<td>Full-width trend lines</td>
+</tr>
+</tbody>
+</table>
+<p>The dashboard uses a <strong>12-column CSS grid</strong> with 80 px row height. Widgets
+flow automatically into available space.</p>
+<h3 id="grid-layout-example">Grid Layout Example<a class="headerlink" href="#grid-layout-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌──────────────┬──────────────┬──────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  Stat Card   │  Stat Card   │    Gauge     │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  (3 col)     │  (3 col)     │   (3 col)   │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├──────────────┴──────────────┼──────────────┤
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│         Line Chart          │   Actuator   │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│         (6 col, 2 rows)     │   Toggle     │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│                             │   (3 col)    │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>└─────────────────────────────┴──────────────┘
+</code></pre></div>
+<h3 id="edit-lock-mode">Edit &amp; Lock Mode<a class="headerlink" href="#edit-lock-mode" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Click <strong>Edit</strong> to reveal pencil and trash icons on each widget</li>
+<li>Click <strong>Lock</strong> to hide edit controls and prevent accidental changes</li>
+<li>Widgets can be edited (change title, data source, size) or deleted with a
+  two-step confirmation</li>
+</ul>
+<h3 id="time-range-selector">Time Range Selector<a class="headerlink" href="#time-range-selector" title="Permanent link">&para;</a></h3>
+<p>Each custom dashboard has a <strong>time range selector</strong> with six presets:</p>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Minutes</th>
+<th>Typical Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20 min</td>
+<td>20</td>
+<td>Live troubleshooting</td>
+</tr>
+<tr>
+<td>1 hour</td>
+<td>60</td>
+<td>Short experiment</td>
+</tr>
+<tr>
+<td>6 hours</td>
+<td>360</td>
+<td>Half-shift monitoring</td>
+</tr>
+<tr>
+<td>24 hours</td>
+<td>1440</td>
+<td>Daily overview</td>
+</tr>
+<tr>
+<td>7 days</td>
+<td>10080</td>
+<td>Weekly trends</td>
+</tr>
+<tr>
+<td>10 days</td>
+<td>14400</td>
+<td>Extended campaign</td>
+</tr>
+</tbody>
+</table>
+<p>The selected range is remembered per dashboard in your browser and synced to
+the URL (<code>?range=60</code>), so you can bookmark a specific view.</p>
+<h3 id="managing-via-api">Managing via API<a class="headerlink" href="#managing-via-api" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Create a dashboard</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/dashboards<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;name&quot;: &quot;Reactor Overview&quot;, &quot;is_global&quot;: false}&#39;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Add a line chart widget</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/dashboards/<span class="nv">$DASH_ID</span>/widgets<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="s1">    &quot;widget_type&quot;: &quot;line_chart&quot;,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="s1">    &quot;title&quot;: &quot;Inlet Temperature&quot;,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="s1">    &quot;event_public_id&quot;: &quot;evt_abc123&quot;,</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="s1">    &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;w&quot;: 6, &quot;h&quot;: 3</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="s1">  }&#39;</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="c1"># List all dashboards</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/dashboards<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<h3 id="example-reactor-monitoring-dashboard">Example: Reactor Monitoring Dashboard<a class="headerlink" href="#example-reactor-monitoring-dashboard" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Create dashboard <strong>"Reactor Zone A"</strong></li>
+<li>Add a <code>stat_card</code> (Small) → "Inlet Temp" sensor</li>
+<li>Add a <code>stat_card</code> (Small) → "Outlet Temp" sensor</li>
+<li>Add a <code>gauge</code> (Medium) → "Pressure" sensor</li>
+<li>Add an <code>actuator_toggle</code> (Small) → "Emergency Valve"</li>
+<li>Add a <code>line_chart</code> (Full Width) → "Inlet Temp" sensor</li>
+</ol>
+<p><strong>Result:</strong> A single-screen view with live values, a safety gauge, an emergency
+control, and a trend line — all updating automatically every few seconds.</p>
+<hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
+<li><a href="../integrations/">Integrations &amp; Extensibility</a> — connect WebMACS to Slack, Node-RED, and more</li>
 <li><a href="../events/">Events &amp; Sensors</a> — define what data feeds the dashboard</li>
 <li><a href="../experiments/">Experiments</a> — start grouping data into experiments</li>
 <li><a href="../rules/">Automation Rules</a> — get alerted when values cross thresholds</li>

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Web-based Monitoring and Control System for IoT experiments. Real-time sensor data, WebSocket telemetry, and experiment management.">
+        <meta name="description" content="Open-source monitoring, automation, and control system for IoT experiments. Real-time sensor streaming, custom dashboards, rule-based automation, and OTA updates.">
       
       
       
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#database-abstraction" class="md-skip">
+        <a href="#database-layer" class="md-skip">
           Skip to content
         </a>
       
@@ -237,6 +237,25 @@
     
   
   Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../why-webmacs/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Why WebMACS
 
       </a>
     </li>
@@ -443,6 +462,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../why-webmacs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why WebMACS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -459,10 +505,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -480,8 +526,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -604,10 +650,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
@@ -625,8 +671,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -839,6 +885,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/csv-export/" class="md-nav__link">
         
   
@@ -976,10 +1050,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -997,8 +1071,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1215,10 +1289,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#design" class="md-nav__link">
+  <a href="#connection-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design
+        Connection Setup
       
     </span>
   </a>
@@ -1226,33 +1300,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#protocols" class="md-nav__link">
+  <a href="#tables-12" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Protocols
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Protocols">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#datapointrepository" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DatapointRepository
+        Tables (12)
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#experimentrepository" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#model-conventions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ExperimentRepository
+        Model Conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-indexes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Indexes
       
     </span>
   </a>
@@ -1265,10 +1339,71 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-transfer-objects" class="md-nav__link">
+  <a href="#generic-repository" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Data Transfer Objects
+        Generic Repository
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Generic Repository">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#paginatem-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        paginate[M, S]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_or_404" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_or_404
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_by_public_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_by_public_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conflicterror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConflictError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrations
       
     </span>
   </a>
@@ -1276,32 +1411,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependency-injection" class="md-nav__link">
+  <a href="#relationships" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dependency Injection
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#adding-a-new-backend" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adding a New Backend
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#timescaledb-support" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TimescaleDB Support
+        Relationships
       
     </span>
   </a>
@@ -1357,10 +1470,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1378,8 +1491,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1502,10 +1615,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -1523,8 +1636,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1647,10 +1760,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -1668,8 +1781,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1825,10 +1938,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#design" class="md-nav__link">
+  <a href="#connection-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design
+        Connection Setup
       
     </span>
   </a>
@@ -1836,33 +1949,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#protocols" class="md-nav__link">
+  <a href="#tables-12" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Protocols
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Protocols">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#datapointrepository" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DatapointRepository
+        Tables (12)
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#experimentrepository" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#model-conventions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ExperimentRepository
+        Model Conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-indexes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Indexes
       
     </span>
   </a>
@@ -1875,10 +1988,71 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-transfer-objects" class="md-nav__link">
+  <a href="#generic-repository" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Data Transfer Objects
+        Generic Repository
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Generic Repository">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#paginatem-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        paginate[M, S]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_or_404" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_or_404
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_by_public_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_by_public_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conflicterror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConflictError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrations
       
     </span>
   </a>
@@ -1886,32 +2060,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependency-injection" class="md-nav__link">
+  <a href="#relationships" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dependency Injection
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#adding-a-new-backend" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adding a New Backend
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#timescaledb-support" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TimescaleDB Support
+        Relationships
       
     </span>
   </a>
@@ -1949,94 +2101,172 @@
   
 
 
-<h1 id="database-abstraction">Database Abstraction<a class="headerlink" href="#database-abstraction" title="Permanent link">&para;</a></h1>
-<p>WebMACS uses <strong>PEP 544 Protocols</strong> to abstract the persistence layer. This allows swapping database backends without changing application code.</p>
+<h1 id="database-layer">Database Layer<a class="headerlink" href="#database-layer" title="Permanent link">&para;</a></h1>
+<p>WebMACS uses <strong>PostgreSQL 17</strong> with <strong>SQLAlchemy 2.0</strong> async ORM and the <strong>asyncpg</strong> driver for high-throughput time-series storage.</p>
 <hr />
-<h2 id="design">Design<a class="headerlink" href="#design" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>classDiagram
-    class DatapointRepository {
-        &lt;&lt;Protocol&gt;&gt;
-        +create(public_id, value, ...) DatapointRecord
-        +get_by_experiment(experiment_id, ...) Sequence~DatapointRecord~
-        +get_latest(limit) Sequence~DatapointRecord~
-    }
-
-    class ExperimentRepository {
-        &lt;&lt;Protocol&gt;&gt;
-        +create(public_id, name, ...) ExperimentRecord
-        +get_all() Sequence~ExperimentRecord~
-        +update(public_id, ...) ExperimentRecord
-    }
-
-    class SQLAlchemyDatapointRepo {
-        +session: AsyncSession
-    }
-    class TimescaleDatapointRepo {
-        +session: AsyncSession
-    }
-
-    DatapointRepository &lt;|.. SQLAlchemyDatapointRepo
-    DatapointRepository &lt;|.. TimescaleDatapointRepo</code></pre>
-<hr />
-<h2 id="protocols">Protocols<a class="headerlink" href="#protocols" title="Permanent link">&para;</a></h2>
-<p>Two Protocols define the storage contracts:</p>
-<h3 id="datapointrepository">DatapointRepository<a class="headerlink" href="#datapointrepository" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatapointRepository</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                     <span class="n">event_public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">experiment_public_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DatapointRecord</span><span class="p">:</span> <span class="o">...</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_by_experiment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                                <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">DatapointRecord</span><span class="p">]:</span> <span class="o">...</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_latest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">DatapointRecord</span><span class="p">]:</span> <span class="o">...</span>
+<h2 id="connection-setup">Connection Setup<a class="headerlink" href="#connection-setup" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># database.py</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">create_async_engine</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">database_url</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">async_session</span> <span class="o">=</span> <span class="n">async_sessionmaker</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">expire_on_commit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">init_db</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="experimentrepository">ExperimentRepository<a class="headerlink" href="#experimentrepository" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExperimentRepository</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                     <span class="n">started_on</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">user_public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentRecord</span><span class="p">:</span> <span class="o">...</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ExperimentRecord</span><span class="p">]:</span> <span class="o">...</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentRecord</span><span class="p">:</span> <span class="o">...</span>
-</code></pre></div>
+<p>Sessions are injected via <code>Depends(get_db)</code> in every route.</p>
 <hr />
-<h2 id="data-transfer-objects">Data Transfer Objects<a class="headerlink" href="#data-transfer-objects" title="Permanent link">&para;</a></h2>
-<p>Instead of returning raw ORM models, repositories use lightweight DTOs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatapointRecord</span><span class="p">:</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;public_id&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;event_public_id&quot;</span><span class="p">,</span> <span class="s2">&quot;experiment_public_id&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p>This decouples the API layer from the ORM and keeps the Protocol implementations substitutable.</p>
+<h2 id="tables-12">Tables (12)<a class="headerlink" href="#tables-12" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Purpose</th>
+<th>Key Columns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>users</code></td>
+<td>Admin and operator accounts</td>
+<td><code>username</code>, <code>hashed_password</code>, <code>admin</code></td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td>Sensor/channel definitions</td>
+<td><code>name</code>, <code>unit</code>, <code>min_value</code>, <code>max_value</code>, <code>event_type</code></td>
+</tr>
+<tr>
+<td><code>experiments</code></td>
+<td>Time-bounded data campaigns</td>
+<td><code>name</code>, <code>started_on</code>, <code>stopped_on</code></td>
+</tr>
+<tr>
+<td><code>datapoints</code></td>
+<td>Time-series sensor readings</td>
+<td><code>value</code>, <code>event_public_id</code>, <code>experiment_public_id</code>, <code>created_on</code></td>
+</tr>
+<tr>
+<td><code>log_entries</code></td>
+<td>System and user logs</td>
+<td><code>content</code>, <code>logging_type</code>, <code>status_type</code>, <code>read</code></td>
+</tr>
+<tr>
+<td><code>blacklist_tokens</code></td>
+<td>Revoked JWTs (logout)</td>
+<td><code>token</code>, <code>blacklisted_on</code></td>
+</tr>
+<tr>
+<td><code>rules</code></td>
+<td>Automation threshold triggers</td>
+<td><code>event_public_id</code>, <code>operator</code>, <code>threshold</code>, <code>action_type</code>, <code>action_target</code></td>
+</tr>
+<tr>
+<td><code>webhooks</code></td>
+<td>HTTP callback subscriptions</td>
+<td><code>url</code>, <code>secret</code>, <code>events</code> (JSON list), <code>active</code></td>
+</tr>
+<tr>
+<td><code>webhook_deliveries</code></td>
+<td>Delivery audit trail</td>
+<td><code>webhook_public_id</code>, <code>status</code>, <code>response_code</code>, <code>payload</code></td>
+</tr>
+<tr>
+<td><code>firmware_updates</code></td>
+<td>OTA firmware records</td>
+<td><code>version</code>, <code>filename</code>, <code>file_path</code>, <code>status</code></td>
+</tr>
+<tr>
+<td><code>dashboards</code></td>
+<td>Custom dashboard layouts</td>
+<td><code>name</code>, <code>description</code></td>
+</tr>
+<tr>
+<td><code>dashboard_widgets</code></td>
+<td>Widget positioning &amp; config</td>
+<td><code>dashboard_public_id</code>, <code>widget_type</code>, <code>config</code> (JSON), <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code></td>
+</tr>
+</tbody>
+</table>
+<p>All tables use <code>public_id</code> (UUID) as the external-facing identifier and an integer <code>id</code> as the internal primary key.</p>
 <hr />
-<h2 id="dependency-injection">Dependency Injection<a class="headerlink" href="#dependency-injection" title="Permanent link">&para;</a></h2>
-<p>The <code>STORAGE_BACKEND</code> environment variable selects the implementation:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># repositories/dependencies.py</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_datapoint_repo</span><span class="p">(</span><span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">DatapointRepository</span><span class="p">:</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="k">match</span> <span class="n">settings</span><span class="o">.</span><span class="n">storage_backend</span><span class="p">:</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="k">case</span> <span class="s2">&quot;postgresql&quot;</span><span class="p">:</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>            <span class="k">return</span> <span class="n">SQLAlchemyDatapointRepo</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        <span class="k">case</span> <span class="s2">&quot;timescale&quot;</span><span class="p">:</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>            <span class="k">return</span> <span class="n">TimescaleDatapointRepo</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown storage backend: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">storage_backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<h2 id="model-conventions">Model Conventions<a class="headerlink" href="#model-conventions" title="Permanent link">&para;</a></h2>
+<p>Every model inherits from a common <code>Base</code> with shared columns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="p">(</span><span class="n">DeclarativeBase</span><span class="p">):</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="k">pass</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CommonMixin</span><span class="p">:</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">public_id</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">()))</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">created_on</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">updated_on</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">onupdate</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
 </code></pre></div>
-<p>Routers declare the dependency via FastAPI's <code>Depends()</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/datapoints&quot;</span><span class="p">)</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">list_datapoints</span><span class="p">(</span><span class="n">repo</span><span class="p">:</span> <span class="n">DatapointRepository</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_datapoint_repo</span><span class="p">)):</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">repo</span><span class="o">.</span><span class="n">get_latest</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<h3 id="key-indexes">Key Indexes<a class="headerlink" href="#key-indexes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Composite index for time-series queries (datapoints filtered by event + time)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">Index</span><span class="p">(</span><span class="s2">&quot;ix_datapoint_event_created&quot;</span><span class="p">,</span> <span class="s2">&quot;event_public_id&quot;</span><span class="p">,</span> <span class="s2">&quot;created_on&quot;</span><span class="p">),</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">)</span>
 </code></pre></div>
+<p>This composite index dramatically accelerates the most common query pattern: "give me datapoints for event X between time A and time B."</p>
 <hr />
-<h2 id="adding-a-new-backend">Adding a New Backend<a class="headerlink" href="#adding-a-new-backend" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Create <code>repositories/my_backend_repo.py</code></li>
-<li>Implement <code>DatapointRepository</code> and <code>ExperimentRepository</code></li>
-<li>Add a case in <code>dependencies.py</code></li>
-<li>Set <code>STORAGE_BACKEND=my_backend</code></li>
-</ol>
-<p>No changes to routers, schemas, or tests needed.</p>
+<h2 id="generic-repository">Generic Repository<a class="headerlink" href="#generic-repository" title="Permanent link">&para;</a></h2>
+<p>Instead of per-model repositories, WebMACS uses a <strong>single <code>repository.py</code></strong> with generic async helpers:</p>
+<h3 id="paginatem-s"><code>paginate[M, S]</code><a class="headerlink" href="#paginatem-s" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">paginate</span><span class="p">(</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">db</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">M</span><span class="p">],</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">schema</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">S</span><span class="p">],</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">base_query</span><span class="p">:</span> <span class="n">Select</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">S</span><span class="p">]:</span>
+</code></pre></div>
+<p>Returns a <code>PaginatedResponse</code> with <code>items</code>, <code>total</code>, <code>page</code>, <code>page_size</code>, and <code>pages</code>. Used by every list endpoint.</p>
+<h3 id="get_or_404"><code>get_or_404</code><a class="headerlink" href="#get_or_404" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_or_404</span><span class="p">(</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">db</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">M</span><span class="p">],</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">entity_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Entity&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">M</span><span class="p">:</span>
+</code></pre></div>
+<p>Loads by <code>public_id</code> or raises <code>HTTPException(404)</code>.</p>
+<h3 id="delete_by_public_id"><code>delete_by_public_id</code><a class="headerlink" href="#delete_by_public_id" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">delete_by_public_id</span><span class="p">(</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="n">db</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">M</span><span class="p">],</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">public_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">entity_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Entity&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatusResponse</span><span class="p">:</span>
+</code></pre></div>
+<p>Deletes by <code>public_id</code> or raises <code>HTTPException(404)</code>. Returns a <code>StatusResponse</code> confirmation.</p>
+<h3 id="conflicterror"><code>ConflictError</code><a class="headerlink" href="#conflicterror" title="Permanent link">&para;</a></h3>
+<p>Raised when a uniqueness constraint is violated (e.g., duplicate username).</p>
 <hr />
-<h2 id="timescaledb-support">TimescaleDB Support<a class="headerlink" href="#timescaledb-support" title="Permanent link">&para;</a></h2>
-<p>The <code>timescale_repo.py</code> is currently a <strong>stub</strong> — it inherits from the SQLAlchemy implementation. When TimescaleDB-specific features are needed (hypertables, continuous aggregates, compression), this module will diverge.</p>
+<h2 id="migrations">Migrations<a class="headerlink" href="#migrations" title="Permanent link">&para;</a></h2>
+<p>WebMACS uses <strong>Alembic</strong> for schema migrations:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Generate a migration after changing models</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;add dashboard tables&quot;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Apply migrations</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+</code></pre></div>
+<p>The migration environment is configured in <a href="https://github.com/stefanposs/webmacs">alembic/env.py</a> for async support.</p>
+<hr />
+<h2 id="relationships">Relationships<a class="headerlink" href="#relationships" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>users ──────────────────────────────────────────────
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>events ──┬── datapoints (event_public_id)
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>         └── rules (event_public_id)
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>experiments ── datapoints (experiment_public_id)
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>webhooks ── webhook_deliveries (webhook_public_id)
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>dashboards ── dashboard_widgets (dashboard_public_id)
+</code></pre></div>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../backend/">Backend Architecture</a> — full backend structure</li>
-<li><a href="../../deployment/env-vars/">Deployment: Environment Variables</a> — configuring <code>STORAGE_BACKEND</code></li>
+<li><a href="../backend/">Backend Architecture</a> — where the repository is consumed</li>
+<li><a href="../../api/schemas/">Schema Reference</a> — Pydantic models for all tables</li>
+<li><a href="../../api/rest/">REST API</a> — endpoint documentation</li>
 </ul>
 
 
