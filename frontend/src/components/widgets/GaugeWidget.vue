@@ -8,6 +8,10 @@
         <path :d="valueArc" fill="none" :stroke="color" stroke-width="10" stroke-linecap="round" />
       </svg>
       <div class="gauge-value">{{ displayValue }}<small v-if="unit"> {{ unit }}</small></div>
+      <div class="gauge-range">
+        <span>{{ minVal }}</span>
+        <span>{{ maxVal }}</span>
+      </div>
     </div>
   </WidgetWrapper>
 </template>
@@ -113,5 +117,14 @@ onUnmounted(() => {
   font-size: 0.7rem;
   font-weight: 400;
   color: var(--wm-text-muted, #94a3b8);
+}
+.gauge-range {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 160px;
+  margin-top: 0.15rem;
+  font-size: 0.65rem;
+  color: var(--wm-text-muted, #64748b);
 }
 </style>

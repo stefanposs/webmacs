@@ -11,28 +11,19 @@ Authentication:
 
 from __future__ import annotations
 
-import asyncio
-import datetime
-import uuid
-
 import structlog
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from sqlalchemy import insert, select
+from sqlalchemy import select
 
 from webmacs_backend.database import db_session
-from webmacs_backend.enums import WebhookEventType
-from webmacs_backend.models import BlacklistToken, Datapoint, Experiment, User
+from webmacs_backend.models import BlacklistToken, User
 from webmacs_backend.security import InvalidTokenError, decode_access_token
-from webmacs_backend.services import build_payload, dispatch_event
-from webmacs_backend.services.rule_evaluator import evaluate_rules_for_datapoint
+from webmacs_backend.services.ingestion import IncomingDatapoint, ingest_datapoints
 from webmacs_backend.ws.connection_manager import manager
 
 logger = structlog.get_logger()
 
 router = APIRouter()
-
-# Store background tasks so they aren't garbage-collected (RUF006)
-_background_tasks: set[asyncio.Task[None]] = set()
 
 
 async def _authenticate_ws(ws: WebSocket) -> User | None:
@@ -80,7 +71,7 @@ async def _authenticate_ws(ws: WebSocket) -> User | None:
 
 
 @router.websocket("/controller/telemetry")
-async def controller_telemetry(ws: WebSocket) -> None:  # noqa: PLR0912, PLR0915
+async def controller_telemetry(ws: WebSocket) -> None:
     """Receive sensor data batches from the IoT controller via WebSocket.
 
     Requires JWT token as query parameter: ``?token=<jwt>``
@@ -108,7 +99,7 @@ async def controller_telemetry(ws: WebSocket) -> None:  # noqa: PLR0912, PLR0915
                 continue
 
             # Validate each datapoint has the required fields
-            valid_datapoints: list[dict[str, object]] = []
+            valid: list[IncomingDatapoint] = []
             for dp in raw_datapoints:
                 if not isinstance(dp, dict):
                     continue
@@ -117,67 +108,23 @@ async def controller_telemetry(ws: WebSocket) -> None:  # noqa: PLR0912, PLR0915
                 if value is None or event_pid is None:
                     continue
                 try:
-                    valid_datapoints.append({"value": float(value), "event_public_id": str(event_pid)})
+                    valid.append(IncomingDatapoint(value=float(value), event_public_id=str(event_pid)))
                 except (TypeError, ValueError):
                     continue
 
-            if not valid_datapoints:
+            if not valid:
                 await ws.send_json({"type": "error", "message": "No valid datapoints in batch"})
                 continue
 
-            # Persist batch using standalone session (not FastAPI DI)
+            # Delegate to shared ingestion pipeline
             async with db_session() as session:
-                # Find active experiment
-                result = await session.execute(select(Experiment.public_id).where(Experiment.stopped_on.is_(None)))
-                row = result.first()
-                exp_id = row[0] if row else None
+                result = await ingest_datapoints(session, valid)
 
-                now = datetime.datetime.now(datetime.UTC)
-                rows = [
-                    {
-                        "public_id": str(uuid.uuid4()),
-                        "value": dp["value"],
-                        "timestamp": now,
-                        "event_public_id": dp["event_public_id"],
-                        "experiment_public_id": exp_id,
-                    }
-                    for dp in valid_datapoints
-                ]
-                await session.execute(insert(Datapoint), rows)
-
-            # Evaluate rules and fire webhooks for each datapoint (best-effort)
-            for dp in valid_datapoints:
-                event_pid = str(dp["event_public_id"])
-                dp_value = float(dp["value"])  # type: ignore[arg-type]
-                payload = build_payload(WebhookEventType.sensor_reading, sensor=event_pid, value=dp_value)
-                task = asyncio.create_task(dispatch_event(WebhookEventType.sensor_reading, payload))
-                _background_tasks.add(task)
-                task.add_done_callback(_background_tasks.discard)
-            try:
-                async with db_session() as rule_session:
-                    for dp in valid_datapoints:
-                        await evaluate_rules_for_datapoint(
-                            rule_session,
-                            str(dp["event_public_id"]),
-                            float(dp["value"]),  # type: ignore[arg-type]
-                        )
-            except Exception:
-                logger.exception("ws_rule_evaluation_failed")
-
-            # Broadcast to all frontend subscribers
-            broadcast_payload = {
-                "type": "datapoints_batch",
-                "datapoints": [
-                    {
-                        "value": dp["value"],
-                        "event_public_id": dp["event_public_id"],
-                        "timestamp": now.isoformat(),
-                        "experiment_public_id": exp_id,
-                    }
-                    for dp in valid_datapoints
-                ],
-            }
-            await manager.broadcast("frontend", broadcast_payload)
+            logger.debug(
+                "ws_telemetry_batch",
+                accepted=result.accepted,
+                rejected=result.rejected,
+            )
 
     except WebSocketDisconnect:
         logger.info("controller_ws_disconnected")

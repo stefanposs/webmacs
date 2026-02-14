@@ -313,7 +313,7 @@ async def test_datapoint_triggers_rule_evaluation(
     sample_rule: Rule,
 ) -> None:
     """Creating a datapoint with value > threshold should trigger rule evaluation."""
-    with patch("webmacs_backend.api.v1.datapoints.evaluate_rules_for_datapoint", new_callable=AsyncMock) as mock_eval:
+    with patch("webmacs_backend.services.ingestion.evaluate_rules_for_datapoint", new_callable=AsyncMock) as mock_eval:
         mock_eval.return_value = 1
         resp = await client.post(
             "/api/v1/datapoints",

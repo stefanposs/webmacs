@@ -32,8 +32,8 @@ setup-frontend:
 # Testing
 # ============================================================================
 
-# Run all tests (backend + controller + frontend)
-test: test-backend test-controller test-frontend
+# Run all tests (backend + controller + plugins + frontend)
+test: test-backend test-controller test-plugins test-frontend
     @echo "✅ All tests passed!"
 
 # Run backend tests
@@ -49,6 +49,12 @@ test-backend-cov:
 test-controller:
     cd controller && uv run pytest tests/ -v
 
+# Run plugin tests
+test-plugins:
+    cd plugins/core && uv run pytest tests/ -v
+    cd plugins/simulated && uv run pytest tests/ -v
+    cd plugins/system && uv run pytest tests/ -v
+
 # Run frontend tests
 test-frontend:
     cd frontend && npm run test -- --run
@@ -61,10 +67,10 @@ test-frontend:
 lint: lint-backend lint-frontend
     @echo "✅ All linting passed!"
 
-# Lint backend + controller with ruff
+# Lint backend + controller + plugins with ruff
 lint-backend:
-    uv run ruff check backend/src/ controller/src/
-    uv run ruff format --check backend/src/ controller/src/
+    uv run ruff check backend/src/ controller/src/ plugins/
+    uv run ruff format --check backend/src/ controller/src/ plugins/
 
 # Lint frontend with ESLint
 lint-frontend:
@@ -72,12 +78,12 @@ lint-frontend:
 
 # Auto-format Python code
 format:
-    uv run ruff format backend/src/ controller/src/
+    uv run ruff format backend/src/ controller/src/ plugins/
     @echo "✅ Python code formatted!"
 
 # Auto-fix Python lint issues
 lint-fix:
-    uv run ruff check --fix backend/src/ controller/src/
+    uv run ruff check --fix backend/src/ controller/src/ plugins/
 
 # Format + lint-fix
 fix: format lint-fix
@@ -95,6 +101,10 @@ typecheck-frontend:
 # Full QA pipeline (lint + typecheck + test)
 qa: lint typecheck test
     @echo "✅ All QA checks passed!"
+
+# Run plugin tests only
+test-plugin name:
+    cd plugins/{{name}} && uv run pytest tests/ -v
 
 # Quick check before commit
 check: lint typecheck
@@ -191,6 +201,8 @@ loc:
     @find backend/src -name '*.py' | xargs wc -l 2>/dev/null | tail -1
     @echo "Python (controller):"
     @find controller/src -name '*.py' | xargs wc -l 2>/dev/null | tail -1
+    @echo "Python (plugins):"
+    @find plugins -name '*.py' -not -path '*__pycache__*' | xargs wc -l 2>/dev/null | tail -1
     @echo "TypeScript (frontend):"
     @find frontend/src -name '*.ts' -o -name '*.vue' | xargs wc -l 2>/dev/null | tail -1
     @echo "Documentation:"

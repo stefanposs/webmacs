@@ -33,6 +33,9 @@ class ControllerSettings(BaseSettings):
     # Rule engine
     rule_event_id: str = Field(default="", alias="WEBMACS_RULE_EVENT_ID")
 
+    # Auto-seed simulated plugin in dev mode (set to false to disable)
+    auto_seed_plugins: bool = Field(default=True, alias="WEBMACS_AUTO_SEED")
+
     # RevPi mapping (JSON string from env, parsed to dict)
     revpi_mapping: dict[str, Any] = Field(default_factory=dict, alias="WEBMACS_REVPI_MAPPING")
 

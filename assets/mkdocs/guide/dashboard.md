@@ -143,9 +143,9 @@ Click **Add Widget** to choose from four types:
 
 | Widget | Type | Purpose | Refresh Rate |
 |---|---|---|---|
-| :material-chart-line: **Line Chart** | `line_chart` | Time-series trend for any sensor | 5 seconds |
-| :material-gauge: **Gauge** | `gauge` | Radial meter with colour coding (green/yellow/red) | 3 seconds |
-| :material-card-text: **Stat Card** | `stat_card` | Large current value with label and unit | 3 seconds |
+| :material-chart-line: **Line Chart** | `line_chart` | Time-series trend with labelled X-axis (timestamps) and Y-axis (unit from linked event, e.g. °C, bar, %) | 5 seconds |
+| :material-gauge: **Gauge** | `gauge` | Radial meter with colour coding (green/yellow/red), unit label, and min/max scale from the linked event | 3 seconds |
+| :material-card-text: **Stat Card** | `stat_card` | Large current value with label and unit from the linked event | 3 seconds |
 | :material-toggle-switch: **Actuator Toggle** | `actuator_toggle` | ON/OFF button for valves, relays, motors | 3 seconds |
 
 Each widget connects to a **sensor event** and refreshes automatically via HTTP

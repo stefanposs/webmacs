@@ -75,7 +75,7 @@ fi
 
 # ── 3. Create directory structure ────────────────────────────────────────
 info "Creating directory structure at ${INSTALL_DIR}..."
-mkdir -p "${INSTALL_DIR}"/{updates,updates/applied,updates/backups,updates/failed}
+mkdir -p "${INSTALL_DIR}"/{updates,updates/applied,updates/backups,updates/failed,plugins}
 ok "Directories created"
 
 # ── 4. Generate .env file ───────────────────────────────────────────────
@@ -108,6 +108,7 @@ WEBMACS_VERSION=latest
 # Controller settings
 POLL_INTERVAL=1.0
 TELEMETRY_MODE=http
+WEBMACS_AUTO_SEED=true
 EOF
 
     chmod 600 "$ENV_FILE"

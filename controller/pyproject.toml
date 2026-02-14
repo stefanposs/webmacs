@@ -13,6 +13,10 @@ dependencies = [
     "sentry-sdk>=2.19.0",
     "python-dotenv>=1.0.0",
     "websockets>=14.0",
+    "webmacs-plugins-core",
+    "webmacs-plugin-simulated",
+    "webmacs-plugin-system",
+    "webmacs-plugin-revpi",
 ]
 
 [project.optional-dependencies]

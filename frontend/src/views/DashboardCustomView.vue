@@ -59,6 +59,9 @@
           :widget="widget"
           :editable="editing"
           :time-range-minutes="timeRangeMinutes"
+          :unit="eventForWidget(widget)?.unit"
+          :min="eventForWidget(widget)?.min_value"
+          :max="eventForWidget(widget)?.max_value"
           @edit="openEditDialog(widget)"
           @delete="handleDeleteWidget(widget.public_id)"
         />
@@ -238,7 +241,7 @@ import LineChartWidget from '@/components/widgets/LineChartWidget.vue'
 import GaugeWidget from '@/components/widgets/GaugeWidget.vue'
 import StatCardWidget from '@/components/widgets/StatCardWidget.vue'
 import ActuatorToggleWidget from '@/components/widgets/ActuatorToggleWidget.vue'
-import type { DashboardWidget, WidgetType } from '@/types'
+import type { DashboardWidget, Event, WidgetType } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -339,6 +342,11 @@ const widgetMap: Record<WidgetType, Component> = {
 
 function widgetComponent(type: WidgetType): Component {
   return widgetMap[type] ?? StatCardWidget
+}
+
+function eventForWidget(widget: DashboardWidget): Event | undefined {
+  if (!widget.event_public_id) return undefined
+  return eventStore.events.find((e) => e.public_id === widget.event_public_id)
 }
 
 function gridStyle(widget: DashboardWidget) {

@@ -16,9 +16,9 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from webmacs_backend.database import Base, get_db
-from webmacs_backend.enums import EventType, RuleActionType, RuleOperator, UpdateStatus
+from webmacs_backend.enums import EventType, ChannelDirection, PluginStatus, RuleActionType, RuleOperator, UpdateStatus
 from webmacs_backend.main import create_app
-from webmacs_backend.models import Event, FirmwareUpdate, Rule, User, Webhook
+from webmacs_backend.models import ChannelMapping, Event, FirmwareUpdate, PluginInstance, Rule, User, Webhook
 from webmacs_backend.security import create_access_token, hash_password
 
 if TYPE_CHECKING:
@@ -115,8 +115,26 @@ async def auth_headers(admin_user: User) -> dict[str, str]:
 
 
 @pytest_asyncio.fixture
-async def sample_event(db_session: AsyncSession, admin_user: User) -> Event:
-    """Insert a sensor event — useful for datapoint tests."""
+async def active_plugin(db_session: AsyncSession, admin_user: User) -> PluginInstance:
+    """An enabled plugin instance — events linked via ChannelMapping can accept datapoints."""
+    plugin = PluginInstance(
+        public_id="plugin-active-001",
+        plugin_id="simulated",
+        instance_name="Active Test Plugin",
+        demo_mode=False,
+        enabled=True,
+        status=PluginStatus.connected,
+        user_public_id=admin_user.public_id,
+    )
+    db_session.add(plugin)
+    await db_session.commit()
+    await db_session.refresh(plugin)
+    return plugin
+
+
+@pytest_asyncio.fixture
+async def sample_event(db_session: AsyncSession, admin_user: User, active_plugin: PluginInstance) -> Event:
+    """Insert a sensor event linked to an active plugin via ChannelMapping."""
     event = Event(
         public_id="evt-temp-001",
         name="Temperature Sensor 1",
@@ -127,6 +145,17 @@ async def sample_event(db_session: AsyncSession, admin_user: User) -> Event:
         user_public_id=admin_user.public_id,
     )
     db_session.add(event)
+    await db_session.flush()
+
+    mapping = ChannelMapping(
+        plugin_instance_id=active_plugin.id,
+        channel_id="ch-temp-1",
+        channel_name="Temperature",
+        direction=ChannelDirection.input,
+        unit="°C",
+        event_public_id=event.public_id,
+    )
+    db_session.add(mapping)
     await db_session.commit()
     await db_session.refresh(event)
     return event
@@ -152,8 +181,8 @@ async def sample_webhook(db_session: AsyncSession, admin_user: User) -> Webhook:
 
 
 @pytest_asyncio.fixture
-async def second_event(db_session: AsyncSession, admin_user: User) -> Event:
-    """A second event — needed to verify /latest returns one row per event."""
+async def second_event(db_session: AsyncSession, admin_user: User, active_plugin: PluginInstance) -> Event:
+    """A second event linked to active plugin — needed to verify /latest returns one row per event."""
     event = Event(
         public_id="evt-press-001",
         name="Pressure Sensor 1",
@@ -164,6 +193,17 @@ async def second_event(db_session: AsyncSession, admin_user: User) -> Event:
         user_public_id=admin_user.public_id,
     )
     db_session.add(event)
+    await db_session.flush()
+
+    mapping = ChannelMapping(
+        plugin_instance_id=active_plugin.id,
+        channel_id="ch-press-1",
+        channel_name="Pressure",
+        direction=ChannelDirection.input,
+        unit="bar",
+        event_public_id=event.public_id,
+    )
+    db_session.add(mapping)
     await db_session.commit()
     await db_session.refresh(event)
     return event
@@ -204,3 +244,21 @@ async def sample_firmware_update(db_session: AsyncSession, admin_user: User) -> 
     await db_session.commit()
     await db_session.refresh(fw)
     return fw
+
+
+@pytest_asyncio.fixture
+async def sample_plugin(db_session: AsyncSession, admin_user: User) -> PluginInstance:
+    """Insert a plugin instance for plugin API tests."""
+    plugin = PluginInstance(
+        public_id="plugin-sim-001",
+        plugin_id="simulated",
+        instance_name="Test Simulated Sensors",
+        demo_mode=True,
+        enabled=True,
+        status=PluginStatus.demo,
+        user_public_id=admin_user.public_id,
+    )
+    db_session.add(plugin)
+    await db_session.commit()
+    await db_session.refresh(plugin)
+    return plugin

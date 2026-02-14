@@ -14,22 +14,24 @@ WebMACS is a **four-component system** for real-time sensor monitoring, data acq
 │                     │                  │                        │
 │   ┌─────────────┐   │  ┌────────────┐  │  ┌──────────────────┐ │
 │   │  Frontend    │   │  │  Backend   │  │  │  PostgreSQL 17   │ │
-│   │  Vue 3 SPA   │◄─┼─►│  FastAPI   │◄─┼─►│  12 tables       │ │
-│   │  PrimeVue 4  │   │  │  10 routes │  │  │  async (asyncpg) │ │
+│   │  Vue 3 SPA   │◄─┼─►│  FastAPI   │◄─┼─►│  15 tables       │ │
+│   │  PrimeVue 4  │   │  │  11 routes │  │  │  async (asyncpg) │ │
 │   └─────────────┘   │  └─────┬──────┘  │  └──────────────────┘ │
 │                     │        │ WS      │                        │
 │                     │  ┌─────▼──────┐  │                        │
 │                     │  │ Controller │  │                        │
 │                     │  │ RevPi HW   │  │                        │
+│                     │  │ + Plugins  │  │                        │
 │                     │  │ Python 3.13│  │                        │
-│                     │  └────────────┘  │                        │
-└─────────────────────┴──────────────────┴────────────────────────┘
-                              │
-                     ┌────────▼────────┐
-                     │  External APIs  │
-                     │  • Webhooks     │
-                     │  • GitHub OTA   │
-                     └─────────────────┘
+│                     │  └─────┬──────┘  │                        │
+└─────────────────────┴────────┼─────────┴────────────────────────┘
+                               │
+                     ┌─────────▼────────┐
+                     │  External / HW   │
+                     │  • Plugin I/O    │
+                     │  • Webhooks      │
+                     │  • GitHub OTA    │
+                     └──────────────────┘
 ```
 
 ---
@@ -58,8 +60,8 @@ See [Frontend Architecture](frontend.md).
 | ORM | SQLAlchemy 2.0 (async) |
 | Schemas | Pydantic v2 |
 | Auth | JWT (HS256, 24h) + bcrypt |
-| API Routers | 10 (auth, users, experiments, events, datapoints, logging, rules, webhooks, ota, dashboards) |
-| Services | Webhook dispatcher, Rule evaluator, OTA manager |
+| API Routers | 11 (auth, users, experiments, events, datapoints, logging, rules, webhooks, ota, dashboards, **plugins**) |
+| Services | Webhook dispatcher, Rule evaluator, OTA manager, **Plugin manager** |
 
 See [Backend Architecture](backend.md).
 
@@ -71,6 +73,7 @@ See [Backend Architecture](backend.md).
 | Language | Python 3.13 (async) |
 | Protocol | WebSocket client → backend `/ws/controller/telemetry` |
 | Hardware | RevPi Connect / DIO / AIO via `revpimodio2` |
+| Plugins | Extensible via **Plugin SDK** — custom device drivers, system monitoring, simulated devices |
 
 See [Controller Architecture](controller.md).
 
@@ -80,7 +83,7 @@ See [Controller Architecture](controller.md).
 |---|---|
 | Version | PostgreSQL 17 |
 | Driver | `asyncpg` (fully async) |
-| Tables | 12 (users, events, experiments, datapoints, log_entries, blacklist_tokens, rules, webhooks, webhook_deliveries, firmware_updates, dashboards, dashboard_widgets) |
+| Tables | 15 (users, events, experiments, datapoints, log_entries, blacklist_tokens, rules, webhooks, webhook_deliveries, firmware_updates, dashboards, dashboard_widgets, **plugin_instances**, **channel_mappings**, **plugin_packages**) |
 | Key | composite index on `(event_public_id, created_on)` for time-series queries |
 
 See [Database Layer](database.md).
@@ -91,10 +94,10 @@ See [Database Layer](database.md).
 
 ```
 Sensor → Controller → WS (batch JSON) → Backend → DB (INSERT)
-                                            │
-                                            ├──► WS broadcast → Frontend (live chart)
-                                            ├──► Rule evaluator → trigger actions
-                                            └──► Webhook dispatcher → external APIs
+                          │                    │
+                  Plugin Bridge                ├──► WS broadcast → Frontend (live chart)
+                  (custom I/O)                 ├──► Rule evaluator → trigger actions
+                                               └──► Webhook dispatcher → external APIs
 ```
 
 ### Step-by-step
@@ -109,6 +112,7 @@ Sensor → Controller → WS (batch JSON) → Backend → DB (INSERT)
      - **Rule evaluation** against threshold-based rules (e.g., "if temperature > 80°C, send alert").
      - **Webhook dispatch** if subscribed events match.
 4. **Frontend** receives the broadcast and updates live charts in real-time with no page reload.
+5. **Plugin bridge** (optional): The controller loads third-party device plugins that read additional I/O sources (system metrics, custom hardware, simulated data) and feed their channels into the same telemetry pipeline.
 
 ---
 

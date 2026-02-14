@@ -37,9 +37,11 @@ _CLEANUP_INTERVAL: float = 60.0  # prune stale IPs every 60 s
 _EXEMPT_PREFIXES: tuple[str, ...] = (
     "/ws",
     "/health",
-    "/api/v1/datapoints",  # controller posts sensor data at high frequency
     "/api/v1/ota",
 )
+
+# POST-only rate-limit exemptions (e.g. controller pushing sensor data)
+_EXEMPT_POST_PREFIXES: tuple[str, ...] = ("/api/v1/datapoints",)
 
 # ─── Internal / trusted networks (Docker bridge, loopback) ──────────────────
 
@@ -128,7 +130,11 @@ class RateLimitMiddleware:
             return
 
         path: str = scope.get("path", "")
+        method: str = scope.get("method", "GET")
         if any(path.startswith(prefix) for prefix in _EXEMPT_PREFIXES):
+            await self.app(scope, receive, send)
+            return
+        if method == "POST" and any(path.startswith(prefix) for prefix in _EXEMPT_POST_PREFIXES):
             await self.app(scope, receive, send)
             return
 

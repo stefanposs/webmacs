@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-import asyncio
 import datetime
-import uuid
 
 import structlog
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import desc, func, insert, select
+from sqlalchemy import desc, func, select
 
 from webmacs_backend.dependencies import CurrentUser, DbSession
-from webmacs_backend.enums import WebhookEventType
-from webmacs_backend.models import Datapoint, Event, Experiment
+from webmacs_backend.models import Datapoint, Event
 from webmacs_backend.repository import delete_by_public_id, get_or_404
 from webmacs_backend.schemas import (
     DatapointBatchCreate,
@@ -22,35 +19,15 @@ from webmacs_backend.schemas import (
     PaginatedResponse,
     StatusResponse,
 )
-from webmacs_backend.services import build_payload, dispatch_event
-from webmacs_backend.services.rule_evaluator import evaluate_rules_for_datapoint
-from webmacs_backend.ws.connection_manager import manager
+from webmacs_backend.services.ingestion import (
+    IncomingDatapoint,
+    active_plugin_event_ids,
+    ingest_datapoints,
+)
 
 logger = structlog.get_logger()
 
 router = APIRouter()
-
-# Store background tasks so they aren't garbage-collected (RUF006)
-_background_tasks: set[asyncio.Task[None]] = set()
-
-
-async def _active_experiment_id(db: DbSession) -> str | None:
-    """Return the public_id of the currently running experiment, or None."""
-    result = await db.execute(select(Experiment.public_id).where(Experiment.stopped_on.is_(None)))
-    row = result.first()
-    return row[0] if row else None
-
-
-def _fire_webhook_for_datapoint(event_public_id: str, value: float) -> None:
-    """Schedule a fire-and-forget webhook dispatch for a new datapoint."""
-    payload = build_payload(
-        WebhookEventType.sensor_reading,
-        sensor=event_public_id,
-        value=value,
-    )
-    task = asyncio.create_task(dispatch_event(WebhookEventType.sensor_reading, payload))
-    _background_tasks.add(task)
-    task.add_done_callback(_background_tasks.discard)
 
 
 @router.get("", response_model=PaginatedResponse[DatapointResponse])
@@ -78,40 +55,16 @@ async def create_datapoint(data: DatapointCreate, db: DbSession, current_user: C
     if not event_result.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found.")
 
-    exp_id = await _active_experiment_id(db)
-    db.add(
-        Datapoint(
-            public_id=str(uuid.uuid4()),
-            value=data.value,
-            timestamp=datetime.datetime.now(datetime.UTC),
-            event_public_id=data.event_public_id,
-            experiment_public_id=exp_id,
+    # Reject if the event is not linked to an enabled plugin
+    active = await active_plugin_event_ids(db, [data.event_public_id])
+    if data.event_public_id not in active:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Event is not linked to an enabled plugin instance.",
         )
-    )
-    _fire_webhook_for_datapoint(data.event_public_id, data.value)
-    try:
-        await evaluate_rules_for_datapoint(db, data.event_public_id, data.value)
-    except Exception:
-        logger.exception("Rule evaluation failed — datapoint saved, rules skipped")
 
-    # Broadcast to frontend WebSocket subscribers
-    now_iso = datetime.datetime.now(datetime.UTC).isoformat()
-    await manager.broadcast(
-        "frontend",
-        {
-            "type": "datapoints_batch",
-            "datapoints": [
-                {
-                    "value": data.value,
-                    "event_public_id": data.event_public_id,
-                    "timestamp": now_iso,
-                    "experiment_public_id": exp_id,
-                }
-            ],
-        },
-    )
-
-    return StatusResponse(status="success", message="Datapoint successfully created.")
+    result = await ingest_datapoints(db, [IncomingDatapoint(value=data.value, event_public_id=data.event_public_id)])
+    return StatusResponse(status="success", message=f"{result.accepted} datapoint successfully created.")
 
 
 @router.post("/batch", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
@@ -120,47 +73,9 @@ async def create_datapoints_batch(
     db: DbSession,
     current_user: CurrentUser,
 ) -> StatusResponse:
-    exp_id = await _active_experiment_id(db)
-    now = datetime.datetime.now(datetime.UTC)
-
-    rows = [
-        {
-            "public_id": str(uuid.uuid4()),
-            "value": dp.value,
-            "timestamp": now,
-            "event_public_id": dp.event_public_id,
-            "experiment_public_id": exp_id,
-        }
-        for dp in data.datapoints
-    ]
-    if rows:
-        await db.execute(insert(Datapoint), rows)
-        # Fire webhook for each datapoint in batch (fire-and-forget)
-        for dp in data.datapoints:
-            _fire_webhook_for_datapoint(dp.event_public_id, dp.value)
-            try:
-                await evaluate_rules_for_datapoint(db, dp.event_public_id, dp.value)
-            except Exception:
-                logger.exception("Rule evaluation failed — datapoint saved, rules skipped")
-
-        # Broadcast to frontend WebSocket subscribers
-        await manager.broadcast(
-            "frontend",
-            {
-                "type": "datapoints_batch",
-                "datapoints": [
-                    {
-                        "value": dp.value,
-                        "event_public_id": dp.event_public_id,
-                        "timestamp": now.isoformat(),
-                        "experiment_public_id": exp_id,
-                    }
-                    for dp in data.datapoints
-                ],
-            },
-        )
-
-    return StatusResponse(status="success", message=f"{len(rows)} datapoints successfully created.")
+    incoming = [IncomingDatapoint(value=dp.value, event_public_id=dp.event_public_id) for dp in data.datapoints]
+    result = await ingest_datapoints(db, incoming)
+    return StatusResponse(status="success", message=f"{result.accepted} datapoints successfully created.")
 
 
 @router.post("/series", response_model=dict[str, list[DatapointResponse]])

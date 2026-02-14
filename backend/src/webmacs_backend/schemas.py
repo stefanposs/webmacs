@@ -8,8 +8,11 @@ from typing import Any
 from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator, model_validator
 
 from webmacs_backend.enums import (
+    ChannelDirection,
     EventType,
     LoggingType,
+    PluginSource,
+    PluginStatus,
     RuleActionType,
     RuleOperator,
     StatusType,
@@ -408,3 +411,91 @@ class DatapointSeriesRequest(BaseModel):
     event_public_ids: list[str] = Field(min_length=1, max_length=20)
     minutes: int = Field(default=60, ge=1, le=14400)
     max_points: int = Field(default=500, ge=10, le=2000)
+
+
+# ─── Plugin ──────────────────────────────────────────────────────────────────
+
+
+class PluginMetaResponse(BaseModel):
+    """Metadata about an available (installed) plugin class."""
+
+    id: str
+    name: str
+    version: str
+    vendor: str
+    description: str
+    url: str | None = None
+
+
+class PluginInstanceCreate(BaseModel):
+    plugin_id: str = Field(min_length=1, max_length=100)
+    instance_name: str = Field(min_length=1, max_length=255)
+    demo_mode: bool = False
+    enabled: bool = True
+    config_json: str | None = None
+
+
+class PluginInstanceUpdate(BaseModel):
+    instance_name: str | None = Field(default=None, min_length=1, max_length=255)
+    demo_mode: bool | None = None
+    enabled: bool | None = None
+    config_json: str | None = None
+
+
+class PluginInstanceResponse(BaseModel):
+    public_id: str
+    plugin_id: str
+    instance_name: str
+    demo_mode: bool
+    enabled: bool
+    status: PluginStatus
+    config_json: str | None = None
+    error_message: str | None = None
+    created_on: datetime.datetime | None = None
+    updated_on: datetime.datetime | None = None
+    user_public_id: str
+    channel_mappings: list[ChannelMappingResponse] = []
+
+    model_config = {"from_attributes": True}
+
+
+class ChannelMappingCreate(BaseModel):
+    channel_id: str = Field(min_length=1, max_length=100)
+    channel_name: str = Field(min_length=1, max_length=255)
+    direction: ChannelDirection
+    unit: str = Field(min_length=1, max_length=50)
+    event_public_id: str | None = None
+
+
+class ChannelMappingUpdate(BaseModel):
+    event_public_id: str | None = None
+
+
+class ChannelMappingResponse(BaseModel):
+    public_id: str
+    channel_id: str
+    channel_name: str
+    direction: ChannelDirection
+    unit: str
+    event_public_id: str | None = None
+    created_on: datetime.datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+# ─── Plugin Packages ────────────────────────────────────────────────────────────
+
+
+class PluginPackageResponse(BaseModel):
+    """Info about an installed plugin package."""
+
+    public_id: str
+    package_name: str
+    version: str
+    source: PluginSource
+    plugin_ids: list[str] = []
+    file_size_bytes: int | None = None
+    installed_on: datetime.datetime | None = None
+    removable: bool = False
+
+    model_config = {"from_attributes": True}

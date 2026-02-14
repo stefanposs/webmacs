@@ -11,7 +11,6 @@ from webmacs_controller.schemas import EventSchema, EventType
 
 if TYPE_CHECKING:
     from webmacs_controller.services.api_client import APIClient
-    from webmacs_controller.services.hardware import HardwareInterface
 
 logger = structlog.get_logger()
 
@@ -26,11 +25,9 @@ class RuleEngine:
     def __init__(
         self,
         events: list[EventSchema],
-        hardware: HardwareInterface,
         api_client: APIClient,
         rule_event_id: str,
     ) -> None:
-        self._hardware = hardware
         self._api_client = api_client
         self._rule_event_id = rule_event_id
 
@@ -115,7 +112,7 @@ class RuleEngine:
         """Post a datapoint value for a specific event."""
         await self._api_client.post(
             "/datapoints",
-            json={"event_public_id": event_public_id, "value": str(value)},
+            json={"event_public_id": event_public_id, "value": value},
         )
 
     async def _get_latest_value(self, event_public_id: str) -> str | None:
