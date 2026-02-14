@@ -6,11 +6,28 @@ import hashlib
 import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from webmacs_backend.enums import UpdateStatus
 from webmacs_backend.services.ota_service import compare_versions, get_current_version, verify_update
+
+# Mock response for check_github_releases — no remote update available
+_NO_GITHUB_UPDATE: dict[str, str | None] = {
+    "version": None,
+    "download_url": None,
+    "release_url": None,
+    "error": None,
+}
+
+# Mock response for check_github_releases — v2.1.0 available
+_GITHUB_UPDATE_210: dict[str, str | None] = {
+    "version": "2.1.0",
+    "download_url": "https://github.com/stefanposs/webmacs/releases/download/v2.1.0/update.tar.gz",
+    "release_url": "https://github.com/stefanposs/webmacs/releases/tag/v2.1.0",
+    "error": None,
+}
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -174,7 +191,13 @@ async def test_get_firmware_update_not_found(
     assert response.status_code == 404
 
 
+@patch(
+    "webmacs_backend.services.ota_service.check_github_releases",
+    new_callable=AsyncMock,
+    return_value=_NO_GITHUB_UPDATE,
+)
 async def test_check_for_updates_with_pending(
+    _mock_gh: AsyncMock,
     client: AsyncClient,
     auth_headers: dict[str, str],
     admin_user: User,
@@ -189,8 +212,16 @@ async def test_check_for_updates_with_pending(
     assert data["update_available"] is True
 
 
+@patch(
+    "webmacs_backend.services.ota_service.check_github_releases",
+    new_callable=AsyncMock,
+    return_value=_NO_GITHUB_UPDATE,
+)
 async def test_check_for_updates_without_pending(
-    client: AsyncClient, auth_headers: dict[str, str], admin_user: User
+    _mock_gh: AsyncMock,
+    client: AsyncClient,
+    auth_headers: dict[str, str],
+    admin_user: User,
 ) -> None:
     """GET /api/v1/ota/check returns update_available=False when no updates exist."""
     response = await client.get("/api/v1/ota/check", headers=auth_headers)

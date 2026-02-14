@@ -192,7 +192,7 @@ class SystemPlugin(DevicePlugin):
             return None
         try:
             return reader()
-        except Exception:  # noqa: BLE001
+        except Exception:
             return None
 
     async def _do_write(
@@ -272,5 +272,5 @@ class SystemPlugin(DevicePlugin):
             # Windows: getloadavg() not available — use CPU% as proxy
             try:
                 return round(psutil.cpu_percent(interval=None) / 100.0 * psutil.cpu_count(), 2)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 return None
