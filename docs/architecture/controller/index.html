@@ -969,6 +969,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/logs/" class="md-nav__link">
         
   
@@ -1320,6 +1348,17 @@
     <span class="md-ellipsis">
       
         Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugin-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin Bridge
       
     </span>
   </a>
@@ -1692,6 +1731,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/plugin-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1993,6 +2060,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#plugin-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin Bridge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2037,10 +2115,9 @@
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    ├── api_client.py      # HTTPX client with retry + auto-reauth
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    ├── actuator_manager.py  # Actuator command handling
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    ├── demo_seeder.py     # Demo event seeding (dev mode)
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    ├── hardware.py        # HardwareInterface ABC + RevPi/Simulated impls
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├── rule_engine.py     # Valve cycling rule logic
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    ├── sensor_manager.py  # Sensor reading abstraction
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    └── telemetry.py       # TelemetryTransport Protocol (HTTP / WebSocket)
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    ├── hardware.py        # HardwareInterface ABC + RevPi/Simulated impls    ├── plugin_bridge.py   # Load, start, and manage plugin instances    ├── rule_engine.py     # Valve cycling rule logic
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├── sensor_manager.py  # Sensor reading abstraction
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    └── telemetry.py       # TelemetryTransport Protocol (HTTP / WebSocket)
 </code></pre></div>
 <hr />
 <h2 id="telemetry-modes">Telemetry Modes<a class="headerlink" href="#telemetry-modes" title="Permanent link">&para;</a></h2>
@@ -2095,6 +2172,25 @@
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">webmacs_admin_email</span><span class="p">:</span> <span class="nb">str</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">webmacs_admin_password</span><span class="p">:</span> <span class="nb">str</span>
 </code></pre></div>
+<hr />
+<h2 id="plugin-bridge">Plugin Bridge<a class="headerlink" href="#plugin-bridge" title="Permanent link">&para;</a></h2>
+<p>The <strong>PluginBridge</strong> (<code>plugin_bridge.py</code>) loads and manages plugin instances on the controller:</p>
+<ol>
+<li><strong>Discovery</strong> — scans installed packages for the <code>webmacs.plugins</code> entry-point group via <code>importlib.metadata</code></li>
+<li><strong>Instantiation</strong> — creates plugin instances from the backend configuration (plugin ID, config JSON, demo mode)</li>
+<li><strong>Lifecycle</strong> — starts, stops, and monitors plugins; reports status back to the backend</li>
+<li><strong>Channel I/O</strong> — reads input channels and writes output channels each polling cycle, forwarding values through the telemetry pipeline</li>
+</ol>
+<p>Plugins are Python packages that implement the <code>DevicePlugin</code> (async) or <code>SyncDevicePlugin</code> (blocking) abstract base class from the <code>webmacs-plugins-core</code> SDK.</p>
+<pre class="mermaid"><code>flowchart LR
+    Registry["Plugin Registry"] --&gt;|discover| EP["Entry Points"]
+    EP --&gt; P1["Plugin A"]
+    EP --&gt; P2["Plugin B"]
+    Bridge["Plugin Bridge"] --&gt;|start / stop| P1
+    Bridge --&gt;|start / stop| P2
+    P1 --&gt;|channel data| TM["Telemetry"]
+    P2 --&gt;|channel data| TM</code></pre>
+<p>See the <a href="../../development/plugin-development/">Plugin Development Guide</a> for writing custom plugins.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>

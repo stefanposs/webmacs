@@ -969,6 +969,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/logs/" class="md-nav__link">
         
   
@@ -1225,6 +1253,17 @@
     <span class="md-ellipsis">
       
         Generic Repository Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datapoint-ingestion-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Datapoint Ingestion Pipeline
       
     </span>
   </a>
@@ -1664,6 +1703,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/plugin-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1926,6 +1993,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#datapoint-ingestion-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Datapoint Ingestion Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#security" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1976,7 +2054,7 @@
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── main.py              # Application factory + lifespan
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── config.py            # pydantic-settings Settings
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── database.py          # Engine, session, init_db
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── models.py            # SQLAlchemy ORM models (12 tables)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── models.py            # SQLAlchemy ORM models (15 tables)
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── schemas.py           # Pydantic v2 request/response schemas
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── enums.py             # StrEnum definitions (EventType, StatusType, etc.)
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── security.py          # JWT + bcrypt helpers
@@ -1994,19 +2072,22 @@
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│       ├── webhooks.py      # CRUD /webhooks + deliveries
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│       ├── ota.py           # CRUD /ota + apply/rollback/check/upload
 <a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│       ├── dashboards.py    # CRUD /dashboards + widgets
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│       └── health.py        # GET /health
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>├── services/
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   ├── webhook_dispatcher.py  # HMAC-signed webhook delivery
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   ├── rule_evaluator.py      # Threshold-based rule engine
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   ├── ota_service.py         # Firmware update management
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   ├── updater.py             # System update application
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   └── log_service.py         # Logging service
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>├── middleware/
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   ├── rate_limit.py          # Request rate limiting
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   └── request_id.py          # X-Request-ID header injection
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>└── ws/
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    ├── connection_manager.py  # Pub/sub hub for WS groups
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    └── endpoints.py           # /ws/controller/telemetry, /ws/datapoints/stream
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│       ├── plugins.py       # Plugin discovery, instances, channels, packages
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│       └── health.py        # GET /health
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>├── services/
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   ├── ingestion.py           # Shared datapoint ingestion pipeline
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   ├── webhook_dispatcher.py  # HMAC-signed webhook delivery
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   ├── rule_evaluator.py      # Threshold-based rule engine
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   ├── ota_service.py         # Firmware update management
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   ├── updater.py             # System update application
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   ├── log_service.py         # Logging service
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   └── wheel_validator.py     # Plugin wheel upload validation
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>├── middleware/
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│   ├── rate_limit.py          # Request rate limiting
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│   └── request_id.py          # X-Request-ID header injection
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>└── ws/
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>    ├── connection_manager.py  # Pub/sub hub for WS groups
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>    └── endpoints.py           # /ws/controller/telemetry, /ws/datapoints/stream
 </code></pre></div>
 <hr />
 <h2 id="application-lifecycle">Application Lifecycle<a class="headerlink" href="#application-lifecycle" title="Permanent link">&para;</a></h2>
@@ -2033,7 +2114,7 @@
 <p>See <a href="../../deployment/env-vars/">Environment Variables</a> for the complete list.</p>
 <hr />
 <h2 id="api-routers">API Routers<a class="headerlink" href="#api-routers" title="Permanent link">&para;</a></h2>
-<p>All ten routers are mounted under <code>/api/v1/</code>:</p>
+<p>All eleven routers are mounted under <code>/api/v1/</code>:</p>
 <table>
 <thead>
 <tr>
@@ -2104,6 +2185,12 @@
 <td>JWT</td>
 <td>CRUD + widget CRUD (nested)</td>
 </tr>
+<tr>
+<td><code>plugins</code></td>
+<td><code>/plugins</code></td>
+<td>JWT / Admin</td>
+<td>Discovery, instance CRUD, channel mappings, package upload</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -2119,6 +2206,41 @@
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete by public_id or raise 404.&quot;&quot;&quot;</span>
 </code></pre></div>
 <p>All routers share these helpers, keeping endpoint code focused on business logic.</p>
+<hr />
+<h2 id="datapoint-ingestion-pipeline">Datapoint Ingestion Pipeline<a class="headerlink" href="#datapoint-ingestion-pipeline" title="Permanent link">&para;</a></h2>
+<p>All incoming datapoints — whether via REST (<code>POST /datapoints</code>) or WebSocket (<code>/ws/controller/telemetry</code>) — pass through a <strong>single shared pipeline</strong> in <code>services/ingestion.py</code>:</p>
+<pre class="mermaid"><code>flowchart LR
+    REST["REST API&lt;br/&gt;POST /datapoints"] --&gt; Ingest["ingest_datapoints()"]
+    WS["WebSocket&lt;br/&gt;/ws/controller/telemetry"] --&gt; Ingest
+    Ingest --&gt; Filter["Filter by&lt;br/&gt;active plugin events"]
+    Filter --&gt; DB["Persist to DB"]
+    DB --&gt; Webhooks["Fire webhooks"]
+    DB --&gt; Rules["Evaluate rules"]
+    DB --&gt; Broadcast["WS broadcast&lt;br/&gt;to dashboards"]</code></pre>
+<p>This eliminates code duplication and guarantees consistent behaviour across both ingestion paths. Key components:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>active_plugin_event_ids(db)</code></td>
+<td>Returns event IDs that belong to an enabled, connected plugin</td>
+</tr>
+<tr>
+<td><code>active_experiment_id(db)</code></td>
+<td>Returns the currently running experiment ID (if any)</td>
+</tr>
+<tr>
+<td><code>ingest_datapoints(db, items)</code></td>
+<td>Validates, persists, and triggers side-effects for a batch of datapoints</td>
+</tr>
+</tbody>
+</table>
+<p>The pipeline also guards against <strong>phantom data</strong> — datapoints submitted for events whose plugin is disabled or disconnected are silently filtered out.</p>
 <hr />
 <h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
 <ul>
