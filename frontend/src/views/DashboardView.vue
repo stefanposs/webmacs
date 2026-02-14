@@ -1,5 +1,37 @@
 <template>
   <div class="dashboard">
+    <!-- Plugin state banners -->
+    <div v-if="showNoPlugin" class="plugin-hint plugin-hint--amber">
+      <i class="pi pi-info-circle plugin-hint__icon" />
+      <div class="plugin-hint__content">
+        <strong>No plugin configured</strong>
+        <span>Set up a device plugin to start receiving data.</span>
+      </div>
+      <router-link to="/plugins" class="plugin-hint__action">
+        <i class="pi pi-arrow-right" /> Configure Plugins
+      </router-link>
+    </div>
+    <div v-else-if="showDisabledBanner" class="plugin-hint plugin-hint--orange">
+      <i class="pi pi-pause-circle plugin-hint__icon" />
+      <div class="plugin-hint__content">
+        <strong>Plugin disabled</strong>
+        <span>{{ disabledPluginName }} is disabled. No new data will be received. Enable it to resume data collection.</span>
+      </div>
+      <router-link to="/plugins" class="plugin-hint__action plugin-hint__action--outline">
+        <i class="pi pi-arrow-right" /> Manage Plugins
+      </router-link>
+    </div>
+    <div v-else-if="showDemoBanner" class="plugin-hint plugin-hint--blue">
+      <i class="pi pi-play-circle plugin-hint__icon" />
+      <div class="plugin-hint__content">
+        <strong>Demo Mode</strong>
+        <span>{{ demoPluginName }} is running in demo mode with simulated data.</span>
+      </div>
+      <router-link to="/plugins" class="plugin-hint__action plugin-hint__action--blue">
+        <i class="pi pi-arrow-right" /> Manage Plugins
+      </router-link>
+    </div>
+
     <!-- Stats bar -->
     <div class="stats-bar">
       <div class="stat-card">
@@ -110,6 +142,7 @@ import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js'
 import { useEventStore } from '@/stores/events'
 import { useDatapointStore } from '@/stores/datapoints'
+import { usePluginStore } from '@/stores/plugins'
 import { useRealtimeDatapoints } from '@/composables/useRealtimeDatapoints'
 import { useFormatters } from '@/composables/useFormatters'
 import type { Event } from '@/types'
@@ -119,6 +152,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const eventStore = useEventStore()
 const datapointStore = useDatapointStore()
+const pluginStore = usePluginStore()
 const { formatNumber } = useFormatters()
 const { latestDatapoints: realtimeDatapoints, connectionMode, isConnected } = useRealtimeDatapoints(1500)
 
@@ -127,6 +161,11 @@ const chartHistory = ref<Record<string, { time: string; value: number }[]>>({})
 const sensorEvents = computed(() => eventStore.events.filter((e) => e.type === EventType.sensor))
 const actuatorEvents = computed(() => eventStore.events.filter((e) => e.type === EventType.actuator))
 const rangeEvents = computed(() => eventStore.events.filter((e) => e.type === EventType.range))
+const showNoPlugin = computed(() => pluginStore.instances.length === 0 && !pluginStore.loading)
+const showDisabledBanner = computed(() => pluginStore.instances.length > 0 && pluginStore.instances.every((p) => !p.enabled))
+const disabledPluginName = computed(() => pluginStore.instances.find((p) => !p.enabled)?.instance_name ?? 'Plugin')
+const showDemoBanner = computed(() => pluginStore.instances.some((p) => p.enabled && p.demo_mode) && !showDisabledBanner.value)
+const demoPluginName = computed(() => pluginStore.instances.find((p) => p.enabled && p.demo_mode)?.instance_name ?? 'Plugin')
 
 function getLatestRaw(publicId: string): number | null {
   // Prefer real-time data, fall back to store
@@ -187,7 +226,12 @@ const chartData = computed(() => {
   }
 })
 
-const chartOptions = {
+const chartYUnit = computed(() => {
+  const units = new Set(sensorEvents.value.map((e) => e.unit).filter(Boolean))
+  return units.size === 1 ? [...units][0] : 'Value'
+})
+
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   animation: { duration: 0 },
@@ -196,10 +240,20 @@ const chartOptions = {
     legend: { position: 'bottom' as const, labels: { usePointStyle: true, padding: 20 } },
   },
   scales: {
-    x: { display: true, grid: { display: false } },
-    y: { beginAtZero: false, grid: { color: '#f1f5f9' } },
+    x: {
+      display: true,
+      title: { display: true, text: 'Time', color: '#64748b', font: { size: 12 } },
+      ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 10 },
+      grid: { display: false },
+    },
+    y: {
+      beginAtZero: false,
+      title: { display: true, text: chartYUnit.value, color: '#64748b', font: { size: 12 } },
+      ticks: { color: '#64748b', font: { size: 10 } },
+      grid: { color: '#f1f5f9' },
+    },
   },
-}
+}))
 
 function recordHistory() {
   const now = new Date().toLocaleTimeString()
@@ -220,8 +274,7 @@ function recordHistory() {
 watch(realtimeDatapoints, recordHistory, { deep: true })
 
 onMounted(async () => {
-  await eventStore.fetchEvents()
-  await datapointStore.fetchLatest()
+  await Promise.all([eventStore.fetchEvents(), datapointStore.fetchLatest(), pluginStore.fetchInstances()])
 })
 </script>
 
@@ -230,6 +283,88 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+}
+
+/* Plugin hint banner */
+.plugin-hint {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: var(--wm-radius-lg, 12px);
+  color: #92400e;
+}
+
+.plugin-hint__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.plugin-hint__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  strong {
+    font-size: 0.95rem;
+  }
+
+  span {
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+}
+
+.plugin-hint__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  background: #f59e0b;
+  color: #fff;
+  border-radius: var(--wm-radius, 8px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #d97706;
+  }
+
+  &--outline {
+    background: transparent;
+    border: 1.5px solid #fb923c;
+    color: #9a3412;
+
+    &:hover {
+      background: #fff7ed;
+    }
+  }
+
+  &--blue {
+    background: #3b82f6;
+
+    &:hover {
+      background: #2563eb;
+    }
+  }
+}
+
+.plugin-hint--orange {
+  background: #fff7ed;
+  border-color: #fb923c;
+  color: #9a3412;
+}
+
+.plugin-hint--blue {
+  background: #eff6ff;
+  border-color: #60a5fa;
+  color: #1e40af;
 }
 
 /* Stats bar */

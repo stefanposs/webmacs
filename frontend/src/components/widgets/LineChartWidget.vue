@@ -24,7 +24,7 @@ import type { DashboardWidget, Datapoint } from '@/types'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
 
-const props = defineProps<{ widget: DashboardWidget; editable?: boolean; timeRangeMinutes?: number }>()
+const props = defineProps<{ widget: DashboardWidget; editable?: boolean; timeRangeMinutes?: number; unit?: string }>()
 defineEmits<{ edit: []; delete: [] }>()
 
 const series = ref<Datapoint[]>([])
@@ -76,16 +76,30 @@ const chartData = computed(() => {
   }
 })
 
-const chartOptions = {
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   scales: {
-    x: { display: false },
-    y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.1)' } },
+    x: {
+      display: true,
+      title: { display: true, text: 'Time', color: '#94a3b8', font: { size: 11 } },
+      ticks: { color: '#94a3b8', font: { size: 9 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 },
+      grid: { display: false },
+    },
+    y: {
+      title: {
+        display: !!props.unit,
+        text: props.unit ?? '',
+        color: '#94a3b8',
+        font: { size: 11 },
+      },
+      ticks: { color: '#94a3b8', font: { size: 10 } },
+      grid: { color: 'rgba(148,163,184,0.1)' },
+    },
   },
   plugins: { tooltip: { enabled: true }, legend: { display: false } },
   animation: { duration: 300 },
-}
+}))
 
 onMounted(() => {
   fetchSeries()

@@ -25,6 +25,7 @@ WebMACS (**Web-based Monitoring and Control System**) is designed for operators 
 | :material-puzzle: [Integrations](integrations.md) | Connect WebMACS to anything: REST API + WebSocket + webhooks — your Swiss army knife for lab data |
 | :material-file-delimited: [CSV Export](csv-export.md) | Download experiment data as a spreadsheet-ready CSV file |
 | :material-update: [OTA Updates](ota.md) | Update the system firmware over the network |
+| :material-puzzle-outline: [Plugins](plugins.md) | Extend WebMACS with custom device drivers — bundled or uploaded |
 | :material-text-box: [Logs](logs.md) | View system log entries (info, warnings, errors) |
 | :material-account-group: [Users](users.md) | Manage operator and admin accounts |
 
@@ -55,6 +56,7 @@ flowchart LR
 6. **[Automation Rules](rules.md)** — set up threshold-based alerts
 7. **[Webhooks](webhooks.md)** — notify external systems
 8. **[OTA Updates](ota.md)** — manage firmware deployments
+9. **[Plugins](plugins.md)** — add custom device integrations
 
 ---
 

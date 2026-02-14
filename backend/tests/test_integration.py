@@ -276,7 +276,7 @@ async def test_logging_status_flow(client, auth_headers, admin_user):
 # ─── Flow 8: Event deletion cascades to datapoints ──────────────────────────
 
 
-async def test_event_deletion_cascades(client, auth_headers, admin_user):
+async def test_event_deletion_cascades(client, auth_headers, admin_user, active_plugin):
     """Create event → push datapoints → delete event → datapoints gone."""
     # Create event
     r = await client.post(
@@ -289,6 +289,14 @@ async def test_event_deletion_cascades(client, auth_headers, admin_user):
     # Find event
     list_r = await client.get("/api/v1/events", headers=auth_headers)
     evt = next(e for e in list_r.json()["data"] if e["name"] == "Cascade Sensor")
+
+    # Link event to active plugin via channel mapping
+    r = await client.post(
+        f"/api/v1/plugins/{active_plugin.public_id}/channels",
+        json={"channel_id": "ch-cascade", "channel_name": "Cascade", "direction": "input", "unit": "V", "event_public_id": evt["public_id"]},
+        headers=auth_headers,
+    )
+    assert r.status_code == 201
 
     # Push a datapoint
     r = await client.post(

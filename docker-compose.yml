@@ -33,6 +33,8 @@ services:
       INITIAL_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@webmacs.io}
       INITIAL_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       INITIAL_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    volumes:
+      - plugins:/plugins
     depends_on:
       db:
         condition: service_healthy
@@ -68,9 +70,11 @@ services:
       WEBMACS_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       WEBMACS_POLL_INTERVAL: "0.5"
       WEBMACS_TELEMETRY_MODE: ${TELEMETRY_MODE:-http}
+      WEBMACS_AUTO_SEED: "true"
     depends_on:
       backend:
         condition: service_healthy
 
 volumes:
   pgdata:
+  plugins:

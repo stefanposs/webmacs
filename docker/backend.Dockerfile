@@ -9,7 +9,21 @@ WORKDIR /app
 # Install UV
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy project files and install
+# Copy and install all plugin packages (metadata only — no [hardware] extras)
+COPY plugins/core/ /tmp/plugins-core/
+COPY plugins/simulated/ /tmp/plugins-simulated/
+COPY plugins/system/ /tmp/plugins-system/
+COPY plugins/revpi/ /tmp/plugins-revpi/
+RUN uv pip install --system --no-cache \
+    /tmp/plugins-core/ \
+    /tmp/plugins-simulated/ \
+    /tmp/plugins-system/ \
+    /tmp/plugins-revpi/ \
+    && rm -rf /tmp/plugins-core/ /tmp/plugins-simulated/ /tmp/plugins-system/ /tmp/plugins-revpi/
+
+# Ensure pip is available for runtime plugin installs (upload via UI)
+RUN uv pip install --system pip
+
 COPY backend/pyproject.toml ./pyproject.toml
 COPY backend/src/ ./src/
 COPY backend/alembic.ini ./alembic.ini

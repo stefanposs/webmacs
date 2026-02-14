@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "webmacs-plugin-revpi"
+version = "0.1.0"
+description = "Revolution Pi I/O plugin for WebMACS — piCtory-based hardware access via revpimodio2"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Stefan Poß" }]
+dependencies = ["webmacs-plugins-core>=0.1.0", "structlog>=24.4.0"]
+
+[project.optional-dependencies]
+hardware = ["revpimodio2>=2.8.0"]
+
+[project.entry-points."webmacs.plugins"]
+revpi = "webmacs_plugin_revpi:RevPiPlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/webmacs_plugin_revpi"]

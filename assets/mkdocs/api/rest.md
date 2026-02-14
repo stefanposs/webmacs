@@ -383,6 +383,197 @@ Returns system health — no authentication required. Used by Docker healthcheck
 
 ---
 
+## Plugins
+
+### Plugin Discovery & Instances
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/plugins/available` | JWT | List all discovered plugin classes |
+| `GET` | `/api/v1/plugins` | JWT | List plugin instances (paginated) |
+| `POST` | `/api/v1/plugins` | JWT | Create a new plugin instance |
+| `GET` | `/api/v1/plugins/{public_id}` | JWT | Get a single plugin instance |
+| `PUT` | `/api/v1/plugins/{public_id}` | JWT | Update a plugin instance |
+| `DELETE` | `/api/v1/plugins/{public_id}` | JWT | Delete a plugin instance |
+
+### `GET /api/v1/plugins/available`
+
+Returns all plugin classes discovered via Python entry points.
+
+**Response** `200`:
+
+```json
+[
+  {
+    "id": "system",
+    "name": "System Monitor",
+    "version": "0.1.0",
+    "vendor": "WebMACS",
+    "description": "CPU, memory, disk and temperature monitoring.",
+    "url": "https://github.com/stefanposs/webmacs"
+  }
+]
+```
+
+### `POST /api/v1/plugins`
+
+Create a new plugin instance. Channels are auto-discovered from the plugin class.
+
+**Request:**
+
+```json
+{
+  "plugin_id": "system",
+  "instance_name": "Lab Server Metrics",
+  "demo_mode": true,
+  "enabled": true,
+  "config_json": null
+}
+```
+
+**Response** `201`:
+
+```json
+{
+  "status": "success",
+  "message": "Plugin instance created."
+}
+```
+
+### `GET /api/v1/plugins/{public_id}`
+
+Returns the instance including all channel mappings.
+
+**Response** `200`:
+
+```json
+{
+  "public_id": "abc-123",
+  "plugin_id": "system",
+  "instance_name": "Lab Server Metrics",
+  "demo_mode": true,
+  "enabled": true,
+  "status": "inactive",
+  "config_json": null,
+  "error_message": null,
+  "created_on": "2026-02-14T10:00:00Z",
+  "updated_on": "2026-02-14T10:00:00Z",
+  "user_public_id": "usr-123",
+  "channel_mappings": [
+    {
+      "public_id": "ch-001",
+      "channel_id": "cpu_percent",
+      "channel_name": "CPU Usage",
+      "direction": "input",
+      "unit": "%",
+      "event_public_id": null,
+      "created_on": "2026-02-14T10:00:00Z"
+    }
+  ]
+}
+```
+
+### `PUT /api/v1/plugins/{public_id}`
+
+**Request:**
+
+```json
+{
+  "instance_name": "Updated Name",
+  "enabled": false
+}
+```
+
+### Channel Mappings
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/plugins/{public_id}/channels` | JWT | List channel mappings |
+| `POST` | `/api/v1/plugins/{public_id}/channels` | JWT | Create a channel mapping |
+| `PUT` | `/api/v1/plugins/{public_id}/channels/{mapping_id}` | JWT | Update a channel mapping |
+| `DELETE` | `/api/v1/plugins/{public_id}/channels/{mapping_id}` | JWT | Delete a channel mapping |
+
+### `POST /api/v1/plugins/{public_id}/channels`
+
+**Request:**
+
+```json
+{
+  "channel_id": "custom_sensor",
+  "channel_name": "Custom Sensor",
+  "direction": "input",
+  "unit": "mV"
+}
+```
+
+### `PUT /api/v1/plugins/{public_id}/channels/{mapping_id}`
+
+Link a channel to a WebMACS event:
+
+**Request:**
+
+```json
+{
+  "event_public_id": "evt-abc-123"
+}
+```
+
+### Plugin Packages
+
+:material-shield-lock: Admin-only endpoints.
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/plugins/packages` | JWT | List installed plugin packages |
+| `POST` | `/api/v1/plugins/packages/upload` | Admin | Upload a `.whl` plugin package |
+| `DELETE` | `/api/v1/plugins/packages/{public_id}` | Admin | Uninstall an uploaded package |
+
+### `POST /api/v1/plugins/packages/upload`
+
+Upload a Python wheel file. The file is validated, installed via pip, and the new plugins are discovered.
+
+**Request:** `multipart/form-data` with field `file` (`.whl` file)
+
+**Response** `201`:
+
+```json
+{
+  "status": "success",
+  "message": "Plugin package 'webmacs-plugin-my-sensor' v1.0.0 installed (12,345 bytes). Restart the controller to activate."
+}
+```
+
+**Error Responses:**
+
+| Code | Cause |
+|---|---|
+| `400` | File is not a `.whl` |
+| `409` | Package already exists or file already uploaded |
+| `413` | File exceeds 50 MB limit |
+| `422` | Invalid wheel structure (missing metadata or entry point) |
+| `500` | pip install failed |
+
+### `GET /api/v1/plugins/packages`
+
+**Response** `200`:
+
+```json
+[
+  {
+    "public_id": "pkg-123",
+    "package_name": "webmacs-plugin-my-sensor",
+    "version": "1.0.0",
+    "source": "uploaded",
+    "plugin_ids": ["my-sensor"],
+    "file_size_bytes": 12345,
+    "installed_on": "2026-02-14T12:00:00Z",
+    "removable": true
+  }
+]
+```
+
+---
+
 ## Error Responses
 
 All errors follow a consistent format:

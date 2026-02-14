@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "webmacs-plugin-simulated"
+version = "0.1.0"
+description = "Simulated device plugin for WebMACS — generates realistic demo data"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Stefan Poß" }]
+dependencies = ["webmacs-plugins-core>=0.1.0"]
+
+[project.entry-points."webmacs.plugins"]
+simulated = "webmacs_plugin_simulated:SimulatedPlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/webmacs_plugin_simulated"]

@@ -8,10 +8,16 @@ requires-python = ">=3.12"
 authors = [{ name = "Stefan Poß" }]
 
 [tool.uv.workspace]
-members = ["backend", "controller"]
+members = ["backend", "controller", "plugins/core", "plugins/simulated", "plugins/system", "plugins/revpi"]
 
 [tool.uv]
 override-dependencies = ["revpimodio2>=2.6.0"]
+
+[tool.uv.sources]
+webmacs-plugins-core = { workspace = true }
+webmacs-plugin-simulated = { workspace = true }
+webmacs-plugin-system = { workspace = true }
+webmacs-plugin-revpi = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -28,7 +34,7 @@ dev = [
 [tool.ruff]
 target-version = "py313"
 line-length = 120
-src = ["backend/src", "controller/src"]
+src = ["backend/src", "controller/src", "plugins/core/src", "plugins/simulated/src", "plugins/system/src", "plugins/revpi/src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN", "PIE", "PT", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "ERA", "PL", "TRY", "FLY", "PERF", "RUF"]
@@ -57,10 +63,10 @@ ignore = [
 "controller/src/webmacs_controller/app.py" = ["TC003"]  # Callable/Coroutine used in runtime signatures
 
 [tool.ruff.lint.isort]
-known-first-party = ["webmacs_backend", "webmacs_controller", "webmacs_shared"]
+known-first-party = ["webmacs_backend", "webmacs_controller", "webmacs_plugins_core", "webmacs_plugin_simulated", "webmacs_plugin_system", "webmacs_plugin_revpi"]
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tests", "controller/tests"]
+testpaths = ["backend/tests", "controller/tests", "plugins/core/tests", "plugins/simulated/tests", "plugins/system/tests", "plugins/revpi/tests"]
 asyncio_mode = "auto"
 addopts = "-v --tb=short --strict-markers"
 markers = [

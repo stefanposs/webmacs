@@ -19,6 +19,7 @@ from webmacs_backend.api.v1 import dashboards as dashboards_api
 from webmacs_backend.api.v1 import health as health_api
 from webmacs_backend.api.v1 import logging as logging_api
 from webmacs_backend.api.v1 import ota as ota_api
+from webmacs_backend.api.v1 import plugins as plugins_api
 from webmacs_backend.api.v1 import rules as rules_api
 from webmacs_backend.api.v1 import webhooks as webhooks_api
 from webmacs_backend.api.v1.health import reset_start_time
@@ -192,6 +193,7 @@ def create_app() -> FastAPI:
     application.include_router(rules_api.router, prefix=f"{api_prefix}/rules", tags=["Rules"])
     application.include_router(ota_api.router, prefix=f"{api_prefix}/ota", tags=["OTA Updates"])
     application.include_router(dashboards_api.router, prefix=f"{api_prefix}/dashboards", tags=["Dashboards"])
+    application.include_router(plugins_api.router, prefix=f"{api_prefix}/plugins", tags=["Plugins"])
 
     # WebSocket endpoints
     application.include_router(ws_endpoints.router, prefix="/ws", tags=["WebSocket"])

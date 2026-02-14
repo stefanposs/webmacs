@@ -88,3 +88,27 @@ class WidgetType(StrEnum):
     gauge = "gauge"
     stat_card = "stat_card"
     actuator_toggle = "actuator_toggle"
+
+
+class PluginStatus(StrEnum):
+    """Plugin instance lifecycle status."""
+
+    inactive = "inactive"
+    connected = "connected"
+    error = "error"
+    demo = "demo"
+
+
+class ChannelDirection(StrEnum):
+    """Channel data-flow direction."""
+
+    input = "input"
+    output = "output"
+    bidirectional = "bidirectional"
+
+
+class PluginSource(StrEnum):
+    """How a plugin package was installed."""
+
+    bundled = "bundled"
+    uploaded = "uploaded"

@@ -64,6 +64,7 @@ nav:
     - Integrations: guide/integrations.md
     - CSV Export: guide/csv-export.md
     - OTA Updates: guide/ota.md
+    - Plugins: guide/plugins.md
     - Logs: guide/logs.md
     - Users & Auth: guide/users.md
   - Architecture:
@@ -81,6 +82,7 @@ nav:
     - Contributing: development/contributing.md
     - Testing: development/testing.md
     - Code Style: development/code-style.md
+    - Plugin Development: development/plugin-development.md
   - Deployment:
     - Installation Guide: deployment/installation-guide.md
     - Docker: deployment/docker.md

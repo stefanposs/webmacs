@@ -44,6 +44,10 @@
         </router-link>
 
         <div class="sidebar-section-label">System</div>
+        <router-link to="/plugins" class="sidebar-link" active-class="sidebar-link--active">
+          <i class="pi pi-microchip" />
+          <span>Plugins</span>
+        </router-link>
         <router-link to="/webhooks" class="sidebar-link" active-class="sidebar-link--active">
           <i class="pi pi-link" />
           <span>Webhooks</span>

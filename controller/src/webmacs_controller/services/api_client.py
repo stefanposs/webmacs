@@ -129,6 +129,45 @@ class APIClient:
         """Make an authenticated DELETE request."""
         return await self._request("DELETE", path)
 
+    # ------------------------------------------------------------------
+    # Plugin-specific endpoints
+    # ------------------------------------------------------------------
+
+    async def fetch_plugin_instances(self) -> list[dict[str, Any]]:
+        """Fetch all enabled plugin instances from the backend."""
+        data = await self.get("/plugins")
+        if isinstance(data, dict) and "data" in data:
+            return [inst for inst in data["data"] if inst.get("enabled", True)]
+        if isinstance(data, list):
+            return [inst for inst in data if inst.get("enabled", True)]
+        return []
+
+    async def fetch_channel_mappings(self, plugin_public_id: str) -> list[dict[str, Any]]:
+        """Fetch channel mappings for a specific plugin instance."""
+        data = await self.get(f"/plugins/{plugin_public_id}/channels")
+        if isinstance(data, list):
+            return data
+        return []
+
+    async def create_plugin_instance(
+        self,
+        plugin_id: str,
+        instance_name: str,
+        demo_mode: bool = True,
+        enabled: bool = True,
+    ) -> dict[str, Any]:
+        """Create a new plugin instance on the backend."""
+        result: dict[str, Any] = await self.post(
+            "/plugins",
+            json={
+                "plugin_id": plugin_id,
+                "instance_name": instance_name,
+                "demo_mode": demo_mode,
+                "enabled": enabled,
+            },
+        )
+        return result
+
     async def close(self) -> None:
         """Close the HTTP client."""
         await self._client.aclose()

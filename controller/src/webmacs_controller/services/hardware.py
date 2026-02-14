@@ -1,18 +1,25 @@
-"""Hardware abstraction layer for RevolutionPi."""
+"""Hardware abstraction layer for RevolutionPi.
+
+.. deprecated::
+    This module is superseded by the plugin system (``PluginBridge`` +
+    ``DevicePlugin``).  It is kept only for backward compatibility and
+    will be removed in a future release.  Use ``webmacs_plugins_core``
+    channels and conversion specs instead.
+"""
 
 from __future__ import annotations
 
-import math
 import random
-import time
+import warnings
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from enum import StrEnum
-from typing import Any
 
 import structlog
 
-from webmacs_controller.schemas import EventSchema, EventType
+warnings.warn(
+    "webmacs_controller.services.hardware is deprecated — use the plugin system (DevicePlugin + PluginBridge) instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 logger = structlog.get_logger()
 
@@ -59,7 +66,7 @@ class RevPiHardware(HardwareInterface):
                 return float(raw) / 10.0
             case "pressure1" | "pressure2":
                 return float(raw) / 1000.0
-            case "humidy1":
+            case "humidity1":
                 return float(raw) / 100.0
             case _:
                 return float(raw)
@@ -112,114 +119,3 @@ class MockHardware(HardwareInterface):
         """Store value in memory."""
         self._values[label] = value
         logger.debug("Mock hardware write", label=label, value=value)
-
-
-# ─── Signal Simulation ──────────────────────────────────────────────────────
-
-
-class SignalType(StrEnum):
-    sine_wave = "sine_wave"
-    random_walk = "random_walk"
-    sawtooth = "sawtooth"
-    step_function = "step_function"
-
-
-@dataclass
-class SignalProfile:
-    """Defines how a simulated sensor generates values."""
-
-    label: str
-    min_value: float
-    max_value: float
-    signal_type: SignalType = SignalType.sine_wave
-    period: float = 60.0
-    noise_pct: float = 0.05
-    phase_offset: float = 0.0
-
-    def generate(self, t: float) -> float:
-        """Generate a value at time *t* seconds since start."""
-        amplitude = (self.max_value - self.min_value) / 2
-        center = self.min_value + amplitude
-
-        match self.signal_type:
-            case SignalType.sine_wave:
-                base = center + amplitude * math.sin(2 * math.pi * t / self.period + self.phase_offset)
-            case SignalType.sawtooth:
-                phase = ((t / self.period) + self.phase_offset / (2 * math.pi)) % 1.0
-                base = self.min_value + (self.max_value - self.min_value) * phase
-            case SignalType.step_function:
-                phase = ((t / self.period) + self.phase_offset / (2 * math.pi)) % 1.0
-                base = self.max_value if phase < 0.5 else self.min_value
-            case _:
-                base = center
-
-        noise = random.gauss(0, amplitude * self.noise_pct) if amplitude > 0 else 0
-        return round(max(self.min_value, min(self.max_value, base + noise)), 2)
-
-
-# Unit string → preferred signal shape
-_UNIT_SIGNAL_MAP: dict[str, SignalType] = {
-    "°C": SignalType.sine_wave,
-    "bar": SignalType.sawtooth,
-    "mbar": SignalType.sawtooth,
-    "m³/h": SignalType.sine_wave,
-    "L/min": SignalType.sine_wave,
-    "%": SignalType.sine_wave,
-}
-
-
-class SimulatedHardware(HardwareInterface):
-    """Realistic simulated hardware for dev/demo mode.
-
-    Generates plausible sensor data based on event min/max ranges.
-    Each sensor gets a deterministic signal profile.
-    """
-
-    def __init__(
-        self,
-        events: list[EventSchema],
-        revpi_mapping: dict[str, Any] | None = None,
-        seed: int = 42,
-    ) -> None:
-        self._profiles: dict[str, SignalProfile] = {}
-        self._start_time = time.monotonic()
-        self._write_store: dict[str, float] = {}
-        rng = random.Random(seed)
-
-        for event in events:
-            if event.type != EventType.sensor:
-                continue
-
-            label = event.public_id
-            if revpi_mapping:
-                mapping = revpi_mapping.get(event.public_id, {})
-                if mapping.get("REVPI"):
-                    label = mapping["REVPI"]
-
-            signal_type = _UNIT_SIGNAL_MAP.get(event.unit, SignalType.sine_wave)
-            period = rng.uniform(30.0, 120.0)
-            phase = rng.uniform(0, 2 * math.pi)
-
-            self._profiles[label] = SignalProfile(
-                label=label,
-                min_value=event.min_value,
-                max_value=event.max_value,
-                signal_type=signal_type,
-                period=period,
-                phase_offset=phase,
-            )
-
-        logger.info("SimulatedHardware initialized", sensor_profiles=len(self._profiles))
-
-    def read_value(self, label: str) -> float | None:
-        """Generate a realistic value for the given label."""
-        profile = self._profiles.get(label)
-        if not profile:
-            return None
-        t = time.monotonic() - self._start_time
-        return profile.generate(t)
-
-    def write_value(self, label: str, value: float) -> None:
-        """Store value in memory."""
-        self._write_store[label] = value
-        logger.debug("SimulatedHardware write", label=label, value=value)

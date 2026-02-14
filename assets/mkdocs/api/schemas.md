@@ -478,6 +478,128 @@ Used by `POST /api/v1/datapoints/series` for dashboard charts.
 
 ---
 
+## Plugins
+
+### PluginMetaResponse
+
+Describes an available plugin type discovered on the controller.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Unique plugin identifier (e.g. `system_monitor`) |
+| `name` | `string` | Human-readable display name |
+| `version` | `string` | Semantic version (`1.0.0`) |
+| `vendor` | `string` | Author or organisation |
+| `description` | `string` | Short summary of the plugin |
+| `url` | `string \| null` | Project / documentation URL |
+
+### PluginInstanceCreate
+
+| Field | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `plugin_id` | `string` | ✅ | — | Must match an available plugin `id` (1–100 chars) |
+| `instance_name` | `string` | ✅ | — | Descriptive label (1–255 chars) |
+| `demo_mode` | `boolean` | — | `false` | Run with simulated data |
+| `enabled` | `boolean` | — | `true` | Start the instance immediately |
+| `config_json` | `object \| null` | — | `null` | Plugin-specific configuration |
+
+### PluginInstanceUpdate
+
+All fields are optional — only supplied fields are changed.
+
+| Field | Type | Description |
+|---|---|---|
+| `instance_name` | `string` | New display name (1–255 chars) |
+| `demo_mode` | `boolean` | Toggle simulated data |
+| `enabled` | `boolean` | Enable / disable the instance |
+| `config_json` | `object \| null` | Replace configuration |
+
+### PluginInstanceResponse
+
+| Field | Type | Description |
+|---|---|---|
+| `public_id` | `string (uuid)` | Unique identifier |
+| `plugin_id` | `string` | Plugin type this instance runs |
+| `instance_name` | `string` | Display name |
+| `demo_mode` | `boolean` | Whether simulated data is used |
+| `enabled` | `boolean` | Whether the instance is active |
+| `status` | `PluginStatus` | Current runtime status |
+| `config_json` | `object \| null` | Plugin-specific config |
+| `error_message` | `string \| null` | Last error, if any |
+| `created_on` | `string (datetime)` | Creation timestamp (UTC) |
+| `updated_on` | `string (datetime)` | Last modification (UTC) |
+| `user_public_id` | `string (uuid)` | Owner who created the instance |
+| `channel_mappings` | `ChannelMappingResponse[]` | Mapped channels |
+
+### ChannelMappingCreate
+
+| Field | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `channel_id` | `string` | ✅ | — | Channel identifier from the plugin (1–100 chars) |
+| `channel_name` | `string` | ✅ | — | Display name (1–255 chars) |
+| `direction` | `ChannelDirection` | ✅ | — | Data-flow direction |
+| `unit` | `string` | ✅ | — | Engineering unit (1–50 chars, e.g. `°C`) |
+| `event_public_id` | `string (uuid) \| null` | — | `null` | Link to an existing event |
+
+### ChannelMappingUpdate
+
+| Field | Type | Description |
+|---|---|---|
+| `event_public_id` | `string (uuid) \| null` | Link or unlink an event |
+
+### ChannelMappingResponse
+
+| Field | Type | Description |
+|---|---|---|
+| `public_id` | `string (uuid)` | Unique identifier |
+| `channel_id` | `string` | Plugin-side channel key |
+| `channel_name` | `string` | Display name |
+| `direction` | `ChannelDirection` | `input`, `output`, or `bidirectional` |
+| `unit` | `string` | Engineering unit |
+| `event_public_id` | `string (uuid) \| null` | Linked event, if any |
+| `created_on` | `string (datetime)` | Creation timestamp (UTC) |
+
+### PluginPackageResponse
+
+| Field | Type | Description |
+|---|---|---|
+| `public_id` | `string (uuid)` | Unique identifier |
+| `package_name` | `string` | Python package name |
+| `version` | `string` | Package version |
+| `source` | `PluginSource` | How the package was installed |
+| `plugin_ids` | `string[]` | Plugin IDs provided by this package |
+| `file_size_bytes` | `integer \| null` | Size of the uploaded wheel |
+| `installed_on` | `string (datetime)` | Installation timestamp (UTC) |
+| `removable` | `boolean` | `true` for uploaded packages |
+
+### Plugin Enums
+
+#### PluginStatus
+
+| Value | Description |
+|---|---|
+| `inactive` | Instance exists but is not running |
+| `connected` | Running and operating normally |
+| `error` | A runtime error occurred |
+| `demo` | Running with simulated data |
+
+#### ChannelDirection
+
+| Value | Description |
+|---|---|
+| `input` | Data flows **into** WebMACS (sensor) |
+| `output` | Data flows **out of** WebMACS (actuator) |
+| `bidirectional` | Both directions |
+
+#### PluginSource
+
+| Value | Description |
+|---|---|
+| `bundled` | Shipped with WebMACS |
+| `uploaded` | Installed via package upload |
+
+---
+
 ## Next Steps
 
 - [REST API](rest.md) — how schemas are used in endpoints

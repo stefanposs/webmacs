@@ -18,6 +18,10 @@ dependencies = [
     "httpx>=0.28.0",
     "structlog>=24.4.0",
     "sentry-sdk[fastapi]>=2.19.0",
+    "webmacs-plugins-core",
+    "webmacs-plugin-simulated",
+    "webmacs-plugin-system",
+    "webmacs-plugin-revpi",
 ]
 
 [project.optional-dependencies]

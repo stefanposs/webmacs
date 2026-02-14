@@ -77,6 +77,24 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/plugins',
+      name: 'plugins',
+      component: () => import('@/views/PluginsView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/plugins/packages',
+      name: 'plugin-packages',
+      component: () => import('@/views/PluginPackagesView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/plugins/:id',
+      name: 'plugin-detail',
+      component: () => import('@/views/PluginDetailView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),

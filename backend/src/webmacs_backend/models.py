@@ -10,8 +10,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from webmacs_backend.database import Base
 from webmacs_backend.enums import (
+    ChannelDirection,
     EventType,
     LoggingType,
+    PluginSource,
+    PluginStatus,
     RuleActionType,
     RuleOperator,
     StatusType,
@@ -265,3 +268,75 @@ class DashboardWidget(Base):
     # Relationships
     dashboard: Mapped[Dashboard] = relationship(back_populates="widgets")
     event: Mapped[Event | None] = relationship()
+
+
+class PluginInstance(Base):
+    """Installed plugin instance — ties a plugin class to its configuration."""
+
+    __tablename__ = "plugin_instances"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    plugin_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    instance_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    demo_mode: Mapped[bool] = mapped_column(Boolean, default=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    status: Mapped[PluginStatus] = mapped_column(Enum(PluginStatus), default=PluginStatus.inactive)
+    config_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_on: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    user_public_id: Mapped[str] = mapped_column(String, ForeignKey("users.public_id"), index=True)
+
+    # Relationships
+    user: Mapped[User] = relationship()
+    channel_mappings: Mapped[list[ChannelMapping]] = relationship(
+        back_populates="plugin_instance", cascade="all, delete-orphan"
+    )
+
+
+class ChannelMapping(Base):
+    """Maps a plugin channel to a WebMACS Event for data storage and display."""
+
+    __tablename__ = "channel_mappings"
+    __table_args__ = (Index("ix_channel_mappings_plugin_channel", "plugin_instance_id", "channel_id", unique=True),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    plugin_instance_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("plugin_instances.id"), nullable=False, index=True
+    )
+    channel_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    channel_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    direction: Mapped[ChannelDirection] = mapped_column(Enum(ChannelDirection), nullable=False)
+    unit: Mapped[str] = mapped_column(String(50), nullable=False)
+    event_public_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("events.public_id"), nullable=True, index=True
+    )
+    created_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    plugin_instance: Mapped[PluginInstance] = relationship(back_populates="channel_mappings")
+    event: Mapped[Event | None] = relationship()
+
+
+class PluginPackage(Base):
+    """Tracks installed plugin packages — both bundled and uploaded."""
+
+    __tablename__ = "plugin_packages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    package_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    version: Mapped[str] = mapped_column(String(50), nullable=False)
+    source: Mapped[PluginSource] = mapped_column(Enum(PluginSource), nullable=False)
+    file_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    file_hash_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    file_size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    plugin_ids: Mapped[str] = mapped_column(Text, nullable=False, default="[]")  # JSON list of plugin IDs
+    installed_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    user_public_id: Mapped[str | None] = mapped_column(String, ForeignKey("users.public_id"), nullable=True, index=True)
+
+    user: Mapped[User | None] = relationship()

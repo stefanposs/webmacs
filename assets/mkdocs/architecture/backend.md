@@ -12,7 +12,7 @@ backend/src/webmacs_backend/
 ├── main.py              # Application factory + lifespan
 ├── config.py            # pydantic-settings Settings
 ├── database.py          # Engine, session, init_db
-├── models.py            # SQLAlchemy ORM models (12 tables)
+├── models.py            # SQLAlchemy ORM models (15 tables)
 ├── schemas.py           # Pydantic v2 request/response schemas
 ├── enums.py             # StrEnum definitions (EventType, StatusType, etc.)
 ├── security.py          # JWT + bcrypt helpers
@@ -30,13 +30,16 @@ backend/src/webmacs_backend/
 │       ├── webhooks.py      # CRUD /webhooks + deliveries
 │       ├── ota.py           # CRUD /ota + apply/rollback/check/upload
 │       ├── dashboards.py    # CRUD /dashboards + widgets
+│       ├── plugins.py       # Plugin discovery, instances, channels, packages
 │       └── health.py        # GET /health
 ├── services/
+│   ├── ingestion.py           # Shared datapoint ingestion pipeline
 │   ├── webhook_dispatcher.py  # HMAC-signed webhook delivery
 │   ├── rule_evaluator.py      # Threshold-based rule engine
 │   ├── ota_service.py         # Firmware update management
 │   ├── updater.py             # System update application
-│   └── log_service.py         # Logging service
+│   ├── log_service.py         # Logging service
+│   └── wheel_validator.py     # Plugin wheel upload validation
 ├── middleware/
 │   ├── rate_limit.py          # Request rate limiting
 │   └── request_id.py          # X-Request-ID header injection
@@ -83,7 +86,7 @@ See [Environment Variables](../deployment/env-vars.md) for the complete list.
 
 ## API Routers
 
-All ten routers are mounted under `/api/v1/`:
+All eleven routers are mounted under `/api/v1/`:
 
 | Router | Prefix | Auth | Key Endpoints |
 |---|---|---|---|
@@ -97,6 +100,7 @@ All ten routers are mounted under `/api/v1/`:
 | `webhooks` | `/webhooks` | Admin | CRUD + `GET /{id}/deliveries` |
 | `ota` | `/ota` | Admin | CRUD, `POST /{id}/apply`, `POST /{id}/rollback`, `GET /check`, `POST /upload` |
 | `dashboards` | `/dashboards` | JWT | CRUD + widget CRUD (nested) |
+| `plugins` | `/plugins` | JWT / Admin | Discovery, instance CRUD, channel mappings, package upload |
 
 ---
 
@@ -116,6 +120,33 @@ async def delete_by_public_id(db, model, public_id, entity_name) -> StatusRespon
 ```
 
 All routers share these helpers, keeping endpoint code focused on business logic.
+
+---
+
+## Datapoint Ingestion Pipeline
+
+All incoming datapoints — whether via REST (`POST /datapoints`) or WebSocket (`/ws/controller/telemetry`) — pass through a **single shared pipeline** in `services/ingestion.py`:
+
+```mermaid
+flowchart LR
+    REST["REST API<br/>POST /datapoints"] --> Ingest["ingest_datapoints()"]
+    WS["WebSocket<br/>/ws/controller/telemetry"] --> Ingest
+    Ingest --> Filter["Filter by<br/>active plugin events"]
+    Filter --> DB["Persist to DB"]
+    DB --> Webhooks["Fire webhooks"]
+    DB --> Rules["Evaluate rules"]
+    DB --> Broadcast["WS broadcast<br/>to dashboards"]
+```
+
+This eliminates code duplication and guarantees consistent behaviour across both ingestion paths. Key components:
+
+| Function | Purpose |
+|---|---|
+| `active_plugin_event_ids(db)` | Returns event IDs that belong to an enabled, connected plugin |
+| `active_experiment_id(db)` | Returns the currently running experiment ID (if any) |
+| `ingest_datapoints(db, items)` | Validates, persists, and triggers side-effects for a batch of datapoints |
+
+The pipeline also guards against **phantom data** — datapoints submitted for events whose plugin is disabled or disconnected are silently filtered out.
 
 ---
 

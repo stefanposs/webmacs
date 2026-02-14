@@ -17,8 +17,7 @@ controller/src/webmacs_controller/
     ├── api_client.py      # HTTPX client with retry + auto-reauth
     ├── actuator_manager.py  # Actuator command handling
     ├── demo_seeder.py     # Demo event seeding (dev mode)
-    ├── hardware.py        # HardwareInterface ABC + RevPi/Simulated impls
-    ├── rule_engine.py     # Valve cycling rule logic
+    ├── hardware.py        # HardwareInterface ABC + RevPi/Simulated impls    ├── plugin_bridge.py   # Load, start, and manage plugin instances    ├── rule_engine.py     # Valve cycling rule logic
     ├── sensor_manager.py  # Sensor reading abstraction
     └── telemetry.py       # TelemetryTransport Protocol (HTTP / WebSocket)
 ```
@@ -102,6 +101,32 @@ class ControllerSettings(BaseSettings):
     webmacs_admin_email: str
     webmacs_admin_password: str
 ```
+
+---
+
+## Plugin Bridge
+
+The **PluginBridge** (`plugin_bridge.py`) loads and manages plugin instances on the controller:
+
+1. **Discovery** — scans installed packages for the `webmacs.plugins` entry-point group via `importlib.metadata`
+2. **Instantiation** — creates plugin instances from the backend configuration (plugin ID, config JSON, demo mode)
+3. **Lifecycle** — starts, stops, and monitors plugins; reports status back to the backend
+4. **Channel I/O** — reads input channels and writes output channels each polling cycle, forwarding values through the telemetry pipeline
+
+Plugins are Python packages that implement the `DevicePlugin` (async) or `SyncDevicePlugin` (blocking) abstract base class from the `webmacs-plugins-core` SDK.
+
+```mermaid
+flowchart LR
+    Registry["Plugin Registry"] -->|discover| EP["Entry Points"]
+    EP --> P1["Plugin A"]
+    EP --> P2["Plugin B"]
+    Bridge["Plugin Bridge"] -->|start / stop| P1
+    Bridge -->|start / stop| P2
+    P1 -->|channel data| TM["Telemetry"]
+    P2 -->|channel data| TM
+```
+
+See the [Plugin Development Guide](../development/plugin-development.md) for writing custom plugins.
 
 ---
 

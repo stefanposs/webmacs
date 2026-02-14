@@ -208,3 +208,74 @@ export interface DashboardWidgetCreatePayload {
   h: number
   config_json?: string | null
 }
+
+// Plugin types
+export type PluginStatus = 'inactive' | 'connected' | 'error' | 'demo'
+export type ChannelDirection = 'input' | 'output' | 'bidirectional'
+
+export interface PluginMeta {
+  id: string
+  name: string
+  version: string
+  vendor: string
+  description: string
+  url: string | null
+}
+
+export interface ChannelMapping {
+  public_id: string
+  channel_id: string
+  channel_name: string
+  direction: ChannelDirection
+  unit: string
+  event_public_id: string | null
+  created_on: string | null
+}
+
+export interface PluginInstance {
+  public_id: string
+  plugin_id: string
+  instance_name: string
+  demo_mode: boolean
+  enabled: boolean
+  status: PluginStatus
+  config_json: string | null
+  error_message: string | null
+  created_on: string | null
+  updated_on: string | null
+  user_public_id: string
+  channel_mappings: ChannelMapping[]
+}
+
+export interface PluginInstanceCreatePayload {
+  plugin_id: string
+  instance_name: string
+  demo_mode: boolean
+  enabled: boolean
+  config_json?: string | null
+}
+
+export interface PluginInstanceUpdatePayload {
+  instance_name?: string
+  demo_mode?: boolean
+  enabled?: boolean
+  config_json?: string | null
+}
+
+export interface ChannelMappingUpdatePayload {
+  event_public_id: string | null
+}
+
+// Plugin packages
+export type PluginSourceType = 'bundled' | 'uploaded'
+
+export interface PluginPackage {
+  public_id: string
+  package_name: string
+  version: string
+  source: PluginSourceType
+  plugin_ids: string[]
+  file_size_bytes: number | null
+  installed_on: string | null
+  removable: boolean
+}

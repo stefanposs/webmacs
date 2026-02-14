@@ -11,12 +11,9 @@ import structlog
 
 from webmacs_controller.config import ControllerSettings
 from webmacs_controller.schemas import EventSchema
-from webmacs_controller.services.actuator_manager import ActuatorManager
 from webmacs_controller.services.api_client import APIClient
-from webmacs_controller.services.demo_seeder import DemoSeeder
-from webmacs_controller.services.hardware import HardwareInterface, RevPiHardware, SimulatedHardware
+from webmacs_controller.services.plugin_bridge import PluginBridge
 from webmacs_controller.services.rule_engine import RuleEngine
-from webmacs_controller.services.sensor_manager import SensorManager
 from webmacs_controller.services.telemetry import HttpTelemetry, WebSocketTelemetry
 
 logger = structlog.get_logger()
@@ -30,6 +27,7 @@ class Application:
         self._running = False
         self._api_client: APIClient | None = None
         self._telemetry: HttpTelemetry | WebSocketTelemetry | None = None
+        self._plugin_bridge: PluginBridge | None = None
 
     async def run(self) -> None:
         """Initialize services and run concurrent loops until shutdown."""
@@ -63,22 +61,15 @@ class Application:
             )
             logger.info("Authenticated with backend")
 
-            # 2. Seed demo events in dev mode
+            # 2. In dev mode, auto-register a simulated plugin if no instances exist
             if not self._settings.is_production:
-                seeder = DemoSeeder(self._api_client)
-                await seeder.seed_if_empty()
+                await self._ensure_dev_plugin()
 
-            # 3. Fetch events
+            # 3. Fetch events (still needed for RuleEngine)
             events = await self._fetch_events()
             logger.info("Events loaded", count=len(events))
 
-            # 4. Build RevPi mapping from config
-            revpi_mapping = self._settings.revpi_mapping
-
-            # 5. Create hardware interface
-            hardware = self._create_hardware(events)
-
-            # 6. Create telemetry transport
+            # 4. Create telemetry transport
             if self._settings.telemetry_mode == "websocket":
                 self._telemetry = WebSocketTelemetry(self._settings.ws_url)
                 await self._telemetry.connect()
@@ -88,39 +79,84 @@ class Application:
                 await self._telemetry.connect()
                 logger.info("Telemetry via HTTP")
 
-            # 7. Create service instances
-            sensor_mgr = SensorManager(
-                events,
-                hardware,
-                self._telemetry,
-                revpi_mapping,
-                is_production=self._settings.is_production,
-            )
-            actuator_mgr = ActuatorManager(events, hardware, self._api_client, revpi_mapping)
+            # 5. Create rule engine (uses API client only, no hardware dependency)
             rule_engine = RuleEngine(
                 events,
-                hardware,
                 self._api_client,
                 rule_event_id=self._settings.rule_event_id,
             )
 
+            # 6. Initialize plugin bridge (sole sensor/actuator path)
+            self._plugin_bridge = PluginBridge(self._api_client, self._telemetry)
+            await self._plugin_bridge.initialize()
+            logger.info("Plugin bridge initialized")
+
             # 7. Run concurrent loops
-            # Post startup log to backend
-            await self._post_log("Controller started – sensor polling active", "info")
+            await self._post_log("Controller started – plugin sensor polling active", "info")
 
             logger.info("Starting service loops")
             async with asyncio.TaskGroup() as tg:
-                tg.create_task(self._loop("sensor", sensor_mgr.run))
-                tg.create_task(self._loop("actuator", actuator_mgr.run))
                 tg.create_task(self._loop("rule", rule_engine.run))
+                tg.create_task(self._loop("plugin_sensor", self._plugin_bridge.read_and_send))
+                tg.create_task(self._loop("plugin_actuator", self._plugin_bridge.receive_and_write))
 
         except* KeyboardInterrupt:
             logger.info("Shutdown requested via keyboard")
         except* Exception as eg:
             for exc in eg.exceptions:
-                logger.exception("Fatal error", error=str(exc), type=type(exc).__name__)
+                logger.exception(
+                    "Fatal error",
+                    error=str(exc),
+                    type=type(exc).__name__,
+                )
         finally:
             await self._shutdown()
+
+    async def _ensure_dev_plugin(self) -> None:
+        """In development mode, create a Simulated Device plugin on first boot only.
+
+        Skips seeding if:
+        - auto_seed_plugins is disabled via WEBMACS_AUTO_SEED=false
+        - plugin instances already exist
+        - events already exist (user has configured the system before)
+        """
+        assert self._api_client is not None
+
+        if not self._settings.auto_seed_plugins:
+            logger.info("Auto-seeding disabled via WEBMACS_AUTO_SEED=false")
+            return
+
+        try:
+            instances = await self._api_client.fetch_plugin_instances()
+            if instances:
+                logger.info("Plugin instances already exist, skipping dev auto-setup", count=len(instances))
+                return
+
+            # Check if events exist — if so, the user previously configured
+            # and intentionally removed all plugins; do not re-seed.
+            events = await self._api_client.get("/events")
+            event_list = events.get("data", []) if isinstance(events, dict) else events
+            if event_list:
+                logger.info(
+                    "Events exist but no plugins — user removed plugins intentionally, skipping auto-seed",
+                    event_count=len(event_list),
+                )
+                return
+
+            logger.info("First boot detected — creating Simulated Device for development")
+            await self._api_client.create_plugin_instance(
+                plugin_id="simulated",
+                instance_name="Simulated Device",
+                demo_mode=True,
+                enabled=True,
+            )
+            logger.info("Simulated Device plugin instance created with auto-linked events")
+
+            # Seed initial log entries
+            await self._post_log("Controller started in development mode", "info")
+            await self._post_log("Simulated Device plugin auto-registered with 9 channels", "info")
+        except Exception as exc:
+            logger.warning("Dev plugin auto-setup failed", error=str(exc))
 
     async def _loop(
         self,
@@ -159,15 +195,6 @@ class Application:
             return [EventSchema(**e) for e in data]
         return []
 
-    def _create_hardware(self, events: list[EventSchema]) -> HardwareInterface:
-        """Create the appropriate hardware interface."""
-        if self._settings.is_production:
-            try:
-                return RevPiHardware()
-            except Exception as e:
-                logger.warning("RevPi unavailable, falling back to simulated", error=str(e))
-        return SimulatedHardware(events, self._settings.revpi_mapping)
-
     def _setup_signal_handlers(self) -> None:
         """Register graceful shutdown handlers."""
         loop = asyncio.get_running_loop()
@@ -185,11 +212,13 @@ class Application:
             if self._api_client:
                 await self._api_client.post("/logging", {"content": content, "logging_type": logging_type})
         except Exception:
-            pass  # best-effort, don't crash the controller
+            logger.debug("post_log_failed", exc_info=True)
 
     async def _shutdown(self) -> None:
         """Clean up resources."""
         logger.info("Shutting down...")
+        if self._plugin_bridge:
+            await self._plugin_bridge.shutdown()
         if self._telemetry:
             await self._telemetry.close()
         if self._api_client:
