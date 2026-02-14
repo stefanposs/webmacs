@@ -9,7 +9,6 @@ non-blocking (they read from ``/proc`` / sysctl instantly).
 
 from __future__ import annotations
 
-import platform
 from typing import TYPE_CHECKING, ClassVar
 
 import psutil
@@ -140,24 +139,23 @@ class SystemPlugin(DevicePlugin):
             ),
         ]
 
-        if self._has_cpu_temp():
-            channels.append(
-                ChannelDescriptor(
-                    id="cpu_temp",
-                    name="CPU Temperature",
-                    direction=ChannelDirection.input,
-                    unit="°C",
-                    min_value=0.0,
-                    max_value=110.0,
-                    simulation=SimulationSpec(
-                        profile="sine_wave",
-                        base_value=55.0,
-                        amplitude=10.0,
-                        period_seconds=120.0,
-                        noise=0.5,
-                    ),
+        channels.append(
+            ChannelDescriptor(
+                id="cpu_temp",
+                name="CPU Temperature",
+                direction=ChannelDirection.input,
+                unit="°C",
+                min_value=0.0,
+                max_value=110.0,
+                simulation=SimulationSpec(
+                    profile="sine_wave",
+                    base_value=55.0,
+                    amplitude=10.0,
+                    period_seconds=120.0,
+                    noise=0.5,
                 ),
-            )
+            ),
+        )
 
         return channels
 
@@ -171,7 +169,12 @@ class SystemPlugin(DevicePlugin):
         """Nothing to clean up."""
 
     async def _do_read(self, channel_id: str) -> ChannelValue | None:
-        """Read the requested system metric."""
+        """Read the requested system metric.
+
+        Every reader is wrapped in a ``try … except`` so that missing
+        sensors, restricted container environments or unsupported OS
+        calls never crash the plugin — they simply return ``None``.
+        """
         readers: dict[str, Callable[[], ChannelValue | None]] = {
             "cpu_percent": lambda: psutil.cpu_percent(interval=None),
             "cpu_temp": self._read_cpu_temp,
@@ -180,15 +183,17 @@ class SystemPlugin(DevicePlugin):
                 psutil.virtual_memory().used / (1024**3),
                 2,
             ),
-            "disk_percent": lambda: psutil.disk_usage("/").percent,
-            "disk_used_gb": lambda: round(
-                psutil.disk_usage("/").used / (1024**3),
-                2,
-            ),
-            "load_avg_1m": lambda: psutil.getloadavg()[0],
+            "disk_percent": self._read_disk_percent,
+            "disk_used_gb": self._read_disk_used_gb,
+            "load_avg_1m": self._read_load_avg,
         }
         reader = readers.get(channel_id)
-        return reader() if reader else None
+        if reader is None:
+            return None
+        try:
+            return reader()
+        except Exception:
+            return None
 
     async def _do_write(
         self,
@@ -200,32 +205,72 @@ class SystemPlugin(DevicePlugin):
     # ── Helpers ──────────────────────────────────────────────────────────
 
     @staticmethod
-    def _has_cpu_temp() -> bool:
-        """Return True when temperature sensors are available."""
-        if platform.system() == "Darwin":
-            return False
+    def _read_cpu_temp() -> float | None:
+        """Read the primary CPU temperature sensor.
+
+        Returns ``None`` when the OS or environment does not expose
+        thermal sensors (macOS, Windows, restricted Docker containers).
+        """
         try:
             temps = psutil.sensors_temperatures()
-            return bool(temps)
         except (AttributeError, OSError):
-            return False
+            # macOS / Windows: psutil has no sensors_temperatures()
+            return None
+
+        if not temps:
+            return None
+
+        for name in (
+            "coretemp",
+            "cpu_thermal",
+            "cpu-thermal",
+            "soc_thermal",
+            "k10temp",
+            "zenpower",
+        ):
+            entries = temps.get(name)
+            if entries:
+                return entries[0].current
+
+        # Fallback: return the first sensor found
+        for entries in temps.values():
+            if entries:
+                return entries[0].current
+
+        return None
 
     @staticmethod
-    def _read_cpu_temp() -> float | None:
-        """Read the primary CPU temperature sensor."""
-        try:
-            temps = psutil.sensors_temperatures()
-            for name in (
-                "coretemp",
-                "cpu_thermal",
-                "cpu-thermal",
-                "soc_thermal",
-            ):
-                if temps.get(name):
-                    return temps[name][0].current
-            for entries in temps.values():
-                if entries:
-                    return entries[0].current
-        except (AttributeError, OSError, KeyError):
-            pass
+    def _read_disk_percent() -> float | None:
+        """Read disk usage percent with fallback mount points."""
+        for path in ("/", "C:\\"):
+            try:
+                return psutil.disk_usage(path).percent
+            except (OSError, FileNotFoundError):
+                continue
         return None
+
+    @staticmethod
+    def _read_disk_used_gb() -> float | None:
+        """Read disk used in GB with fallback mount points."""
+        for path in ("/", "C:\\"):
+            try:
+                return round(psutil.disk_usage(path).used / (1024**3), 2)
+            except (OSError, FileNotFoundError):
+                continue
+        return None
+
+    @staticmethod
+    def _read_load_avg() -> float | None:
+        """Read 1-minute load average.
+
+        Falls back to CPU percent on Windows where ``getloadavg()``
+        is not available.
+        """
+        try:
+            return psutil.getloadavg()[0]
+        except (AttributeError, OSError):
+            # Windows: getloadavg() not available — use CPU% as proxy
+            try:
+                return round(psutil.cpu_percent(interval=None) / 100.0 * psutil.cpu_count(), 2)
+            except Exception:
+                return None
