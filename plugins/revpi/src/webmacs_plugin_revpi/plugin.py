@@ -268,7 +268,9 @@ class RevPiPlugin(SyncDevicePlugin):
             return "V"
         if "current" in comment or "ampere" in comment:
             return "mA"
-        return ""
+        # Default: digital I/O
+        bits = int(io_info.get("bitLength", 1))
+        return "bool" if bits <= 1 else "raw"
 
     # ── get_channels ─────────────────────────────────────────────────
 
@@ -286,7 +288,7 @@ class RevPiPlugin(SyncDevicePlugin):
                 id=f"Input_{i}",
                 name=f"Digital Input {i}",
                 direction=ChannelDirection.input,
-                unit="",
+                unit="bool",
                 min_value=0.0,
                 max_value=1.0,
                 simulation=SimulationSpec(
@@ -303,7 +305,7 @@ class RevPiPlugin(SyncDevicePlugin):
                 id=f"Output_{i}",
                 name=f"Digital Output {i}",
                 direction=ChannelDirection.output,
-                unit="",
+                unit="bool",
                 min_value=0.0,
                 max_value=1.0,
                 safe_value=0.0,

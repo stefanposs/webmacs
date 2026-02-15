@@ -12,6 +12,7 @@ from __future__ import annotations
 import random
 import warnings
 from abc import ABC, abstractmethod
+from typing import Any
 
 import structlog
 
@@ -40,6 +41,7 @@ class RevPiHardware(HardwareInterface):
     """Revolution Pi hardware implementation."""
 
     def __init__(self) -> None:
+        self._rpi: Any | None = None
         try:
             import revpimodio2
 
@@ -47,10 +49,8 @@ class RevPiHardware(HardwareInterface):
             logger.info("RevPi hardware initialized")
         except ImportError:
             logger.warning("revpimodio2 not installed, hardware interface unavailable")
-            self._rpi = None
         except Exception as e:
             logger.exception("Failed to initialize RevPi hardware", error=str(e))
-            self._rpi = None
 
     def read_value(self, label: str) -> float | None:
         """Read and convert a sensor value from RevPi."""

@@ -22,6 +22,7 @@ webmacs-plugin-revpi = { workspace = true }
 [dependency-groups]
 dev = [
     "ruff>=0.8.0",
+    "ty>=0.0.1a1",
     "mypy>=1.13.0",
     "pytest>=8.3.0",
     "pytest-asyncio>=0.25.0",
@@ -29,6 +30,11 @@ dev = [
     "httpx>=0.28.0",
     "aiosqlite>=0.20.0",
     "respx>=0.22.0",
+    "factory-boy>=3.3.0",
+    "pre-commit>=4.0.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "structlog>=24.4.0",
 ]
 
 [tool.ruff]
@@ -75,19 +81,15 @@ markers = [
     "e2e: End-to-end tests",
 ]
 
-[tool.mypy]
-python_version = "3.13"
-strict = true
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["revpimodio2.*"]
-ignore_missing_imports = true
-
 [tool.coverage.run]
-source = ["backend/src", "controller/src"]
+source = [
+    "backend/src",
+    "controller/src",
+    "plugins/core/src",
+    "plugins/simulated/src",
+    "plugins/system/src",
+    "plugins/revpi/src",
+]
 omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]

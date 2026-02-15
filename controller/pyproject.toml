@@ -44,3 +44,11 @@ markers = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/webmacs_controller"]
+
+[tool.mypy]
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = "revpimodio2.*"
+ignore_missing_imports = true
+follow_untyped_imports = true
