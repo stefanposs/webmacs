@@ -1,6 +1,6 @@
 # GitHub Actions workflow for deploying mkdocs documentation to GitHub Pages
-# Builds docs into docs/ folder and commits to main.
-# GitHub Pages is configured to serve from main/docs.
+# Builds docs and deploys directly via GitHub Actions (no commit to main needed).
+# GitHub Pages must be configured to "Deploy from GitHub Actions" in repo settings.
 name: Deploy Documentation
 
 on:
@@ -13,20 +13,20 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: docs-deploy
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -44,18 +44,18 @@ jobs:
       - name: Build documentation
         run: mkdocs build --config-file mkdocs.yml --strict
 
-      - name: Add .nojekyll
-        run: touch docs/.nojekyll
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
 
-      - name: Commit docs/ to main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/
-          if git diff --cached --quiet; then
-            echo "No changes to docs — skipping commit"
-          else
-            git commit -m "docs: rebuild documentation site"
-            git pull --rebase origin main
-            git push
-          fi
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
