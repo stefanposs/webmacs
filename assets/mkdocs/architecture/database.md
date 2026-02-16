@@ -20,22 +20,25 @@ Sessions are injected via `Depends(get_db)` in every route.
 
 ---
 
-## Tables (12)
+## Tables (15)
 
 | Table | Purpose | Key Columns |
 |---|---|---|
 | `users` | Admin and operator accounts | `username`, `hashed_password`, `admin` |
 | `events` | Sensor/channel definitions | `name`, `unit`, `min_value`, `max_value`, `event_type` |
 | `experiments` | Time-bounded data campaigns | `name`, `started_on`, `stopped_on` |
-| `datapoints` | Time-series sensor readings | `value`, `event_public_id`, `experiment_public_id`, `created_on` |
-| `log_entries` | System and user logs | `content`, `logging_type`, `status_type`, `read` |
+| `datapoints` | Time-series sensor readings | `value`, `event_public_id`, `experiment_public_id`, `timestamp` |
+| `log_entries` | System and user logs | `content`, `logging_type`, `status_type` |
 | `blacklist_tokens` | Revoked JWTs (logout) | `token`, `blacklisted_on` |
-| `rules` | Automation threshold triggers | `event_public_id`, `operator`, `threshold`, `action_type`, `action_target` |
-| `webhooks` | HTTP callback subscriptions | `url`, `secret`, `events` (JSON list), `active` |
-| `webhook_deliveries` | Delivery audit trail | `webhook_public_id`, `status`, `response_code`, `payload` |
-| `firmware_updates` | OTA firmware records | `version`, `filename`, `file_path`, `status` |
-| `dashboards` | Custom dashboard layouts | `name`, `description` |
-| `dashboard_widgets` | Widget positioning & config | `dashboard_public_id`, `widget_type`, `config` (JSON), `x`, `y`, `w`, `h` |
+| `rules` | Automation threshold triggers | `event_public_id`, `operator`, `threshold`, `action_type` |
+| `webhooks` | HTTP callback subscriptions | `url`, `secret`, `events` (JSON list), `enabled` |
+| `webhook_deliveries` | Delivery audit trail | `webhook_id`, `status`, `response_code`, `payload` |
+| `firmware_updates` | OTA firmware records | `version`, `release_notes`, `file_path`, `status` |
+| `dashboards` | Custom dashboard layouts | `name`, `is_global`, `user_public_id` |
+| `dashboard_widgets` | Widget positioning & config | `dashboard_id`, `widget_type`, `config_json`, `x`, `y`, `w`, `h` |
+| `plugin_packages` | Uploaded plugin `.whl` files | `package_name`, `version`, `source`, `file_hash_sha256` |
+| `plugin_instances` | Running plugin configurations | `plugin_id`, `instance_name`, `demo_mode`, `config_json` |
+| `channel_mappings` | Plugin channel → event links | `instance_id`, `channel_id`, `event_public_id` |
 
 All tables use `public_id` (UUID) as the external-facing identifier and an integer `id` as the internal primary key.
 
@@ -43,17 +46,23 @@ All tables use `public_id` (UUID) as the external-facing identifier and an integ
 
 ## Model Conventions
 
-Every model inherits from a common `Base` with shared columns:
+All models inherit from a shared `DeclarativeBase`. Each model defines its own columns — there is no shared mixin. Common patterns across most models:
+
+- `id` — auto-incrementing integer primary key
+- `public_id` — UUID string exposed to the API (external identifier)
+- `created_on` — server-side timestamp via `server_default=func.now()`
 
 ```python
 class Base(DeclarativeBase):
     pass
 
-class CommonMixin:
-    id: Mapped[int] = mapped_column(primary_key=True)
-    public_id: Mapped[str] = mapped_column(unique=True, default=lambda: str(uuid4()))
-    created_on: Mapped[datetime] = mapped_column(default=func.now())
-    updated_on: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+class Event(Base):
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
+    # ...
 ```
 
 ### Key Indexes
@@ -61,7 +70,7 @@ class CommonMixin:
 ```python
 # Composite index for time-series queries (datapoints filtered by event + time)
 __table_args__ = (
-    Index("ix_datapoint_event_created", "event_public_id", "created_on"),
+    Index("ix_datapoints_event_ts", "event_public_id", "timestamp"),
 )
 ```
 
@@ -140,13 +149,27 @@ The migration environment is configured in [alembic/env.py](https://github.com/s
 ## Relationships
 
 ```
-users ──────────────────────────────────────────────
-events ──┬── datapoints (event_public_id)
-         └── rules (event_public_id)
-experiments ── datapoints (experiment_public_id)
-webhooks ── webhook_deliveries (webhook_public_id)
-dashboards ── dashboard_widgets (dashboard_public_id)
+users ─────┬── log_entries (user_public_id)
+           ├── experiments (implicit, via auth)
+           ├── dashboards (user_public_id)
+           ├── rules (user_public_id)
+           ├── firmware_updates (user_public_id, SET NULL)
+           └── plugin_packages (user_public_id, SET NULL)
+
+events ────┬── datapoints (event_public_id)
+           ├── rules (event_public_id, CASCADE)
+           └── dashboard_widgets (event_public_id, SET NULL)
+
+experiments ── datapoints (experiment_public_id, SET NULL)
+
+webhooks ── webhook_deliveries (webhook_id, CASCADE)
+
+dashboards ── dashboard_widgets (dashboard_id, CASCADE)
+
+plugin_instances ── channel_mappings (instance_id, CASCADE)
 ```
+
+All foreign keys have explicit `ondelete` directives (`CASCADE` or `SET NULL`) to prevent orphaned records.
 
 ---
 

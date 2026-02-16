@@ -43,25 +43,18 @@ def evaluate_condition(
     threshold_high: float | None = None,
 ) -> bool:
     """Evaluate a value against a rule condition. Pure function, no side-effects."""
-    simple_ops: dict[RuleOperator, bool] = {
+    _dispatch: dict[RuleOperator, bool] = {
         RuleOperator.gt: value > threshold,
         RuleOperator.lt: value < threshold,
         RuleOperator.eq: abs(value - threshold) < _FLOAT_EPSILON,
         RuleOperator.gte: value >= threshold,
         RuleOperator.lte: value <= threshold,
+        RuleOperator.between: (threshold <= value <= threshold_high if threshold_high is not None else False),
+        RuleOperator.not_between: (
+            (value < threshold or value > threshold_high) if threshold_high is not None else False
+        ),
     }
-
-    if operator in simple_ops:
-        return simple_ops[operator]
-
-    if threshold_high is None:
-        return False
-    if operator == RuleOperator.between:
-        return threshold <= value <= threshold_high
-    if operator == RuleOperator.not_between:
-        return value < threshold or value > threshold_high
-
-    return False  # pragma: no cover
+    return _dispatch.get(operator, False)
 
 
 def _is_in_cooldown(rule: Rule, now: datetime.datetime) -> bool:
@@ -134,10 +127,22 @@ async def evaluate_rules_for_datapoint(
             logger.debug("Rule in cooldown, skipping", rule=rule.name, sensor=event_public_id)
             continue
 
-        # Mark triggered and flush immediately to prevent cooldown race
-        rule.last_triggered_at = now
+        # Atomic cooldown check-and-set to prevent race conditions
+        from sqlalchemy import update
+
+        result = await db.execute(
+            update(Rule)
+            .where(
+                Rule.id == rule.id,
+                Rule.last_triggered_at.is_(None)
+                | (Rule.last_triggered_at < now - datetime.timedelta(seconds=rule.cooldown_seconds)),
+            )
+            .values(last_triggered_at=now)
+        )
+        if result.rowcount == 0:  # type: ignore[attr-defined]
+            # Another request already triggered this rule
+            continue
         triggered += 1
-        await db.flush()
 
         _fire_rule_action(rule, event_public_id, value)
         logger.info("Rule triggered", rule=rule.name, sensor=event_public_id, value=value)

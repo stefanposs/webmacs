@@ -17,7 +17,12 @@ from sqlalchemy.orm import selectinload
 
 from webmacs_backend.dependencies import AdminUser, CurrentUser, DbSession
 from webmacs_backend.enums import PluginSource
-from webmacs_backend.models import ChannelMapping, DashboardWidget, Event, PluginInstance, PluginPackage
+from webmacs_backend.models import (
+    ChannelMapping,
+    Event,
+    PluginInstance,
+    PluginPackage,
+)
 from webmacs_backend.repository import ConflictError, delete_by_public_id, get_or_404, paginate, update_from_schema
 from webmacs_backend.schemas import (
     ChannelMappingCreate,
@@ -31,6 +36,7 @@ from webmacs_backend.schemas import (
     PluginPackageResponse,
     StatusResponse,
 )
+from webmacs_backend.services.plugin_service import delete_plugin_cascade
 from webmacs_backend.services.wheel_validator import InvalidWheelError, validate_wheel
 
 router = APIRouter()
@@ -83,11 +89,6 @@ async def list_plugin_packages(
     packages = []
     for pkg in result.scalars().all():
         resp = PluginPackageResponse.model_validate(pkg)
-        # Parse the JSON plugin_ids
-        try:
-            resp.plugin_ids = json.loads(pkg.plugin_ids)
-        except (json.JSONDecodeError, TypeError):
-            resp.plugin_ids = []
         resp.removable = pkg.source == PluginSource.uploaded
         packages.append(resp)
     return packages
@@ -266,6 +267,15 @@ async def uninstall_plugin_package(
             detail="Bundled plugins cannot be removed.",
         )
 
+    # Validate package name before passing to subprocess
+    import re
+
+    if not re.match(r"^[a-zA-Z0-9._-]+$", pkg.package_name):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid package name.",
+        )
+
     # pip uninstall (run in thread to avoid blocking the async event loop)
     result = await asyncio.to_thread(
         subprocess.run,
@@ -338,7 +348,7 @@ async def create_plugin_instance(
     db.add(instance)
     await db.flush()
 
-    # Auto-discover channels from the plugin class and create mappings + events
+    # Auto-discover channels from the plugin class and create mappings
     try:
         from webmacs_plugins_core.discovery import discover_plugins
 
@@ -350,28 +360,45 @@ async def create_plugin_instance(
             config["demo_mode"] = data.demo_mode
             plugin.configure(config)
             for ch_id, ch in plugin.channels.items():
-                # Determine EventType from channel direction
-                direction_str = ch.direction.value if hasattr(ch.direction, "value") else str(ch.direction)
-                if direction_str == "input":
-                    event_type = "sensor"
-                elif direction_str == "output":
-                    event_type = "actuator"
-                else:
-                    event_type = "range"
+                event_public_id: str | None = None
 
-                # Auto-create an Event for this channel
-                event_name = f"{data.instance_name} – {ch.name}"
-                event_public_id = str(uuid.uuid4())
-                event = Event(
-                    public_id=event_public_id,
-                    name=event_name,
-                    min_value=ch.min_value,
-                    max_value=ch.max_value,
-                    unit=ch.unit,
-                    type=event_type,
-                    user_public_id=current_user.public_id,
-                )
-                db.add(event)
+                if data.auto_create_events:
+                    # Determine EventType from channel direction
+                    direction_str = ch.direction.value if hasattr(ch.direction, "value") else str(ch.direction)
+                    if direction_str == "input":
+                        event_type = "sensor"
+                    elif direction_str == "output":
+                        event_type = "actuator"
+                    else:
+                        event_type = "range"
+
+                    # Auto-create or reuse an Event for this channel
+                    event_name = f"{data.instance_name} – {ch.name}"
+                    existing_event = await db.execute(
+                        select(Event).where(Event.name == event_name),
+                    )
+                    existing = existing_event.scalar_one_or_none()
+
+                    if existing:
+                        # Reuse orphaned event from a previous instance
+                        event_public_id = existing.public_id
+                        logger.info(
+                            "reusing_existing_event",
+                            event_name=event_name,
+                            event_public_id=event_public_id,
+                        )
+                    else:
+                        event_public_id = str(uuid.uuid4())
+                        event = Event(
+                            public_id=event_public_id,
+                            name=event_name,
+                            min_value=ch.min_value,
+                            max_value=ch.max_value,
+                            unit=ch.unit,
+                            type=event_type,
+                            user_public_id=current_user.public_id,
+                        )
+                        db.add(event)
 
                 mapping = ChannelMapping(
                     public_id=str(uuid.uuid4()),
@@ -423,28 +450,8 @@ async def delete_plugin_instance(
     current_user: CurrentUser,
 ) -> StatusResponse:
     instance = await get_or_404(db, PluginInstance, public_id, entity_name="Plugin instance")
-
-    # Collect event IDs linked via channel mappings
-    result = await db.execute(
-        select(ChannelMapping).where(ChannelMapping.plugin_instance_id == instance.id),
-    )
-    event_public_ids: list[str] = []
-    for mapping in result.scalars().all():
-        if mapping.event_public_id:
-            event_public_ids.append(mapping.event_public_id)
-            mapping.event_public_id = None  # Clear FK before deleting events
-
-    if event_public_ids:
-        await db.flush()
-
-        # Detach dashboard widgets that reference these events
-        widget_result = await db.execute(
-            select(DashboardWidget).where(DashboardWidget.event_public_id.in_(event_public_ids)),
-        )
-        for widget in widget_result.scalars().all():
-            widget.event_public_id = None
-
-    return await delete_by_public_id(db, PluginInstance, public_id, entity_name="Plugin instance")
+    await delete_plugin_cascade(db, instance)
+    return StatusResponse(status="success", message="Plugin instance successfully deleted.")
 
 
 # ─── Channel mapping endpoints ──────────────────────────────────────────────

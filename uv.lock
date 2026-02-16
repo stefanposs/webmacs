@@ -1518,7 +1518,7 @@ wheels = [
 
 [[package]]
 name = "webmacs"
-version = "2.0.0"
+version = "2.1.2"
 source = { virtual = "." }
 
 [package.dev-dependencies]
@@ -1693,17 +1693,25 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
 hardware = [
     { name = "revpimodio2" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25.0" },
     { name = "revpimodio2", marker = "extra == 'hardware'", specifier = ">=2.8.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
     { name = "structlog", specifier = ">=24.4.0" },
     { name = "webmacs-plugins-core", editable = "plugins/core" },
 ]
-provides-extras = ["hardware"]
+provides-extras = ["hardware", "dev"]
 
 [[package]]
 name = "webmacs-plugin-simulated"
@@ -1713,8 +1721,21 @@ dependencies = [
     { name = "webmacs-plugins-core" },
 ]
 
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
 [package.metadata]
-requires-dist = [{ name = "webmacs-plugins-core", editable = "plugins/core" }]
+requires-dist = [
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
+    { name = "webmacs-plugins-core", editable = "plugins/core" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "webmacs-plugin-system"
@@ -1725,11 +1746,22 @@ dependencies = [
     { name = "webmacs-plugins-core" },
 ]
 
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "psutil", specifier = ">=5.9" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
     { name = "webmacs-plugins-core", editable = "plugins/core" },
 ]
+provides-extras = ["dev"]
 
 [[package]]
 name = "webmacs-plugins-core"
@@ -1744,6 +1776,7 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -1751,6 +1784,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.10.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
     { name = "structlog", specifier = ">=24.4.0" },
 ]
 provides-extras = ["dev"]

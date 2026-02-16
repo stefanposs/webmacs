@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 from typing import Any
 
 from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator, model_validator
@@ -217,8 +218,11 @@ class WebhookResponse(BaseModel):
         if isinstance(v, str):
             import json
 
-            parsed: list[str] = json.loads(v)
-            return parsed
+            try:
+                parsed: list[str] = json.loads(v)
+                return parsed
+            except (json.JSONDecodeError, TypeError):
+                return []
         return list(v)
 
 
@@ -283,6 +287,18 @@ class RuleUpdate(BaseModel):
     webhook_event_type: WebhookEventType | None = None
     enabled: bool | None = None
     cooldown_seconds: int | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def validate_rule_consistency(self) -> RuleUpdate:
+        """Cross-field validation for between/not_between operators."""
+        if self.operator in (RuleOperator.between, RuleOperator.not_between):
+            if self.threshold is not None and self.threshold_high is None:
+                msg = "threshold_high is required for between/not_between operators"
+                raise ValueError(msg)
+            if self.threshold is not None and self.threshold_high is not None and self.threshold_high < self.threshold:
+                msg = "threshold_high must be >= threshold"
+                raise ValueError(msg)
+        return self
 
 
 class RuleResponse(BaseModel):
@@ -432,6 +448,7 @@ class PluginInstanceCreate(BaseModel):
     instance_name: str = Field(min_length=1, max_length=255)
     demo_mode: bool = False
     enabled: bool = True
+    auto_create_events: bool = True
     config_json: str | None = None
 
 
@@ -497,5 +514,17 @@ class PluginPackageResponse(BaseModel):
     file_size_bytes: int | None = None
     installed_on: datetime.datetime | None = None
     removable: bool = False
+
+    @field_validator("plugin_ids", mode="before")
+    @classmethod
+    def _parse_plugin_ids(cls, v: object) -> list[str]:
+        """Accept JSON string or list from ORM."""
+        if isinstance(v, str):
+            try:
+                parsed = json.loads(v)
+            except json.JSONDecodeError:
+                return []
+            return parsed if isinstance(parsed, list) else []
+        return v if isinstance(v, list) else []
 
     model_config = {"from_attributes": True}

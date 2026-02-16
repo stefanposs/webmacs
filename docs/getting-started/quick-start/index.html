@@ -69,7 +69,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -125,7 +125,7 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
     
       <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
@@ -135,7 +135,7 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
     
       <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
@@ -657,10 +657,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-explore-the-dashboard" class="md-nav__link">
+  <a href="#3-set-up-a-plugin-data-source" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Explore the Dashboard
+        3. Set Up a Plugin (Data Source)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Set Up a Plugin (Data Source)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-plugin-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a Plugin Instance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-channel-event-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify Channel → Event Mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-explore-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Explore the Dashboard
       
     </span>
   </a>
@@ -668,21 +707,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-create-an-experiment" class="md-nav__link">
+  <a href="#5-create-an-experiment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Create an Experiment
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-view-events-sensors" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. View Events &amp; Sensors
+        5. Create an Experiment
       
     </span>
   </a>
@@ -1160,6 +1188,62 @@
     
   
     Users & Auth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
   
 
     
@@ -1699,6 +1783,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/database-migrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Migrations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/plugin-development/" class="md-nav__link">
         
   
@@ -1872,6 +1984,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../deployment/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../deployment/env-vars/" class="md-nav__link">
         
   
@@ -1949,10 +2089,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-explore-the-dashboard" class="md-nav__link">
+  <a href="#3-set-up-a-plugin-data-source" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Explore the Dashboard
+        3. Set Up a Plugin (Data Source)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Set Up a Plugin (Data Source)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-plugin-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a Plugin Instance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-channel-event-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify Channel → Event Mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-explore-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Explore the Dashboard
       
     </span>
   </a>
@@ -1960,21 +2139,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-create-an-experiment" class="md-nav__link">
+  <a href="#5-create-an-experiment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Create an Experiment
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-view-events-sensors" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. View Events &amp; Sensors
+        5. Create an Experiment
       
     </span>
   </a>
@@ -2024,7 +2192,7 @@
 
 
 <h1 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h1>
-<p>This guide walks you through your first WebMACS session — from login to running an experiment.</p>
+<p>This guide walks you through your first WebMACS session — from login to seeing live sensor data on a dashboard.</p>
 <hr />
 <h2 id="1-start-the-stack">1. Start the Stack<a class="headerlink" href="#1-start-the-stack" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>webmacs
@@ -2057,28 +2225,49 @@
 <p>Set <code>INITIAL_ADMIN_PASSWORD</code> in your <code>.env</code> file before deploying to any shared environment.</p>
 </div>
 <hr />
-<h2 id="3-explore-the-dashboard">3. Explore the Dashboard<a class="headerlink" href="#3-explore-the-dashboard" title="Permanent link">&para;</a></h2>
-<p>The <strong>Dashboard</strong> shows real-time sensor data:</p>
+<h2 id="3-set-up-a-plugin-data-source">3. Set Up a Plugin (Data Source)<a class="headerlink" href="#3-set-up-a-plugin-data-source" title="Permanent link">&para;</a></h2>
+<p>WebMACS receives sensor data through <strong>plugins</strong>. A plugin is a device driver that reads hardware (or simulated) channels and feeds values into the telemetry pipeline.</p>
+<div class="admonition tip">
+<p class="admonition-title">Development mode auto-setup</p>
+<p>In <strong>development mode</strong> (the default when using <code>docker compose up</code>), the controller automatically creates a <strong>Simulated Device</strong> plugin instance with 9 demo channels on first boot. You can skip to <a href="#4-explore-the-dashboard">Step 4</a> and come back here when you want to add your own data sources.</p>
+</div>
+<h3 id="create-a-plugin-instance">Create a Plugin Instance<a class="headerlink" href="#create-a-plugin-instance" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Navigate to <strong>Plugins</strong> in the sidebar.</li>
+<li>Click <strong><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg></span> New Instance</strong>.</li>
+<li>Select a plugin — e.g., <strong>Simulated Device</strong> for testing or <strong>System Monitor</strong> for real host metrics.</li>
+<li>Enter an instance name (e.g., <code>Lab Sensors</code>).</li>
+<li>Toggle <strong>Demo Mode</strong> on if you don't have real hardware connected.</li>
+<li>Click <strong>Create</strong>.</li>
+</ol>
+<p>The plugin automatically discovers its channels (e.g., <code>temperature</code>, <code>humidity</code>, <code>cpu_percent</code>) and creates matching <strong>events</strong> for each channel.</p>
+<h3 id="verify-channel-event-mapping">Verify Channel → Event Mapping<a class="headerlink" href="#verify-channel-event-mapping" title="Permanent link">&para;</a></h3>
+<p>Once the instance is created, its channels are listed under the instance card. Each channel is auto-linked to a WebMACS event:</p>
+<ul>
+<li>Navigate to <strong>Events</strong> in the sidebar to see the newly created events.</li>
+<li>Each event has a <strong>type</strong> (sensor, actuator, range), a <strong>unit</strong>, and a unique <code>public_id</code>.</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">How data flows</p>
+<p>Plugin channel → Event → Datapoint stream → Dashboard / Rules / Webhooks / CSV export.
+Without at least one active plugin instance, no sensor data reaches the system.</p>
+</div>
+<hr />
+<h2 id="4-explore-the-dashboard">4. Explore the Dashboard<a class="headerlink" href="#4-explore-the-dashboard" title="Permanent link">&para;</a></h2>
+<p>The <strong>Dashboard</strong> shows real-time sensor data from your active plugin instances:</p>
 <ul>
 <li><strong>WebSocket mode</strong> — data streams in via <code>/ws/datapoints/stream</code> (green indicator)</li>
 <li><strong>Polling fallback</strong> — if WebSocket fails after 3 attempts, the dashboard falls back to HTTP polling (amber indicator)</li>
 </ul>
+<p>You should now see live values from the channels you configured in the previous step. If using demo mode, the values follow realistic simulation profiles (sine waves, random walks, etc.).</p>
 <hr />
-<h2 id="4-create-an-experiment">4. Create an Experiment<a class="headerlink" href="#4-create-an-experiment" title="Permanent link">&para;</a></h2>
+<h2 id="5-create-an-experiment">5. Create an Experiment<a class="headerlink" href="#5-create-an-experiment" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Navigate to <strong>Experiments</strong> in the sidebar</li>
 <li>Click <strong>New Experiment</strong></li>
 <li>Enter a name (e.g. <code>Test Run 01</code>)</li>
 <li>Click <strong>Start</strong> — all incoming datapoints are now associated with this experiment</li>
 </ol>
-<hr />
-<h2 id="5-view-events-sensors">5. View Events &amp; Sensors<a class="headerlink" href="#5-view-events-sensors" title="Permanent link">&para;</a></h2>
-<p>The <strong>Events</strong> page lists all configured sensor/actuator events. Each event has:</p>
-<ul>
-<li>A unique <code>public_id</code></li>
-<li>A <code>type</code> (sensor, actuator, range, cmd_button, cmd_opened, cmd_closed)</li>
-<li>A human-readable <code>name</code></li>
-</ul>
 <hr />
 <h2 id="6-stop-export">6. Stop &amp; Export<a class="headerlink" href="#6-stop-export" title="Permanent link">&para;</a></h2>
 <ol>
@@ -2089,6 +2278,7 @@
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
+<li><a href="../../guide/plugins/">Plugins Guide</a> — manage plugin instances, channels, and custom packages</li>
 <li><a href="../configuration/">Configuration</a> — customise settings via environment variables</li>
 <li><a href="../../guide/dashboard/">Dashboard Guide</a> — deep dive into real-time monitoring</li>
 <li><a href="../../architecture/overview/">Architecture Overview</a> — understand how the pieces fit together</li>

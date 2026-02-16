@@ -9,9 +9,9 @@
   --md-primary-fg-color--dark: #0d1f38 !important;
   --md-primary-bg-color: #ffffff !important;
 
-  /* Accent color */
-  --md-accent-fg-color: #2196f3 !important;
-  --md-accent-fg-color--transparent: rgba(33, 150, 243, 0.1) !important;
+  /* Accent color — same as primary / header */
+  --md-accent-fg-color: #122E53 !important;
+  --md-accent-fg-color--transparent: rgba(18, 46, 83, 0.1) !important;
 }
 
 /* Header / Navigation bar */
@@ -232,6 +232,50 @@
 }
 
 /* ============================================================================
+   Buttons — Global contrast fix
+   ============================================================================ */
+
+/* Primary buttons: white text on accent-blue background */
+.md-typeset .md-button--primary {
+  background-color: var(--md-accent-fg-color) !important;
+  color: #ffffff !important;
+  border-color: var(--md-accent-fg-color) !important;
+}
+
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus {
+  background-color: #1a3d6b !important;
+  color: #ffffff !important;
+  border-color: #1a3d6b !important;
+}
+
+/* Outline / secondary buttons: accent text, white bg */
+.md-typeset .md-button:not(.md-button--primary) {
+  color: var(--md-accent-fg-color) !important;
+  border-color: var(--md-accent-fg-color) !important;
+}
+
+.md-typeset .md-button:not(.md-button--primary):hover,
+.md-typeset .md-button:not(.md-button--primary):focus {
+  background-color: var(--md-accent-fg-color) !important;
+  color: #ffffff !important;
+}
+
+/* Dark-mode button adjustments */
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary {
+  background-color: #1a3d6b !important;
+  color: #ffffff !important;
+  border-color: #1a3d6b !important;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary:hover,
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary:focus {
+  background-color: #2a4d7b !important;
+  color: #ffffff !important;
+  border-color: #2a4d7b !important;
+}
+
+/* ============================================================================
    Hero Section
    ============================================================================ */
 
@@ -240,7 +284,7 @@
   padding: 2rem 1rem;
   margin: -0.5rem 0 1rem;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, #122E53 0%, #1a3d6b 50%, #2196f3 100%);
+  background: linear-gradient(135deg, #0d1f38 0%, #122E53 50%, #1a3d6b 100%);
   color: #ffffff;
 }
 

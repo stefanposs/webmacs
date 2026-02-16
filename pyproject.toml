@@ -1,6 +1,6 @@
 [project]
 name = "webmacs"
-version = "2.0.0"
+version = "2.1.2"
 description = "WebMACS - Web-based Monitoring and Control System for IoT experiments (Wirbelschicht)"
 readme = "README.md"
 license = { text = "MIT" }

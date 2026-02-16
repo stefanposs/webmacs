@@ -36,6 +36,9 @@ class ControllerSettings(BaseSettings):
     # Auto-seed simulated plugin in dev mode (set to false to disable)
     auto_seed_plugins: bool = Field(default=True, alias="WEBMACS_AUTO_SEED")
 
+    # How often (seconds) the controller re-syncs plugin instances from the backend
+    plugin_sync_interval: float = Field(default=10.0, alias="WEBMACS_PLUGIN_SYNC_INTERVAL")
+
     # RevPi mapping (JSON string from env, parsed to dict)
     revpi_mapping: dict[str, Any] = Field(default_factory=dict, alias="WEBMACS_REVPI_MAPPING")
 

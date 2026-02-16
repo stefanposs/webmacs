@@ -252,6 +252,7 @@ export interface PluginInstanceCreatePayload {
   instance_name: string
   demo_mode: boolean
   enabled: boolean
+  auto_create_events: boolean
   config_json?: string | null
 }
 
