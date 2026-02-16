@@ -39,33 +39,69 @@ just lint       # Check code style
 
 ### Available Commands
 
+All commands use [just](https://github.com/casey/just) (a modern `make` alternative).
+
 ```bash
 # Setup
-just setup              # Install all dependencies
+just setup              # Install all dependencies (backend + controller + plugins + frontend)
+just setup-backend      # Install backend dependencies only
+just setup-controller   # Install controller dependencies only
+just setup-frontend     # Install frontend dependencies only
 
 # Code quality
-just lint               # Run ruff linter on backend + controller
-just format             # Auto-format code
+just lint               # Run all linters (backend + controller + plugins + frontend)
+just lint-backend       # Lint backend + controller + plugins with ruff
+just lint-frontend      # Lint frontend with ESLint
+just lint-fix           # Auto-fix Python lint issues
+just format             # Auto-format Python code
 just fix                # Format + lint-fix
 
+# Type checking
+just typecheck          # Type check Python (backend + controller) with mypy
+just typecheck-frontend # Type check frontend with vue-tsc
+
 # Testing
-just test               # Run all tests (backend + controller + frontend)
+just test               # Run all tests (backend + controller + plugins + frontend)
 just test-backend       # Backend tests only
+just test-backend-cov   # Backend tests with coverage report
 just test-controller    # Controller tests only
 just test-frontend      # Frontend tests only
+just test-frontend-cov  # Frontend tests with coverage report
+just test-plugins       # Run all plugin tests
+just test-plugin <name> # Run tests for a specific plugin
+just test-example-plugin # Run example plugin tests (validates SDK contract)
+
+# CI / QA
+just qa                 # Full QA pipeline: lint + typecheck + all tests
+just check              # Quick check before commit
+just ci                 # Simulate full CI pipeline locally (mirrors GitHub Actions)
+just ci-cov             # Full CI with coverage reports
+just ci-quick           # Quick CI (lint + test, skip typecheck)
 
 # Docker
-just dev                # Start full Docker stack
+just dev                # Start full Docker stack (detached)
 just down               # Stop all containers
-just rebuild            # Rebuild and restart
+just down-clean         # Stop and remove all data (volumes)
+just rebuild            # Rebuild and restart all containers
+just restart <service>  # Restart a single service
+just status             # Check service health
+just logs <service>     # View logs (follow mode)
+
+# Database
+just db-shell           # Open psql shell
+just db-backup          # Create database backup
 
 # Documentation
 just docs               # Serve docs locally (http://localhost:8001)
 just docs-build         # Build static docs
 
-# Quality
-just qa                 # Full QA: lint + format-check + test
-just check              # Quick check before commit
+# Release
+just bundle <version>   # Build OTA update bundle for customer deployment
+
+# Utilities
+just info               # Show project info
+just loc                # Count lines of code
+just clean              # Clean build artifacts
 ```
 
 ---

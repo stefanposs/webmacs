@@ -47,6 +47,10 @@ class ChannelEventMap:
     def mapped_events(self) -> set[str]:
         return set(self._to_channel.keys())
 
+    def clear(self) -> None:
+        self._to_event.clear()
+        self._to_channel.clear()
+
     def __len__(self) -> int:
         return len(self._to_event)
 
@@ -203,6 +207,95 @@ class PluginBridge:
 
         except Exception as exc:
             logger.warning("plugin_actuator_loop_error", error=str(exc))
+
+    # ── Live re-sync ─────────────────────────────────────────────────────
+
+    async def _sync_remove(self, removed: set[str]) -> None:
+        """Remove plugin instances that no longer exist in the backend."""
+        for iid in removed:
+            logger.info("plugin_sync_removing", instance_id=iid)
+            await self._registry.disconnect_instance(iid)
+            self._registry.remove_instance(iid)
+
+    async def _sync_add(self, added: set[str], backend_instances: list[dict[str, Any]]) -> None:
+        """Add plugin instances that are new in the backend."""
+        for inst in backend_instances:
+            public_id = inst.get("public_id", "")
+            if public_id not in added:
+                continue
+
+            plugin_id = inst.get("plugin_id", "")
+            instance_name = inst.get("instance_name", plugin_id)
+            demo_mode = inst.get("demo_mode", True)
+            config_json = inst.get("config_json") or {}
+
+            if not self._registry.get_plugin_class(plugin_id):
+                logger.warning("plugin_sync_class_not_found", plugin_id=plugin_id)
+                continue
+
+            config: dict[str, object] = {
+                "instance_name": instance_name,
+                "demo_mode": demo_mode,
+            }
+            if isinstance(config_json, dict):
+                config.update(config_json)
+
+            try:
+                iid = self._registry.create_instance(plugin_id, config, instance_id=public_id)
+                await self._registry.connect_instance(iid)
+                logger.info("plugin_sync_added", instance_id=iid, plugin_id=plugin_id)
+            except Exception as exc:
+                logger.error("plugin_sync_add_failed", plugin_id=plugin_id, error=str(exc))
+
+    async def _sync_rebuild_channel_map(self, backend_instances: list[dict[str, Any]]) -> ChannelEventMap:
+        """Rebuild channel-event map from current backend state."""
+        new_map = ChannelEventMap()
+        for inst in backend_instances:
+            public_id = inst.get("public_id", "")
+            if public_id not in self._registry.list_instances():
+                continue
+            try:
+                mappings = await self._api.fetch_channel_mappings(public_id)
+                for m in mappings:
+                    event_pid = m.get("event_public_id")
+                    ch_id = m.get("channel_id")
+                    if event_pid and ch_id:
+                        new_map.add(public_id, ch_id, event_pid)
+            except Exception as exc:
+                logger.warning("plugin_sync_mapping_failed", instance=public_id, error=str(exc))
+        return new_map
+
+    async def sync(self) -> None:
+        """Re-sync plugin instances and channel mappings from the backend.
+
+        Detects added/removed/changed instances and updates the bridge
+        without requiring a full controller restart.
+        """
+        try:
+            backend_instances = await self._api.fetch_plugin_instances()
+        except Exception as exc:
+            logger.warning("plugin_sync_fetch_failed", error=str(exc))
+            return
+
+        backend_ids = {inst["public_id"] for inst in backend_instances}
+        local_ids = set(self._registry.list_instances().keys())
+
+        removed = local_ids - backend_ids
+        added = backend_ids - local_ids
+
+        await self._sync_remove(removed)
+        await self._sync_add(added, backend_instances)
+
+        old_count = len(self._channel_map)
+        self._channel_map = await self._sync_rebuild_channel_map(backend_instances)
+
+        if removed or added or len(self._channel_map) != old_count:
+            logger.info(
+                "plugin_sync_complete",
+                added=len(added),
+                removed=len(removed),
+                mappings=len(self._channel_map),
+            )
 
     # ── Shutdown ─────────────────────────────────────────────────────────
 

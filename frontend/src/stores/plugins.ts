@@ -65,10 +65,12 @@ export const usePluginStore = defineStore('plugins', () => {
   async function deleteInstance(publicId: string): Promise<void> {
     const backup = [...instances.value]
     instances.value = instances.value.filter((i) => i.public_id !== publicId)
+    total.value = Math.max(0, total.value - 1)
     try {
       await api.delete(`/plugins/${publicId}`)
     } catch {
       instances.value = backup
+      total.value = backup.length
       throw new Error('Failed to delete plugin instance')
     }
   }

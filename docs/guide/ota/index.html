@@ -1202,6 +1202,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Update Statuses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Machine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1405,6 +1422,62 @@
     
   
     Users & Auth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
   
 
     
@@ -1944,6 +2017,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/database-migrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Migrations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/plugin-development/" class="md-nav__link">
         
   
@@ -2097,6 +2198,34 @@
     
   
     Production
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
   
 
     
@@ -2369,6 +2498,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Update Statuses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Machine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2855,6 +3001,18 @@ Click <strong>Check for Updates</strong> to query both the local database and <s
 </tr>
 </tbody>
 </table>
+<h4 id="state-machine">State Machine<a class="headerlink" href="#state-machine" title="Permanent link">&para;</a></h4>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; pending: Upload / Register
+    pending --&gt; downloading: Start update
+    downloading --&gt; verifying: Download complete
+    verifying --&gt; applying: Checksum valid
+    verifying --&gt; failed: Checksum mismatch
+    applying --&gt; completed: Health check ✓
+    applying --&gt; failed: Health check ✗
+    completed --&gt; rolled_back: Rollback
+    failed --&gt; [*]: Manual intervention
+    rolled_back --&gt; [*]: Previous version restored</code></pre>
 <h3 id="rolling-back">Rolling Back<a class="headerlink" href="#rolling-back" title="Permanent link">&para;</a></h3>
 <p>Click <strong>Rollback</strong> on a <code>completed</code> update to revert:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>completed → rolled_back

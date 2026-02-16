@@ -71,7 +71,10 @@ class Application:
 
             # 4. Create telemetry transport
             if self._settings.telemetry_mode == "websocket":
-                self._telemetry = WebSocketTelemetry(self._settings.ws_url)
+                self._telemetry = WebSocketTelemetry(
+                    self._settings.ws_url,
+                    auth_token_getter=lambda: self._api_client.auth_token if self._api_client else None,
+                )
                 await self._telemetry.connect()
                 logger.info("Telemetry via WebSocket", url=self._settings.ws_url)
             else:
@@ -99,6 +102,13 @@ class Application:
                 tg.create_task(self._loop("rule", rule_engine.run))
                 tg.create_task(self._loop("plugin_sensor", self._plugin_bridge.read_and_send))
                 tg.create_task(self._loop("plugin_actuator", self._plugin_bridge.receive_and_write))
+                tg.create_task(
+                    self._loop(
+                        "plugin_sync",
+                        self._plugin_bridge.sync,
+                        fixed_interval=self._settings.plugin_sync_interval,
+                    )
+                )
 
         except* KeyboardInterrupt:
             logger.info("Shutdown requested via keyboard")
@@ -164,9 +174,15 @@ class Application:
         coro_fn: Callable[[], Coroutine[Any, Any, None]],
         backoff_base: float = 1.0,
         max_backoff: float = 60.0,
+        fixed_interval: float | None = None,
     ) -> None:
-        """Run a service coroutine in a loop with exponential backoff on errors."""
+        """Run a service coroutine in a loop with exponential backoff on errors.
+
+        If *fixed_interval* is set, it overrides ``poll_interval`` for the
+        sleep between successful iterations (useful for slower sync loops).
+        """
         consecutive_errors = 0
+        interval = fixed_interval if fixed_interval is not None else self._settings.poll_interval
         while self._running:
             try:
                 await coro_fn()
@@ -183,7 +199,7 @@ class Application:
                 await asyncio.sleep(wait)
                 continue
 
-            await asyncio.sleep(self._settings.poll_interval)
+            await asyncio.sleep(interval)
 
     async def _fetch_events(self) -> list[EventSchema]:
         """Fetch all events from the backend API."""

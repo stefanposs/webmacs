@@ -13,7 +13,7 @@ WebMACS enforces consistent code style across all components.
 ```toml
 # pyproject.toml
 [tool.ruff]
-target-version = "py314"
+target-version = "py313"
 line-length = 120
 
 [tool.ruff.lint]

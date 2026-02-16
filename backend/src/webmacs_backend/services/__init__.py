@@ -185,7 +185,13 @@ async def dispatch_event(
         result = await session.execute(select(Webhook).where(Webhook.enabled.is_(True)))
         webhooks = result.scalars().all()
 
-    matching = [wh for wh in webhooks if event_type.value in json.loads(wh.events)]
+    matching: list[Webhook] = []
+    for wh in webhooks:
+        try:
+            if event_type.value in json.loads(wh.events):
+                matching.append(wh)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning("invalid_webhook_events_json", webhook_id=wh.public_id)
 
     if not matching:
         return

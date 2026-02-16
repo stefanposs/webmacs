@@ -133,6 +133,16 @@
               </small>
             </div>
 
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" v-model="installForm.auto_create_events" />
+                Auto-create events
+              </label>
+              <small class="form-hint">
+                Automatically creates events for each channel. Without this option, channels must be mapped to events manually.
+              </small>
+            </div>
+
             <div class="dialog-actions">
               <button type="button" class="btn-secondary" @click="showInstallDialog = false">Cancel</button>
               <button type="submit" class="btn-primary">
@@ -162,6 +172,7 @@ const installForm = reactive({
   instance_name: '',
   demo_mode: true,
   enabled: true,
+  auto_create_events: true,
 })
 
 function statusBadgeClass(status: PluginStatus): string {
@@ -190,7 +201,7 @@ async function handleInstall() {
     await pluginStore.createInstance({ ...installForm })
     success('Plugin installed', `"${installForm.instance_name}" is ready.`)
     showInstallDialog.value = false
-    Object.assign(installForm, { plugin_id: '', instance_name: '', demo_mode: true, enabled: true })
+    Object.assign(installForm, { plugin_id: '', instance_name: '', demo_mode: true, enabled: true, auto_create_events: true })
   } catch (err: unknown) {
     error('Failed to install plugin', (err as Error).message)
   }

@@ -53,6 +53,11 @@ class APIClient:
             headers["Authorization"] = f"Bearer {self._token}"
         return headers
 
+    @property
+    def auth_token(self) -> str | None:
+        """Return the current JWT token (or *None* if not authenticated)."""
+        return self._token
+
     # ------------------------------------------------------------------
     # Authentication
     # ------------------------------------------------------------------

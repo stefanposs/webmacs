@@ -1046,6 +1046,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1328,10 +1384,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tables-12" class="md-nav__link">
+  <a href="#tables-15" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tables (12)
+        Tables (15)
       
     </span>
   </a>
@@ -1766,6 +1822,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/database-migrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Migrations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/plugin-development/" class="md-nav__link">
         
   
@@ -1939,6 +2023,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../deployment/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../deployment/env-vars/" class="md-nav__link">
         
   
@@ -2005,10 +2117,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tables-12" class="md-nav__link">
+  <a href="#tables-15" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tables (12)
+        Tables (15)
       
     </span>
   </a>
@@ -2171,7 +2283,7 @@
 </code></pre></div>
 <p>Sessions are injected via <code>Depends(get_db)</code> in every route.</p>
 <hr />
-<h2 id="tables-12">Tables (12)<a class="headerlink" href="#tables-12" title="Permanent link">&para;</a></h2>
+<h2 id="tables-15">Tables (15)<a class="headerlink" href="#tables-15" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2199,12 +2311,12 @@
 <tr>
 <td><code>datapoints</code></td>
 <td>Time-series sensor readings</td>
-<td><code>value</code>, <code>event_public_id</code>, <code>experiment_public_id</code>, <code>created_on</code></td>
+<td><code>value</code>, <code>event_public_id</code>, <code>experiment_public_id</code>, <code>timestamp</code></td>
 </tr>
 <tr>
 <td><code>log_entries</code></td>
 <td>System and user logs</td>
-<td><code>content</code>, <code>logging_type</code>, <code>status_type</code>, <code>read</code></td>
+<td><code>content</code>, <code>logging_type</code>, <code>status_type</code></td>
 </tr>
 <tr>
 <td><code>blacklist_tokens</code></td>
@@ -2214,52 +2326,74 @@
 <tr>
 <td><code>rules</code></td>
 <td>Automation threshold triggers</td>
-<td><code>event_public_id</code>, <code>operator</code>, <code>threshold</code>, <code>action_type</code>, <code>action_target</code></td>
+<td><code>event_public_id</code>, <code>operator</code>, <code>threshold</code>, <code>action_type</code></td>
 </tr>
 <tr>
 <td><code>webhooks</code></td>
 <td>HTTP callback subscriptions</td>
-<td><code>url</code>, <code>secret</code>, <code>events</code> (JSON list), <code>active</code></td>
+<td><code>url</code>, <code>secret</code>, <code>events</code> (JSON list), <code>enabled</code></td>
 </tr>
 <tr>
 <td><code>webhook_deliveries</code></td>
 <td>Delivery audit trail</td>
-<td><code>webhook_public_id</code>, <code>status</code>, <code>response_code</code>, <code>payload</code></td>
+<td><code>webhook_id</code>, <code>status</code>, <code>response_code</code>, <code>payload</code></td>
 </tr>
 <tr>
 <td><code>firmware_updates</code></td>
 <td>OTA firmware records</td>
-<td><code>version</code>, <code>filename</code>, <code>file_path</code>, <code>status</code></td>
+<td><code>version</code>, <code>release_notes</code>, <code>file_path</code>, <code>status</code></td>
 </tr>
 <tr>
 <td><code>dashboards</code></td>
 <td>Custom dashboard layouts</td>
-<td><code>name</code>, <code>description</code></td>
+<td><code>name</code>, <code>is_global</code>, <code>user_public_id</code></td>
 </tr>
 <tr>
 <td><code>dashboard_widgets</code></td>
 <td>Widget positioning &amp; config</td>
-<td><code>dashboard_public_id</code>, <code>widget_type</code>, <code>config</code> (JSON), <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code></td>
+<td><code>dashboard_id</code>, <code>widget_type</code>, <code>config_json</code>, <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code></td>
+</tr>
+<tr>
+<td><code>plugin_packages</code></td>
+<td>Uploaded plugin <code>.whl</code> files</td>
+<td><code>package_name</code>, <code>version</code>, <code>source</code>, <code>file_hash_sha256</code></td>
+</tr>
+<tr>
+<td><code>plugin_instances</code></td>
+<td>Running plugin configurations</td>
+<td><code>plugin_id</code>, <code>instance_name</code>, <code>demo_mode</code>, <code>config_json</code></td>
+</tr>
+<tr>
+<td><code>channel_mappings</code></td>
+<td>Plugin channel → event links</td>
+<td><code>instance_id</code>, <code>channel_id</code>, <code>event_public_id</code></td>
 </tr>
 </tbody>
 </table>
 <p>All tables use <code>public_id</code> (UUID) as the external-facing identifier and an integer <code>id</code> as the internal primary key.</p>
 <hr />
 <h2 id="model-conventions">Model Conventions<a class="headerlink" href="#model-conventions" title="Permanent link">&para;</a></h2>
-<p>Every model inherits from a common <code>Base</code> with shared columns:</p>
+<p>All models inherit from a shared <code>DeclarativeBase</code>. Each model defines its own columns — there is no shared mixin. Common patterns across most models:</p>
+<ul>
+<li><code>id</code> — auto-incrementing integer primary key</li>
+<li><code>public_id</code> — UUID string exposed to the API (external identifier)</li>
+<li><code>created_on</code> — server-side timestamp via <code>server_default=func.now()</code></li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="p">(</span><span class="n">DeclarativeBase</span><span class="p">):</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="k">pass</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CommonMixin</span><span class="p">:</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">public_id</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">()))</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">created_on</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">updated_on</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">onupdate</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;events&quot;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">autoincrement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">public_id</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()))</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">name</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">200</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="c1"># ...</span>
 </code></pre></div>
 <h3 id="key-indexes">Key Indexes<a class="headerlink" href="#key-indexes" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Composite index for time-series queries (datapoints filtered by event + time)</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">Index</span><span class="p">(</span><span class="s2">&quot;ix_datapoint_event_created&quot;</span><span class="p">,</span> <span class="s2">&quot;event_public_id&quot;</span><span class="p">,</span> <span class="s2">&quot;created_on&quot;</span><span class="p">),</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">Index</span><span class="p">(</span><span class="s2">&quot;ix_datapoints_event_ts&quot;</span><span class="p">,</span> <span class="s2">&quot;event_public_id&quot;</span><span class="p">,</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">),</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">)</span>
 </code></pre></div>
 <p>This composite index dramatically accelerates the most common query pattern: "give me datapoints for event X between time A and time B."</p>
@@ -2310,13 +2444,26 @@
 <p>The migration environment is configured in <a href="https://github.com/stefanposs/webmacs">alembic/env.py</a> for async support.</p>
 <hr />
 <h2 id="relationships">Relationships<a class="headerlink" href="#relationships" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>users ──────────────────────────────────────────────
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>events ──┬── datapoints (event_public_id)
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>         └── rules (event_public_id)
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>experiments ── datapoints (experiment_public_id)
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>webhooks ── webhook_deliveries (webhook_public_id)
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>dashboards ── dashboard_widgets (dashboard_public_id)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>users ─────┬── log_entries (user_public_id)
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>           ├── experiments (implicit, via auth)
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>           ├── dashboards (user_public_id)
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>           ├── rules (user_public_id)
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>           ├── firmware_updates (user_public_id, SET NULL)
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>           └── plugin_packages (user_public_id, SET NULL)
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>events ────┬── datapoints (event_public_id)
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>           ├── rules (event_public_id, CASCADE)
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>           └── dashboard_widgets (event_public_id, SET NULL)
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>experiments ── datapoints (experiment_public_id, SET NULL)
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>webhooks ── webhook_deliveries (webhook_id, CASCADE)
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>dashboards ── dashboard_widgets (dashboard_id, CASCADE)
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>plugin_instances ── channel_mappings (instance_id, CASCADE)
 </code></pre></div>
+<p>All foreign keys have explicit <code>ondelete</code> directives (<code>CASCADE</code> or <code>SET NULL</code>) to prevent orphaned records.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>

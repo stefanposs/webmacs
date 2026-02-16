@@ -67,6 +67,8 @@ nav:
     - Plugins: guide/plugins.md
     - Logs: guide/logs.md
     - Users & Auth: guide/users.md
+    - Security: guide/security.md
+    - Examples: guide/examples.md
   - Architecture:
     - System Overview: architecture/overview.md
     - Backend (FastAPI): architecture/backend.md
@@ -82,11 +84,13 @@ nav:
     - Contributing: development/contributing.md
     - Testing: development/testing.md
     - Code Style: development/code-style.md
+    - Database Migrations: development/database-migrations.md
     - Plugin Development: development/plugin-development.md
   - Deployment:
     - Installation Guide: deployment/installation-guide.md
     - Docker: deployment/docker.md
     - Production: deployment/production.md
+    - Troubleshooting: deployment/troubleshooting.md
     - Environment Variables: deployment/env-vars.md
 
 plugins:

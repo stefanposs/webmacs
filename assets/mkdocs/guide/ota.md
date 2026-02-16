@@ -244,6 +244,22 @@ Click **New Update** to manually register a version:
 | `failed` | Update failed — check logs |
 | `rolled_back` | Reverted to previous version |
 
+#### State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending: Upload / Register
+    pending --> downloading: Start update
+    downloading --> verifying: Download complete
+    verifying --> applying: Checksum valid
+    verifying --> failed: Checksum mismatch
+    applying --> completed: Health check ✓
+    applying --> failed: Health check ✗
+    completed --> rolled_back: Rollback
+    failed --> [*]: Manual intervention
+    rolled_back --> [*]: Previous version restored
+```
+
 ### Rolling Back
 
 Click **Rollback** on a `completed` update to revert:

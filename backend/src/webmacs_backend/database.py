@@ -28,7 +28,17 @@ class Base(DeclarativeBase):
 
 
 async def init_db() -> None:
-    """Create all tables (use Alembic in production)."""
+    """Create all tables.
+
+    In production, tables should already be managed by Alembic migrations.
+    create_all() is a no-op for tables that already exist, so this is safe
+    but not authoritative — always run ``alembic upgrade head`` first.
+    """
+    if settings.env.lower() == "production":
+        import structlog
+
+        structlog.get_logger().info("skipping_create_all_in_production", hint="Use 'alembic upgrade head'")
+        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

@@ -1046,6 +1046,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1816,6 +1872,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../database-migrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Migrations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../plugin-development/" class="md-nav__link">
         
   
@@ -1969,6 +2053,34 @@
     
   
     Production
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
   
 
     
@@ -2282,32 +2394,67 @@
 <hr />
 <h2 id="development-workflow">Development Workflow<a class="headerlink" href="#development-workflow" title="Permanent link">&para;</a></h2>
 <h3 id="available-commands">Available Commands<a class="headerlink" href="#available-commands" title="Permanent link">&para;</a></h3>
+<p>All commands use <a href="https://github.com/casey/just">just</a> (a modern <code>make</code> alternative).</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Setup</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>just<span class="w"> </span>setup<span class="w">              </span><span class="c1"># Install all dependencies</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Code quality</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>just<span class="w"> </span>lint<span class="w">               </span><span class="c1"># Run ruff linter on backend + controller</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>just<span class="w"> </span>format<span class="w">             </span><span class="c1"># Auto-format code</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>just<span class="w"> </span>fix<span class="w">                </span><span class="c1"># Format + lint-fix</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># Testing</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">               </span><span class="c1"># Run all tests (backend + controller + frontend)</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>just<span class="w"> </span>test-backend<span class="w">       </span><span class="c1"># Backend tests only</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>just<span class="w"> </span>test-controller<span class="w">    </span><span class="c1"># Controller tests only</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>just<span class="w"> </span>test-frontend<span class="w">      </span><span class="c1"># Frontend tests only</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>just<span class="w"> </span>setup<span class="w">              </span><span class="c1"># Install all dependencies (backend + controller + plugins + frontend)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>just<span class="w"> </span>setup-backend<span class="w">      </span><span class="c1"># Install backend dependencies only</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>just<span class="w"> </span>setup-controller<span class="w">   </span><span class="c1"># Install controller dependencies only</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>just<span class="w"> </span>setup-frontend<span class="w">     </span><span class="c1"># Install frontend dependencies only</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Code quality</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>just<span class="w"> </span>lint<span class="w">               </span><span class="c1"># Run all linters (backend + controller + plugins + frontend)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>just<span class="w"> </span>lint-backend<span class="w">       </span><span class="c1"># Lint backend + controller + plugins with ruff</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>just<span class="w"> </span>lint-frontend<span class="w">      </span><span class="c1"># Lint frontend with ESLint</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>just<span class="w"> </span>lint-fix<span class="w">           </span><span class="c1"># Auto-fix Python lint issues</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>just<span class="w"> </span>format<span class="w">             </span><span class="c1"># Auto-format Python code</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>just<span class="w"> </span>fix<span class="w">                </span><span class="c1"># Format + lint-fix</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># Docker</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>just<span class="w"> </span>dev<span class="w">                </span><span class="c1"># Start full Docker stack</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>just<span class="w"> </span>down<span class="w">               </span><span class="c1"># Stop all containers</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>just<span class="w"> </span>rebuild<span class="w">            </span><span class="c1"># Rebuild and restart</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="c1"># Documentation</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>just<span class="w"> </span>docs<span class="w">               </span><span class="c1"># Serve docs locally (http://localhost:8001)</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>just<span class="w"> </span>docs-build<span class="w">         </span><span class="c1"># Build static docs</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="c1"># Quality</span>
-<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>just<span class="w"> </span>qa<span class="w">                 </span><span class="c1"># Full QA: lint + format-check + test</span>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>just<span class="w"> </span>check<span class="w">              </span><span class="c1"># Quick check before commit</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># Type checking</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>just<span class="w"> </span>typecheck<span class="w">          </span><span class="c1"># Type check Python (backend + controller) with mypy</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>just<span class="w"> </span>typecheck-frontend<span class="w"> </span><span class="c1"># Type check frontend with vue-tsc</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># Testing</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">               </span><span class="c1"># Run all tests (backend + controller + plugins + frontend)</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>just<span class="w"> </span>test-backend<span class="w">       </span><span class="c1"># Backend tests only</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>just<span class="w"> </span>test-backend-cov<span class="w">   </span><span class="c1"># Backend tests with coverage report</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>just<span class="w"> </span>test-controller<span class="w">    </span><span class="c1"># Controller tests only</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>just<span class="w"> </span>test-frontend<span class="w">      </span><span class="c1"># Frontend tests only</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>just<span class="w"> </span>test-frontend-cov<span class="w">  </span><span class="c1"># Frontend tests with coverage report</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>just<span class="w"> </span>test-plugins<span class="w">       </span><span class="c1"># Run all plugin tests</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>just<span class="w"> </span>test-plugin<span class="w"> </span>&lt;name&gt;<span class="w"> </span><span class="c1"># Run tests for a specific plugin</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>just<span class="w"> </span>test-example-plugin<span class="w"> </span><span class="c1"># Run example plugin tests (validates SDK contract)</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="c1"># CI / QA</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>just<span class="w"> </span>qa<span class="w">                 </span><span class="c1"># Full QA pipeline: lint + typecheck + all tests</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>just<span class="w"> </span>check<span class="w">              </span><span class="c1"># Quick check before commit</span>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>just<span class="w"> </span>ci<span class="w">                 </span><span class="c1"># Simulate full CI pipeline locally (mirrors GitHub Actions)</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>just<span class="w"> </span>ci-cov<span class="w">             </span><span class="c1"># Full CI with coverage reports</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>just<span class="w"> </span>ci-quick<span class="w">           </span><span class="c1"># Quick CI (lint + test, skip typecheck)</span>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="c1"># Docker</span>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>just<span class="w"> </span>dev<span class="w">                </span><span class="c1"># Start full Docker stack (detached)</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>just<span class="w"> </span>down<span class="w">               </span><span class="c1"># Stop all containers</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a>just<span class="w"> </span>down-clean<span class="w">         </span><span class="c1"># Stop and remove all data (volumes)</span>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>just<span class="w"> </span>rebuild<span class="w">            </span><span class="c1"># Rebuild and restart all containers</span>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a>just<span class="w"> </span>restart<span class="w"> </span>&lt;service&gt;<span class="w">  </span><span class="c1"># Restart a single service</span>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>just<span class="w"> </span>status<span class="w">             </span><span class="c1"># Check service health</span>
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a>just<span class="w"> </span>logs<span class="w"> </span>&lt;service&gt;<span class="w">     </span><span class="c1"># View logs (follow mode)</span>
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a>
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a><span class="c1"># Database</span>
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a>just<span class="w"> </span>db-shell<span class="w">           </span><span class="c1"># Open psql shell</span>
+<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a>just<span class="w"> </span>db-backup<span class="w">          </span><span class="c1"># Create database backup</span>
+<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a>
+<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a><span class="c1"># Documentation</span>
+<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a>just<span class="w"> </span>docs<span class="w">               </span><span class="c1"># Serve docs locally (http://localhost:8001)</span>
+<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a>just<span class="w"> </span>docs-build<span class="w">         </span><span class="c1"># Build static docs</span>
+<a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a>
+<a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a><span class="c1"># Release</span>
+<a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a>just<span class="w"> </span>bundle<span class="w"> </span>&lt;version&gt;<span class="w">   </span><span class="c1"># Build OTA update bundle for customer deployment</span>
+<a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a>
+<a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a><span class="c1"># Utilities</span>
+<a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a>just<span class="w"> </span>info<span class="w">               </span><span class="c1"># Show project info</span>
+<a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a>just<span class="w"> </span>loc<span class="w">                </span><span class="c1"># Count lines of code</span>
+<a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a>just<span class="w"> </span>clean<span class="w">              </span><span class="c1"># Clean build artifacts</span>
 </code></pre></div>
 <hr />
 <h2 id="branch-strategy">Branch Strategy<a class="headerlink" href="#branch-strategy" title="Permanent link">&para;</a></h2>
