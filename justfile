@@ -9,10 +9,14 @@ default:
 # Setup & Installation
 # ============================================================================
 
-# Install all dependencies (backend + controller + frontend)
+# Install all dependencies (backend + controller + plugins + frontend)
 setup:
     cd backend && uv sync --all-extras
     cd controller && uv sync --all-extras
+    cd plugins/core && uv sync --all-extras
+    cd plugins/simulated && uv sync --all-extras
+    cd plugins/system && uv sync --all-extras
+    cd plugins/revpi && uv sync --all-extras
     cd frontend && npm install
     @echo "✅ All dependencies installed!"
 
@@ -49,15 +53,25 @@ test-backend-cov:
 test-controller:
     cd controller && uv run pytest tests/ -v
 
-# Run plugin tests
+# Run all plugin tests
 test-plugins:
     cd plugins/core && uv run pytest tests/ -v
     cd plugins/simulated && uv run pytest tests/ -v
     cd plugins/system && uv run pytest tests/ -v
+    cd plugins/revpi && uv run pytest tests/ -v
+
+# Run example plugin tests (validates SDK contract)
+test-example-plugin:
+    cd examples/custom-plugin && uv run pytest tests/ -v
 
 # Run frontend tests
 test-frontend:
     cd frontend && npm run test -- --run
+
+# Run frontend tests with coverage
+test-frontend-cov:
+    cd frontend && npm run test:coverage -- --run
+    @echo "📊 Frontend coverage report generated"
 
 # ============================================================================
 # Code Quality
@@ -212,10 +226,14 @@ loc:
 # CI Simulation
 # ============================================================================
 
-# Simulate full CI pipeline locally
-ci: clean lint typecheck test
-    @echo "✅ CI simulation complete!"
+# Simulate full CI pipeline locally (mirrors GitHub Actions)
+ci: clean lint typecheck test test-example-plugin
+    @echo "✅ CI simulation complete — all components tested!"
 
 # Quick CI (lint + test, skip typecheck)
 ci-quick: lint test
     @echo "✅ Quick CI done!"
+
+# Full CI with coverage reports
+ci-cov: clean lint typecheck test-backend-cov test-controller test-plugins test-example-plugin test-frontend-cov
+    @echo "✅ CI with coverage complete!"

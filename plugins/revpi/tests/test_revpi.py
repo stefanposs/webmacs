@@ -64,7 +64,13 @@ class TestRevPiPluginUnit:
             RevPiPlugin._unit_for_type(  # noqa: SLF001
                 {"comment": "something"},
             )
-            == ""
+            == "bool"
+        )
+        assert (
+            RevPiPlugin._unit_for_type(  # noqa: SLF001
+                {"comment": "something", "bitLength": 16},
+            )
+            == "raw"
         )
 
     def test_custom_config_schema(self) -> None:
