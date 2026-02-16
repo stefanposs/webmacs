@@ -116,6 +116,12 @@ jobs:
         working-directory: examples/custom-plugin
         run: uv sync --all-extras
 
+      - name: Lint with ruff
+        working-directory: examples/custom-plugin
+        run: |
+          uv run ruff check src/
+          uv run ruff format --check src/
+
       - name: Run example plugin tests
         working-directory: examples/custom-plugin
         run: uv run pytest tests/ -v --tb=short
