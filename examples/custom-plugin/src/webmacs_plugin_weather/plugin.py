@@ -165,9 +165,6 @@ class WeatherStationPlugin(DevicePlugin):
             The measured value as a float, or ``None`` if unavailable.
         """
         # In a real implementation you would query the device here.
-        # For example:
-        #   response = await self._send_command(f"READ {channel_id}")
-        #   return float(response)
         logger.warning("weather_read_stub", channel=channel_id)
         return None
 
