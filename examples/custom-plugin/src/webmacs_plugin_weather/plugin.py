@@ -45,8 +45,7 @@ class WeatherStationPlugin(DevicePlugin):
         name="Weather Station",
         version="0.1.0",
         vendor="Your Company",
-        description="Environmental monitoring — temperature, humidity, "
-        "wind, pressure, and rainfall.",
+        description="Environmental monitoring — temperature, humidity, wind, pressure, and rainfall.",
         protocol="example",
         url="https://github.com/yourorg/webmacs-plugin-weather",
         tags=["weather", "environment", "sensors"],
