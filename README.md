@@ -1,6 +1,5 @@
 # WebMACS — Web-based Monitoring and Control System
 
-
 Enterprise-grade IoT platform for monitoring and controlling fluidized bed (*Wirbelschicht*) experiments.  
 Built with **FastAPI**, **Vue 3**, and **Python 3.13**.
 
