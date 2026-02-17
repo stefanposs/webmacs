@@ -120,13 +120,13 @@ Exchanges a one-time auth code (from the callback redirect) for a JWT access tok
 
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "public_id": "usr_xyz789",
-  "username": "jane.doe"
+  "access_token": "eyJhbGciOiJIUzI1NiIs..."
 }
 ```
 
-**Error** `401`:
+The frontend uses this token to call `GET /api/v1/auth/me` for user details.
+
+**Error** `400`:
 
 ```json
 {"detail": "Invalid or expired code."}

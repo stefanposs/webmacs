@@ -13,9 +13,12 @@ Covers:
 
 from __future__ import annotations
 
+import time
 from unittest.mock import AsyncMock, patch
 
+import httpx
 import pytest
+from fastapi import HTTPException
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -398,6 +401,19 @@ class TestSsoExchange:
         resp2 = await client.post("/api/v1/auth/sso/exchange", json={"code": code})
         assert resp2.status_code == 400
 
+    async def test_exchange_expired_code(self, client: AsyncClient) -> None:
+        """Expired one-time code returns 400."""
+        import webmacs_backend.api.v1.sso as sso_module
+        from webmacs_backend.api.v1.sso import _create_auth_code
+
+        code = _create_auth_code(user_id=42, role="viewer")
+        # Force expiry by setting the timestamp to the past
+        user_id, role, _ = sso_module._auth_codes[code]
+        sso_module._auth_codes[code] = (user_id, role, 0.0)  # already expired
+
+        resp = await client.post("/api/v1/auth/sso/exchange", json={"code": code})
+        assert resp.status_code == 400
+
 
 # ---------------------------------------------------------------------------
 # State token helpers
@@ -503,6 +519,166 @@ class TestUsernameCollision:
         assert user is not None
         assert user.username.startswith("ssouser_")
         assert len(user.username) > len("ssouser_")
+
+
+# ---------------------------------------------------------------------------
+# PKCE
+# ---------------------------------------------------------------------------
+
+
+class TestRequireOidcEnabled:
+    """Tests for _require_oidc_enabled guard."""
+
+    async def test_enabled_but_missing_issuer(self, client: AsyncClient) -> None:
+        """SSO enabled but missing OIDC_ISSUER_URL returns 500."""
+        settings.oidc_enabled = True
+        settings.oidc_client_id = "some-client"
+        settings.oidc_issuer_url = ""
+        resp = await client.get("/api/v1/auth/sso/authorize", follow_redirects=False)
+        assert resp.status_code == 500
+        assert "OIDC_ISSUER_URL" in resp.json()["detail"]
+
+    async def test_enabled_but_missing_client_id(self, client: AsyncClient) -> None:
+        """SSO enabled but missing OIDC_CLIENT_ID returns 500."""
+        settings.oidc_enabled = True
+        settings.oidc_issuer_url = "https://idp.example.com"
+        settings.oidc_client_id = ""
+        resp = await client.get("/api/v1/auth/sso/authorize", follow_redirects=False)
+        assert resp.status_code == 500
+        assert "OIDC_CLIENT_ID" in resp.json()["detail"]
+
+
+# ---------------------------------------------------------------------------
+# Frontend URL derivation
+# ---------------------------------------------------------------------------
+
+
+class TestFrontendUrl:
+    """Tests for _get_frontend_url."""
+
+    def test_explicit_config(self) -> None:
+        from webmacs_backend.api.v1.sso import _get_frontend_url
+
+        settings.oidc_frontend_url = "https://webmacs.example.com/"
+        assert _get_frontend_url() == "https://webmacs.example.com"
+
+    def test_cors_origin_fallback(self) -> None:
+        from webmacs_backend.api.v1.sso import _get_frontend_url
+
+        settings.oidc_frontend_url = ""
+        original = settings.cors_origins
+        settings.cors_origins = ["http://localhost:5173"]
+        try:
+            assert _get_frontend_url() == "http://localhost:5173"
+        finally:
+            settings.cors_origins = original
+
+    def test_default_fallback(self) -> None:
+        from webmacs_backend.api.v1.sso import _get_frontend_url
+
+        settings.oidc_frontend_url = ""
+        original = settings.cors_origins
+        settings.cors_origins = []
+        try:
+            assert _get_frontend_url() == "http://localhost:5173"
+        finally:
+            settings.cors_origins = original
+
+
+# ---------------------------------------------------------------------------
+# OIDC Discovery cache TTL
+# ---------------------------------------------------------------------------
+
+
+class TestOidcDiscoveryCache:
+    """Tests for OIDC discovery cache expiry."""
+
+    async def test_cache_refreshes_after_ttl(self) -> None:
+        """Discovery config is re-fetched after TTL expires."""
+        import webmacs_backend.api.v1.sso as sso_module
+
+        call_count = 0
+        original_get = httpx.AsyncClient.get
+
+        async def _fake_get(self: object, url: str, **kwargs: object) -> object:  # type: ignore[override]
+            nonlocal call_count
+            call_count += 1
+
+            class FakeResp:
+                status_code = 200
+
+                def raise_for_status(self) -> None:
+                    pass
+
+                def json(self) -> dict[str, object]:
+                    return _FAKE_OIDC_CONFIG
+
+            return FakeResp()
+
+        settings.oidc_issuer_url = "https://idp.example.com"
+        sso_module._oidc_config_cache = None
+        sso_module._oidc_config_cached_at = 0
+
+        with patch.object(httpx.AsyncClient, "get", _fake_get):
+            await sso_module._get_oidc_config()
+            assert call_count == 1
+
+            # Second call within TTL — should use cache
+            await sso_module._get_oidc_config()
+            assert call_count == 1
+
+            # Simulate TTL expiry
+            sso_module._oidc_config_cached_at = time.monotonic() - sso_module._OIDC_CACHE_TTL - 1
+            await sso_module._get_oidc_config()
+            assert call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# Userinfo fetch failures
+# ---------------------------------------------------------------------------
+
+
+class TestFetchUserinfo:
+    """Tests for _fetch_userinfo edge cases."""
+
+    async def test_userinfo_missing_endpoint_returns_502(self, client: AsyncClient) -> None:
+        """Missing userinfo_endpoint in OIDC config returns 502."""
+        _enable_oidc()
+        from webmacs_backend.api.v1.sso import _create_state_token
+
+        valid_state = _create_state_token("fake-verifier")
+
+        oidc_no_userinfo = {k: v for k, v in _FAKE_OIDC_CONFIG.items() if k != "userinfo_endpoint"}
+
+        with (
+            patch("webmacs_backend.api.v1.sso._get_oidc_config", new_callable=AsyncMock) as mock_cfg,
+            patch("webmacs_backend.api.v1.sso.AsyncOAuth2Client") as mock_client_cls,
+        ):
+            mock_cfg.return_value = oidc_no_userinfo
+            mock_oauth = AsyncMock()
+            mock_oauth.fetch_token = AsyncMock(return_value={"access_token": "fake-token"})
+            mock_client_cls.return_value = mock_oauth
+
+            resp = await client.get(
+                f"/api/v1/auth/sso/callback?code=test-code&state={valid_state}",
+                follow_redirects=False,
+            )
+        assert resp.status_code == 502
+        assert "userinfo" in resp.json()["detail"].lower()
+
+    async def test_userinfo_non_200_returns_502(self, client: AsyncClient) -> None:
+        """Non-200 response from userinfo endpoint returns 502."""
+        _enable_oidc()
+        from webmacs_backend.api.v1.sso import _fetch_userinfo
+
+        class FakeResp:
+            status_code = 403
+            text = "Forbidden"
+
+        with patch.object(httpx.AsyncClient, "get", AsyncMock(return_value=FakeResp())):
+            with pytest.raises(HTTPException) as exc_info:
+                await _fetch_userinfo(_FAKE_OIDC_CONFIG, {"access_token": "bad-token"})
+            assert exc_info.value.status_code == 502
 
 
 # ---------------------------------------------------------------------------

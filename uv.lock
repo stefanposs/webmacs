@@ -1530,7 +1530,7 @@ wheels = [
 
 [[package]]
 name = "webmacs"
-version = "2.1.2"
+version = "2.2.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
