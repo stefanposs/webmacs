@@ -1081,6 +1081,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/sso/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single Sign-On (OIDC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/security/" class="md-nav__link">
         
   
@@ -2203,31 +2231,33 @@
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├── api/
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   └── v1/
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│       ├── auth.py          # POST /auth/login, /logout, GET /me
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│       ├── users.py         # CRUD /users
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│       ├── experiments.py   # CRUD /experiments + CSV export
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│       ├── events.py        # CRUD /events
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│       ├── datapoints.py    # CRUD /datapoints + /series + /latest
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│       ├── logging.py       # CRUD /logs
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│       ├── rules.py         # CRUD /rules (automation engine)
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│       ├── webhooks.py      # CRUD /webhooks + deliveries
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│       ├── ota.py           # CRUD /ota + apply/rollback/check/upload
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│       ├── dashboards.py    # CRUD /dashboards + widgets
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│       ├── plugins.py       # Plugin discovery, instances, channels, packages
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│       └── health.py        # GET /health
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>├── services/
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   ├── ingestion.py           # Shared datapoint ingestion pipeline
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   ├── webhook_dispatcher.py  # HMAC-signed webhook delivery
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   ├── rule_evaluator.py      # Threshold-based rule engine
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   ├── ota_service.py         # Firmware update management
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   ├── updater.py             # System update application
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   ├── log_service.py         # Logging service
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   └── wheel_validator.py     # Plugin wheel upload validation
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>├── middleware/
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│   ├── rate_limit.py          # Request rate limiting
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│   └── request_id.py          # X-Request-ID header injection
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>└── ws/
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>    ├── connection_manager.py  # Pub/sub hub for WS groups
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>    └── endpoints.py           # /ws/controller/telemetry, /ws/datapoints/stream
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│       ├── sso.py           # OIDC SSO: /auth/sso/config, /authorize, /callback, /exchange
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│       ├── tokens.py        # API token management: CRUD /tokens
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│       ├── users.py         # CRUD /users
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│       ├── experiments.py   # CRUD /experiments + CSV export
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│       ├── events.py        # CRUD /events
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│       ├── datapoints.py    # CRUD /datapoints + /series + /latest
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│       ├── logging.py       # CRUD /logs
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│       ├── rules.py         # CRUD /rules (automation engine)
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│       ├── webhooks.py      # CRUD /webhooks + deliveries
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│       ├── ota.py           # CRUD /ota + apply/rollback/check/upload
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│       ├── dashboards.py    # CRUD /dashboards + widgets
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│       ├── plugins.py       # Plugin discovery, instances, channels, packages
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│       └── health.py        # GET /health
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>├── services/
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   ├── ingestion.py           # Shared datapoint ingestion pipeline
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   ├── webhook_dispatcher.py  # HMAC-signed webhook delivery
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   ├── rule_evaluator.py      # Threshold-based rule engine
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   ├── ota_service.py         # Firmware update management
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   ├── updater.py             # System update application
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│   ├── log_service.py         # Logging service
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│   └── wheel_validator.py     # Plugin wheel upload validation
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>├── middleware/
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│   ├── rate_limit.py          # Request rate limiting
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│   └── request_id.py          # X-Request-ID header injection
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>└── ws/
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>    ├── connection_manager.py  # Pub/sub hub for WS groups
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>    └── endpoints.py           # /ws/controller/telemetry, /ws/datapoints/stream
 </code></pre></div>
 <hr />
 <h2 id="application-lifecycle">Application Lifecycle<a class="headerlink" href="#application-lifecycle" title="Permanent link">&para;</a></h2>
@@ -2270,6 +2300,18 @@
 <td><code>/auth</code></td>
 <td>Public / JWT</td>
 <td><code>POST /login</code>, <code>POST /logout</code>, <code>GET /me</code></td>
+</tr>
+<tr>
+<td><code>sso</code></td>
+<td><code>/auth/sso</code></td>
+<td>Public</td>
+<td><code>GET /config</code>, <code>GET /authorize</code>, <code>GET /callback</code>, <code>POST /exchange</code></td>
+</tr>
+<tr>
+<td><code>tokens</code></td>
+<td><code>/tokens</code></td>
+<td>JWT</td>
+<td><code>GET /</code>, <code>POST /</code>, <code>DELETE /{id}</code></td>
 </tr>
 <tr>
 <td><code>users</code></td>

@@ -1079,6 +1079,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/sso/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single Sign-On (OIDC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/security/" class="md-nav__link">
         
   
@@ -1957,6 +1985,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#oidc-sso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OIDC / SSO
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#controller" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2058,6 +2097,17 @@
     <span class="md-ellipsis">
       
         Backend
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#oidc-sso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OIDC / SSO
       
     </span>
   </a>
@@ -2246,6 +2296,80 @@
 </tbody>
 </table>
 <hr />
+<h2 id="oidc-sso">OIDC / SSO<a class="headerlink" href="#oidc-sso" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OIDC_ENABLED</code></td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Enable OIDC Single Sign-On</td>
+</tr>
+<tr>
+<td><code>OIDC_PROVIDER_NAME</code></td>
+<td>No</td>
+<td><code>SSO</code></td>
+<td>Display name on the login button</td>
+</tr>
+<tr>
+<td><code>OIDC_ISSUER_URL</code></td>
+<td>If SSO</td>
+<td><em>(empty)</em></td>
+<td>IdP issuer URL (e.g. <code>https://auth.example.com/realms/webmacs</code>)</td>
+</tr>
+<tr>
+<td><code>OIDC_CLIENT_ID</code></td>
+<td>If SSO</td>
+<td><em>(empty)</em></td>
+<td>OAuth2 Client ID</td>
+</tr>
+<tr>
+<td><code>OIDC_CLIENT_SECRET</code></td>
+<td>If SSO</td>
+<td><em>(empty)</em></td>
+<td>OAuth2 Client Secret</td>
+</tr>
+<tr>
+<td><code>OIDC_SCOPES</code></td>
+<td>No</td>
+<td><code>openid email profile</code></td>
+<td>Space-separated OIDC scopes</td>
+</tr>
+<tr>
+<td><code>OIDC_REDIRECT_URI</code></td>
+<td>If SSO</td>
+<td><em>(empty)</em></td>
+<td>Callback URL (<code>https://&lt;domain&gt;/api/v1/auth/sso/callback</code>)</td>
+</tr>
+<tr>
+<td><code>OIDC_DEFAULT_ROLE</code></td>
+<td>No</td>
+<td><code>viewer</code></td>
+<td>Role for auto-created SSO users (<code>admin</code>, <code>operator</code>, <code>viewer</code>)</td>
+</tr>
+<tr>
+<td><code>OIDC_AUTO_CREATE_USERS</code></td>
+<td>No</td>
+<td><code>true</code></td>
+<td>Auto-create local user on first SSO login</td>
+</tr>
+<tr>
+<td><code>OIDC_FRONTEND_URL</code></td>
+<td>No</td>
+<td><em>(empty)</em></td>
+<td>Frontend URL for post-login redirect</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="controller">Controller<a class="headerlink" href="#controller" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2415,6 +2539,16 @@
 <a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a># Controller
 <a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>TELEMETRY_MODE=websocket
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a># SSO (optional)
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>OIDC_ENABLED=true
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>OIDC_PROVIDER_NAME=Company SSO
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>OIDC_ISSUER_URL=https://auth.example.com/realms/webmacs
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>OIDC_CLIENT_ID=webmacs-client
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>OIDC_CLIENT_SECRET=your-client-secret
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>OIDC_REDIRECT_URI=https://webmacs.example.com/api/v1/auth/sso/callback
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>OIDC_DEFAULT_ROLE=operator
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>OIDC_FRONTEND_URL=https://webmacs.example.com
 </code></pre></div>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>

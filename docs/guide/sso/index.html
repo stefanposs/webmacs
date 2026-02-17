@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../rules/">
+        <link rel="prev" href="../users/">
       
       
-        <link rel="next" href="../integrations/">
+        <link rel="next" href="../security/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>Webhooks - WebMACS Documentation</title>
+        <title>Single Sign-On (OIDC) - WebMACS Documentation</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#webhooks" class="md-skip">
+        <a href="#single-sign-on-oidc" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Webhooks
+              Single Sign-On (OIDC)
             
           </span>
         </div>
@@ -885,37 +885,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Webhooks
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../webhooks/" class="md-nav__link">
         
   
   
@@ -931,220 +904,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#push-events-to-any-system-automatically" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Push Events to Any System — Automatically
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How It Works
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#webhook-event-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Webhook Event Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#creating-a-webhook" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Creating a Webhook
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Creating a Webhook">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#via-the-ui" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Via the UI
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#via-the-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Via the API
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#payload-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Payload Format
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#hmac-signature-verification" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        HMAC Signature Verification
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="HMAC Signature Verification">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#verification-example-python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verification Example (Python)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#delivery-log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Delivery Log
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Delivery Log">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#retry-behaviour" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Retry Behaviour
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#viewing-deliveries-via-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Viewing Deliveries via API
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#integration-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Integration Examples
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rate-limiting-safeguards" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Rate Limiting &amp; Safeguards
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Best Practices
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1322,10 +1081,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../sso/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single Sign-On (OIDC)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1341,6 +1127,214 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-your-identity-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up Your Identity Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting Up Your Identity Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#keycloak" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keycloak
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentik
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#azure-ad-entra-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Azure AD (Entra ID)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#google-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Workspace
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example .env
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How It Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-creation-linking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Creation &amp; Linking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Controls
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#role-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role Assignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disabling-sso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disabling SSO
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2212,10 +2206,93 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#push-events-to-any-system-automatically" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Push Events to Any System — Automatically
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-your-identity-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up Your Identity Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting Up Your Identity Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#keycloak" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keycloak
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentik
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#azure-ad-entra-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Azure AD (Entra ID)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#google-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Workspace
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example .env
       
     </span>
   </a>
@@ -2231,36 +2308,14 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#webhook-event-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Webhook Event Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#creating-a-webhook" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Creating a Webhook
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Creating a Webhook">
+    <nav class="md-nav" aria-label="How It Works">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#via-the-ui" class="md-nav__link">
+  <a href="#user-creation-linking" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Via the UI
+        User Creation &amp; Linking
       
     </span>
   </a>
@@ -2268,10 +2323,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#via-the-api" class="md-nav__link">
+  <a href="#security-controls" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Via the API
+        Security Controls
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#role-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role Assignment
       
     </span>
   </a>
@@ -2284,10 +2350,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#payload-format" class="md-nav__link">
+  <a href="#disabling-sso" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Payload Format
+        Disabling SSO
       
     </span>
   </a>
@@ -2295,77 +2361,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#hmac-signature-verification" class="md-nav__link">
+  <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        HMAC Signature Verification
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="HMAC Signature Verification">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#verification-example-python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verification Example (Python)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#delivery-log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Delivery Log
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Delivery Log">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#retry-behaviour" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Retry Behaviour
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#viewing-deliveries-via-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Viewing Deliveries via API
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#integration-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Integration Examples
+        Troubleshooting
       
     </span>
   </a>
@@ -2373,21 +2372,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#rate-limiting-safeguards" class="md-nav__link">
+  <a href="#api-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rate Limiting &amp; Safeguards
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Best Practices
+        API Endpoints
       
     </span>
   </a>
@@ -2425,318 +2413,306 @@
   
 
 
-<h1 id="webhooks">Webhooks<a class="headerlink" href="#webhooks" title="Permanent link">&para;</a></h1>
-<h2 id="push-events-to-any-system-automatically">Push Events to Any System — Automatically<a class="headerlink" href="#push-events-to-any-system-automatically" title="Permanent link">&para;</a></h2>
-<p>Webhooks turn WebMACS into an <strong>active participant</strong> in your infrastructure.
-Instead of polling for changes, external systems receive instant notifications
-the moment something happens — a sensor spikes, an experiment ends, or the
-system health degrades.</p>
-<p>Combined with the <a href="../../api/rest/">REST API</a> and <a href="../../api/websocket/">WebSocket streaming</a>,
-webhooks complete the integration trifecta: <strong>pull, stream, and push</strong>. See
-<a href="../integrations/">Integrations &amp; Extensibility</a> for the full picture.</p>
-<div class="admonition info">
-<p class="admonition-title">Admin only</p>
-<p>Webhook management requires an <strong>admin</strong> account.</p>
+<h1 id="single-sign-on-oidc">Single Sign-On (OIDC)<a class="headerlink" href="#single-sign-on-oidc" title="Permanent link">&para;</a></h1>
+<p>WebMACS supports <strong>OpenID Connect (OIDC)</strong> for centralized authentication via external Identity Providers (IdP) such as Keycloak, Authentik, Azure AD, Google Workspace, or any OIDC-compliant service.</p>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The SSO integration uses the <strong>Authorization Code flow with PKCE</strong> (Proof Key for Code Exchange — S256). Users click "Sign in with SSO" on the login page and are redirected to the Identity Provider. After authentication the IdP redirects back to WebMACS, which creates or links a local user account automatically.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌──────────┐       ┌──────────────┐       ┌──────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  Browser  │──1──▶│  WebMACS API │──2──▶│  Identity    │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│           │      │  /authorize  │      │  Provider    │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│           │◀─5───│  /exchange   │◀─4───│  /callback   │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│           │──3──▶│              │      │              │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└──────────┘       └──────────────┘       └──────────────┘
+</code></pre></div>
+<ol>
+<li>User clicks <strong>Sign in with SSO</strong> → frontend redirects to <code>/api/v1/auth/sso/authorize</code></li>
+<li>Backend generates PKCE challenge + CSRF state token and redirects to the IdP</li>
+<li>User authenticates at the IdP</li>
+<li>IdP redirects back to <code>/api/v1/auth/sso/callback</code> with an authorization code</li>
+<li>Backend exchanges the code for tokens, creates/links a local user, issues a one-time code, and redirects the browser to the frontend</li>
+<li>Frontend exchanges the one-time code for a JWT via <code>POST /api/v1/auth/sso/exchange</code></li>
+</ol>
+<hr />
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>Enable SSO by setting the following environment variables:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OIDC_ENABLED</code></td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Enable OIDC SSO</td>
+</tr>
+<tr>
+<td><code>OIDC_PROVIDER_NAME</code></td>
+<td>No</td>
+<td><code>SSO</code></td>
+<td>Display name on the login button</td>
+</tr>
+<tr>
+<td><code>OIDC_ISSUER_URL</code></td>
+<td><strong>Yes</strong></td>
+<td><em>(empty)</em></td>
+<td>Issuer URL of your IdP (e.g. <code>https://auth.example.com/realms/webmacs</code>)</td>
+</tr>
+<tr>
+<td><code>OIDC_CLIENT_ID</code></td>
+<td><strong>Yes</strong></td>
+<td><em>(empty)</em></td>
+<td>OAuth2 Client ID</td>
+</tr>
+<tr>
+<td><code>OIDC_CLIENT_SECRET</code></td>
+<td><strong>Yes</strong></td>
+<td><em>(empty)</em></td>
+<td>OAuth2 Client Secret</td>
+</tr>
+<tr>
+<td><code>OIDC_SCOPES</code></td>
+<td>No</td>
+<td><code>openid email profile</code></td>
+<td>Space-separated scopes</td>
+</tr>
+<tr>
+<td><code>OIDC_REDIRECT_URI</code></td>
+<td><strong>Yes</strong></td>
+<td><em>(empty)</em></td>
+<td>Callback URL — must be <code>https://&lt;your-domain&gt;/api/v1/auth/sso/callback</code></td>
+</tr>
+<tr>
+<td><code>OIDC_DEFAULT_ROLE</code></td>
+<td>No</td>
+<td><code>viewer</code></td>
+<td>Role assigned to auto-created SSO users (<code>admin</code>, <code>operator</code>, <code>viewer</code>)</td>
+</tr>
+<tr>
+<td><code>OIDC_AUTO_CREATE_USERS</code></td>
+<td>No</td>
+<td><code>true</code></td>
+<td>Automatically create a local user on first SSO login</td>
+</tr>
+<tr>
+<td><code>OIDC_FRONTEND_URL</code></td>
+<td>No</td>
+<td><em>(empty)</em></td>
+<td>Frontend URL for post-login redirect (e.g. <code>https://webmacs.example.com</code>)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">OIDC_REDIRECT_URI</p>
+<p>This must <strong>exactly</strong> match the redirect URI registered in your Identity Provider. Mismatching URIs will cause the authentication flow to fail.</p>
 </div>
+<div class="admonition tip">
+<p class="admonition-title">OIDC_FRONTEND_URL</p>
+<p>If not set, WebMACS derives the frontend URL from <code>CORS_ORIGINS</code>. For production deployments, always set this explicitly.</p>
+</div>
+<hr />
+<h2 id="setting-up-your-identity-provider">Setting Up Your Identity Provider<a class="headerlink" href="#setting-up-your-identity-provider" title="Permanent link">&para;</a></h2>
+<h3 id="keycloak">Keycloak<a class="headerlink" href="#keycloak" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Create a new <strong>Client</strong> in your Keycloak realm</li>
+<li>Set <strong>Client Protocol</strong> to <code>openid-connect</code></li>
+<li>Set <strong>Access Type</strong> to <code>confidential</code></li>
+<li>Set <strong>Valid Redirect URIs</strong> to <code>https://webmacs.example.com/api/v1/auth/sso/callback</code></li>
+<li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> from the Credentials tab</li>
+<li>The Issuer URL is <code>https://keycloak.example.com/realms/&lt;your-realm&gt;</code></li>
+</ol>
+<h3 id="authentik">Authentik<a class="headerlink" href="#authentik" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Create a new <strong>OAuth2/OpenID Provider</strong></li>
+<li>Set <strong>Redirect URIs</strong> to <code>https://webmacs.example.com/api/v1/auth/sso/callback</code></li>
+<li>Set <strong>Scopes</strong>: <code>openid</code>, <code>email</code>, <code>profile</code></li>
+<li>Create an <strong>Application</strong> linked to this provider</li>
+<li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong></li>
+<li>The Issuer URL is <code>https://authentik.example.com/application/o/&lt;app-slug&gt;/</code></li>
+</ol>
+<h3 id="azure-ad-entra-id">Azure AD (Entra ID)<a class="headerlink" href="#azure-ad-entra-id" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Register a new <strong>App Registration</strong> in Azure Portal</li>
+<li>Under <strong>Authentication</strong>, add a redirect URI: <code>https://webmacs.example.com/api/v1/auth/sso/callback</code></li>
+<li>Under <strong>Certificates &amp; secrets</strong>, create a client secret</li>
+<li>The Issuer URL is <code>https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0</code></li>
+</ol>
+<h3 id="google-workspace">Google Workspace<a class="headerlink" href="#google-workspace" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Create <strong>OAuth 2.0 credentials</strong> in Google Cloud Console</li>
+<li>Add <code>https://webmacs.example.com/api/v1/auth/sso/callback</code> as an authorized redirect URI</li>
+<li>The Issuer URL is <code>https://accounts.google.com</code></li>
+</ol>
+<hr />
+<h2 id="example-env">Example <code>.env</code><a class="headerlink" href="#example-env" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># Enable SSO
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>OIDC_ENABLED=true
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>OIDC_PROVIDER_NAME=Company SSO
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>OIDC_ISSUER_URL=https://auth.example.com/realms/webmacs
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>OIDC_CLIENT_ID=webmacs-client
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>OIDC_CLIENT_SECRET=your-client-secret-here
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>OIDC_SCOPES=openid email profile
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>OIDC_REDIRECT_URI=https://webmacs.example.com/api/v1/auth/sso/callback
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>OIDC_DEFAULT_ROLE=operator
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>OIDC_AUTO_CREATE_USERS=true
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>OIDC_FRONTEND_URL=https://webmacs.example.com
+</code></pre></div>
 <hr />
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant S as Sensor
-    participant B as WebMACS Backend
-    participant W as Your Webhook Endpoint
-
-    S-&gt;&gt;B: New datapoint
-    B-&gt;&gt;B: Check rules &amp; webhooks
-    B-&gt;&gt;W: POST payload (JSON)
-    W--&gt;&gt;B: 200 OK
-    B-&gt;&gt;B: Log delivery ✓</code></pre>
+<h3 id="user-creation-linking">User Creation &amp; Linking<a class="headerlink" href="#user-creation-linking" title="Permanent link">&para;</a></h3>
+<p>When a user authenticates via SSO for the first time:</p>
 <ol>
-<li>A trigger occurs (new sensor reading, threshold exceeded, experiment started/stopped, …)</li>
-<li>WebMACS finds all <strong>enabled</strong> webhook subscriptions matching that event type</li>
-<li>A JSON payload is sent via HTTP POST to each matching URL</li>
-<li>The delivery result is logged (success, failure, status code)</li>
+<li>WebMACS checks that the IdP confirmed <code>email_verified: true</code></li>
+<li>If a local user with the same email exists and is <strong>not</strong> an admin, the SSO identity is linked</li>
+<li>If no local user exists and <code>OIDC_AUTO_CREATE_USERS</code> is <code>true</code>, a new user is created with the configured <code>OIDC_DEFAULT_ROLE</code></li>
+<li>The username is derived from the IdP's <code>preferred_username</code> claim (sanitized to <code>[a-zA-Z0-9._-]</code>)</li>
 </ol>
-<hr />
-<h2 id="webhook-event-types">Webhook Event Types<a class="headerlink" href="#webhook-event-types" title="Permanent link">&para;</a></h2>
+<div class="admonition danger">
+<p class="admonition-title">Admin Safety</p>
+<p>SSO logins <strong>cannot</strong> auto-link to existing admin accounts. An administrator must manually set the <code>sso_provider</code> and <code>sso_subject_id</code> fields on the admin user record to enable SSO for admin accounts. This prevents privilege escalation via IdP account takeover.</p>
+</div>
+<h3 id="security-controls">Security Controls<a class="headerlink" href="#security-controls" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Event Type</th>
-<th>When It Fires</th>
+<th>Control</th>
+<th>Implementation</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>sensor.reading</code></td>
-<td>Every time a new sensor datapoint is recorded</td>
+<td><strong>PKCE S256</strong></td>
+<td>Prevents authorization code interception</td>
 </tr>
 <tr>
-<td><code>sensor.threshold_exceeded</code></td>
-<td>An <a href="../rules/">automation rule</a> triggers a threshold violation</td>
+<td><strong>Signed state token</strong></td>
+<td>CSRF protection via HMAC-signed JWT with 10-minute expiry</td>
 </tr>
 <tr>
-<td><code>experiment.started</code></td>
-<td>An experiment is created and begins running</td>
+<td><strong>One-time auth code</strong></td>
+<td>Backend issues a short-lived (60 s) one-time code instead of putting JWTs in URLs</td>
 </tr>
 <tr>
-<td><code>experiment.stopped</code></td>
-<td>An experiment is stopped</td>
+<td><strong>email_verified</strong></td>
+<td>Rejects SSO logins where the IdP has not verified the email</td>
 </tr>
 <tr>
-<td><code>system.health_changed</code></td>
-<td>System health status changes (degraded / recovered)</td>
+<td><strong>Admin linking refusal</strong></td>
+<td>Auto-linking is blocked for admin accounts</td>
+</tr>
+<tr>
+<td><strong>Username sanitization</strong></td>
+<td>Only <code>[a-zA-Z0-9._-]</code> characters are allowed</td>
+</tr>
+<tr>
+<td><strong>TTL-based discovery cache</strong></td>
+<td>OIDC discovery metadata is cached for 1 hour</td>
+</tr>
+<tr>
+<td><strong>Frontend URL validation</strong></td>
+<td>Post-login redirect uses a dedicated config setting, not user-controlled data</td>
 </tr>
 </tbody>
 </table>
-<div class="admonition tip">
-<p class="admonition-title">Choose wisely</p>
-<p><code>sensor.reading</code> webhooks are <strong>throttled</strong>: at most one delivery per sensor channel every 5 seconds.
-With 8 channels, this means ~96 deliveries per minute maximum.
-For alerting, <code>sensor.threshold_exceeded</code> is usually more appropriate — it fires only when a <a href="../rules/">rule</a> triggers.</p>
-</div>
+<h3 id="role-assignment">Role Assignment<a class="headerlink" href="#role-assignment" title="Permanent link">&para;</a></h3>
+<p>SSO users receive the role specified by <code>OIDC_DEFAULT_ROLE</code> (default: <code>viewer</code>). Administrators can change user roles after creation via the Users page or the API.</p>
 <hr />
-<h2 id="creating-a-webhook">Creating a Webhook<a class="headerlink" href="#creating-a-webhook" title="Permanent link">&para;</a></h2>
-<h3 id="via-the-ui">Via the UI<a class="headerlink" href="#via-the-ui" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Navigate to <strong>Webhooks</strong> in the sidebar (admin only)</li>
-<li>Click <strong>New Webhook</strong></li>
-<li>Fill in the fields:</li>
-</ol>
+<h2 id="disabling-sso">Disabling SSO<a class="headerlink" href="#disabling-sso" title="Permanent link">&para;</a></h2>
+<p>Set <code>OIDC_ENABLED=false</code> (or remove the variable). The SSO button disappears from the login page. Existing SSO-linked users can still log in with username/password if they have a password set.</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Field</th>
-<th>Required</th>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSO button not visible</td>
+<td><code>OIDC_ENABLED</code> is <code>false</code> or the <code>/sso/config</code> endpoint returns <code>enabled: false</code></td>
+<td>Set <code>OIDC_ENABLED=true</code> and verify <code>OIDC_ISSUER_URL</code> is reachable</td>
+</tr>
+<tr>
+<td>"Email not verified" error</td>
+<td>IdP did not set <code>email_verified: true</code> in the token</td>
+<td>Verify the user's email in the IdP or adjust IdP configuration</td>
+</tr>
+<tr>
+<td>Redirect mismatch error</td>
+<td><code>OIDC_REDIRECT_URI</code> does not match the URI registered in the IdP</td>
+<td>Ensure exact match including protocol and path</td>
+</tr>
+<tr>
+<td>"Auto-creation disabled" error</td>
+<td><code>OIDC_AUTO_CREATE_USERS=false</code> and no local user exists for this email</td>
+<td>Create the user manually first, or enable auto-creation</td>
+</tr>
+<tr>
+<td>Admin cannot SSO login</td>
+<td>Auto-linking is refused for admin accounts</td>
+<td>Manually set <code>sso_provider</code> and <code>sso_subject_id</code> on the admin user in the database</td>
+</tr>
+<tr>
+<td>500 on callback</td>
+<td>Cannot reach the IdP's token endpoint</td>
+<td>Check network connectivity and <code>OIDC_ISSUER_URL</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="api-endpoints">API Endpoints<a class="headerlink" href="#api-endpoints" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>URL</strong></td>
-<td>Yes</td>
-<td>The endpoint to receive POST requests (use HTTPS in production)</td>
+<td><code>GET</code></td>
+<td><code>/api/v1/auth/sso/config</code></td>
+<td>Public</td>
+<td>Returns SSO status and provider name</td>
 </tr>
 <tr>
-<td><strong>Secret</strong></td>
-<td>No</td>
-<td>Shared secret for HMAC-SHA256 signature verification</td>
+<td><code>GET</code></td>
+<td><code>/api/v1/auth/sso/authorize</code></td>
+<td>Public</td>
+<td>Redirects to IdP for authentication</td>
 </tr>
 <tr>
-<td><strong>Event Types</strong></td>
-<td>Yes</td>
-<td>Select one or more event types to subscribe to</td>
+<td><code>GET</code></td>
+<td><code>/api/v1/auth/sso/callback</code></td>
+<td>Public</td>
+<td>Handles IdP callback (server-side)</td>
 </tr>
 <tr>
-<td><strong>Active</strong></td>
-<td>Yes</td>
-<td>Toggle to enable or disable deliveries</td>
+<td><code>POST</code></td>
+<td><code>/api/v1/auth/sso/exchange</code></td>
+<td>Public</td>
+<td>Exchanges one-time code for JWT</td>
 </tr>
 </tbody>
 </table>
-<ol>
-<li>Click <strong>Create</strong></li>
-</ol>
-<h3 id="via-the-api">Via the API<a class="headerlink" href="#via-the-api" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/webhooks<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="s1">    &quot;url&quot;: &quot;https://hooks.example.com/services/T.../B.../xxx&quot;,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="s1">    &quot;secret&quot;: &quot;my-shared-secret&quot;,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="s1">    &quot;events&quot;: [&quot;sensor.threshold_exceeded&quot;, &quot;experiment.stopped&quot;],</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="s1">    &quot;enabled&quot;: true</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="s1">  }&#39;</span>
-</code></pre></div>
-<div class="admonition warning">
-<p class="admonition-title">Duplicate URLs</p>
-<p>Each URL can only be registered once. Attempting to create a duplicate returns <strong>409 Conflict</strong>.</p>
-</div>
-<hr />
-<h2 id="payload-format">Payload Format<a class="headerlink" href="#payload-format" title="Permanent link">&para;</a></h2>
-<p>Every delivery sends a JSON body:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sensor.threshold_exceeded&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-01-15T10:30:00Z&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;sensor&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Inlet Temperature&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">215.3</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">&quot;device&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;webmacs-prod-01&quot;</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
-</code></pre></div>
-<p>The <code>data</code> fields vary by event type. Experiment events include <code>experiment_name</code> and <code>experiment_id</code>.</p>
-<hr />
-<h2 id="hmac-signature-verification">HMAC Signature Verification<a class="headerlink" href="#hmac-signature-verification" title="Permanent link">&para;</a></h2>
-<p>If you set a <strong>secret</strong>, every delivery includes two headers for security:</p>
-<table>
-<thead>
-<tr>
-<th>Header</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>X-Webhook-Signature</code></td>
-<td><code>&lt;hex-digest&gt;</code> (bare HMAC-SHA256 hex)</td>
-</tr>
-<tr>
-<td><code>X-Webhook-Timestamp</code></td>
-<td>Unix timestamp of the delivery</td>
-</tr>
-</tbody>
-</table>
-<p>The HMAC is computed over <code>{timestamp}.{payload_body}</code> using SHA-256.</p>
-<h3 id="verification-example-python">Verification Example (Python)<a class="headerlink" href="#verification-example-python" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hmac</span><span class="o">,</span><span class="w"> </span><span class="nn">hashlib</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="n">secret</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">signature</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span> <span class="o">+</span> <span class="n">body</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">expected</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">secret</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">message</span><span class="p">,</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="k">return</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">signature</span><span class="p">)</span>
-</code></pre></div>
-<div class="admonition tip">
-<p class="admonition-title">Replay protection</p>
-<p>Reject deliveries where <code>X-Webhook-Timestamp</code> is more than 5 minutes old.</p>
-</div>
-<hr />
-<h2 id="delivery-log">Delivery Log<a class="headerlink" href="#delivery-log" title="Permanent link">&para;</a></h2>
-<p>Each webhook has a delivery log accessible via the API. Every delivery attempt is recorded with:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Status</strong></td>
-<td><code>pending</code> → <code>delivered</code> → or <code>failed</code> → <code>dead_letter</code></td>
-</tr>
-<tr>
-<td><strong>HTTP Status</strong></td>
-<td>Response code from your endpoint (200, 500, timeout, …)</td>
-</tr>
-<tr>
-<td><strong>Attempts</strong></td>
-<td>Number of delivery attempts (max 3)</td>
-</tr>
-<tr>
-<td><strong>Error</strong></td>
-<td>Error message if failed</td>
-</tr>
-<tr>
-<td><strong>Timestamp</strong></td>
-<td>When the delivery was attempted / completed</td>
-</tr>
-</tbody>
-</table>
-<h3 id="retry-behaviour">Retry Behaviour<a class="headerlink" href="#retry-behaviour" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Attempt</th>
-<th>Delay</th>
-<th>Total Wait</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1st attempt</td>
-<td>Immediate</td>
-<td>—</td>
-</tr>
-<tr>
-<td>2nd attempt</td>
-<td>2 seconds</td>
-<td>2 s</td>
-</tr>
-<tr>
-<td>3rd attempt</td>
-<td>4 seconds</td>
-<td>6 s</td>
-</tr>
-</tbody>
-</table>
-<p>After 3 total attempts, the delivery is marked as <strong>dead_letter</strong> and will not be retried.</p>
-<div class="admonition note">
-<p class="admonition-title">Delivery log</p>
-<p>Delivery history is available via the API (<code>GET /webhooks/{id}/deliveries</code>). A UI delivery log viewer is planned for a future release.</p>
-</div>
-<h3 id="viewing-deliveries-via-api">Viewing Deliveries via API<a class="headerlink" href="#viewing-deliveries-via-api" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/webhooks/<span class="nv">$WEBHOOK_ID</span>/deliveries<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-<p>Filter by status: <code>?status=failed</code></p>
-<hr />
-<h2 id="integration-examples">Integration Examples<a class="headerlink" href="#integration-examples" title="Permanent link">&para;</a></h2>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Slack</label><label for="__tabbed_1_2">Microsoft Teams</label><label for="__tabbed_1_3">Custom API</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<p>Use a <a href="https://api.slack.com/messaging/webhooks">Slack Incoming Webhook</a> URL:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>https://hooks.example.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
-</code></pre></div>
-<p>Slack expects a <code>text</code> field, so you may need a proxy/transform layer.</p>
-</div>
-<div class="tabbed-block">
-<p>Use a Teams <a href="https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook">Incoming Webhook connector</a> URL.</p>
-</div>
-<div class="tabbed-block">
-<p>Point the webhook at any HTTPS endpoint that accepts POST with JSON body and returns 2xx.</p>
-</div>
-</div>
-</div>
-<hr />
-<h2 id="rate-limiting-safeguards">Rate Limiting &amp; Safeguards<a class="headerlink" href="#rate-limiting-safeguards" title="Permanent link">&para;</a></h2>
-<p>WebMACS includes built-in protection to prevent webhook dispatching from
-overwhelming your endpoints or the backend itself:</p>
-<table>
-<thead>
-<tr>
-<th>Safeguard</th>
-<th>Detail</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Sensor throttle</strong></td>
-<td><code>sensor.reading</code> events are dispatched at most once per sensor channel every <strong>5 seconds</strong> — high-frequency ingestion does not create a flood of deliveries</td>
-</tr>
-<tr>
-<td><strong>Concurrency limit</strong></td>
-<td>At most <strong>10</strong> outgoing webhook HTTP requests run simultaneously; additional deliveries queue until a slot is free</td>
-</tr>
-<tr>
-<td><strong>Retry cap</strong></td>
-<td>Failed deliveries are retried at most <strong>3 times</strong> with exponential backoff (2 s, 4 s) — then permanently marked <code>dead_letter</code></td>
-</tr>
-<tr>
-<td><strong>Delivery timeout</strong></td>
-<td>Each outgoing HTTP request times out after <strong>10 seconds</strong> to prevent slow endpoints from blocking the dispatch queue</td>
-</tr>
-</tbody>
-</table>
-<p>These safeguards ensure that even if a receiving endpoint goes down or returns
-errors, the WebMACS backend remains responsive for all users.</p>
-<hr />
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
-<div class="admonition tip">
-<p class="admonition-title">Recommendations</p>
-<ul>
-<li><strong>Always use HTTPS</strong> in production environments</li>
-<li><strong>Set a webhook secret</strong> and verify HMAC signatures to prevent spoofing</li>
-<li><strong>Monitor the delivery log</strong> — failed deliveries indicate connectivity or endpoint issues</li>
-<li><strong>Disable unused webhooks</strong> to reduce unnecessary network traffic</li>
-<li><strong>Use <code>sensor.threshold_exceeded</code></strong> instead of <code>sensor.reading</code> for alerting — it fires only when rules trigger, not on every reading</li>
-<li><strong>Set appropriate timeouts</strong> on your receiving endpoint — WebMACS waits up to 10 seconds per delivery</li>
-<li><strong>Avoid free webhook testers</strong> (e.g. webhook.site) for sustained traffic — they rate-limit aggressively</li>
-</ul>
-</div>
+<p>See the <a href="../../api/rest/#sso-single-sign-on">REST API Reference</a> for full request/response details.</p>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../rules/">Automation Rules</a> — define thresholds that trigger <code>sensor.threshold_exceeded</code> webhooks</li>
-<li><a href="../events/">Events &amp; Sensors</a> — configure what is monitored</li>
-<li><a href="../../api/rest/">API Reference</a> — full webhook endpoint documentation</li>
+<li><a href="../users/">Users &amp; Auth</a> — roles and user management</li>
+<li><a href="../security/">Security</a> — full security controls reference</li>
+<li><a href="../../deployment/env-vars/">Environment Variables</a> — complete variable reference</li>
 </ul>
 
 

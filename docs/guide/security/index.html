@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../users/">
+        <link rel="prev" href="../sso/">
       
       
         <link rel="next" href="../examples/">
@@ -1081,6 +1081,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../sso/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single Sign-On (OIDC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1167,6 +1195,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#api-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#password-hashing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1199,8 +1238,30 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#oidc-single-sign-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OIDC Single Sign-On
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#role-based-access-control-rbac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role-Based Access Control (RBAC)
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2257,6 +2318,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#api-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#password-hashing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2289,8 +2361,30 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#oidc-single-sign-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OIDC Single Sign-On
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#role-based-access-control-rbac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role-Based Access Control (RBAC)
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2534,6 +2628,35 @@ This page documents every security control so operators can evaluate compliance 
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sub&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">user_id</span><span class="p">),</span> <span class="s2">&quot;exp&quot;</span><span class="p">:</span> <span class="n">now</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">1440</span><span class="p">),</span> <span class="s2">&quot;iat&quot;</span><span class="p">:</span> <span class="n">now</span><span class="p">}</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">SECRET_KEY</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;HS256&quot;</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="api-tokens">API Tokens<a class="headerlink" href="#api-tokens" title="Permanent link">&para;</a></h3>
+<p>API tokens provide long-lived authentication for scripts and integrations. They use the <code>wm_</code> prefix and are stored as <strong>SHA-256 hashes</strong> — the plaintext is shown only once at creation.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Format</td>
+<td><code>wm_</code> + 43 random URL-safe characters</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>SHA-256 hash in <code>api_tokens</code> table</td>
+</tr>
+<tr>
+<td>Permissions</td>
+<td>Inherits the role of the owning user</td>
+</tr>
+<tr>
+<td>Expiry</td>
+<td>Optional (set at creation)</td>
+</tr>
+</tbody>
+</table>
+<p>API tokens are accepted in the same <code>Authorization: Bearer</code> header as JWTs. The backend distinguishes them by the <code>wm_</code> prefix.</p>
 <h3 id="password-hashing">Password Hashing<a class="headerlink" href="#password-hashing" title="Permanent link">&para;</a></h3>
 <p>Passwords are hashed with <strong>bcrypt</strong> (auto-salted). The raw password is never stored or logged.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">())</span>
@@ -2546,6 +2669,85 @@ A background task runs hourly to prune expired blacklist entries (tokens older t
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ws://host/ws/controller/telemetry?token=&lt;jwt&gt;
 </code></pre></div>
 <p>The token is validated on the WebSocket handshake — no unauthenticated connections are possible.</p>
+<h3 id="oidc-single-sign-on">OIDC Single Sign-On<a class="headerlink" href="#oidc-single-sign-on" title="Permanent link">&para;</a></h3>
+<p>WebMACS supports <strong>OpenID Connect (OIDC)</strong> for enterprise Single Sign-On. The implementation includes multiple security controls:</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PKCE S256</strong></td>
+<td>Proof Key for Code Exchange prevents authorization code interception</td>
+</tr>
+<tr>
+<td><strong>Signed state token</strong></td>
+<td>CSRF protection via HMAC-signed JWT with 10-minute expiry</td>
+</tr>
+<tr>
+<td><strong>One-time auth codes</strong></td>
+<td>JWT tokens are never exposed in URLs; a short-lived (60 s) one-time code is used instead</td>
+</tr>
+<tr>
+<td><strong>email_verified</strong></td>
+<td>Rejects SSO logins where the IdP has not verified the user's email</td>
+</tr>
+<tr>
+<td><strong>Admin linking refusal</strong></td>
+<td>Auto-linking SSO accounts to existing admin users is blocked</td>
+</tr>
+<tr>
+<td><strong>Username sanitization</strong></td>
+<td>Only <code>[a-zA-Z0-9._-]</code> characters are allowed in auto-generated usernames</td>
+</tr>
+<tr>
+<td><strong>TTL-based discovery cache</strong></td>
+<td>OIDC discovery metadata is refreshed every hour</td>
+</tr>
+<tr>
+<td><strong>Dedicated frontend URL</strong></td>
+<td>Post-login redirect uses an explicit config setting (<code>OIDC_FRONTEND_URL</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>For setup instructions, see the <a href="../sso/">SSO Guide</a>.</p>
+<hr />
+<h2 id="role-based-access-control-rbac">Role-Based Access Control (RBAC)<a class="headerlink" href="#role-based-access-control-rbac" title="Permanent link">&para;</a></h2>
+<p>WebMACS enforces a three-tier hierarchical role model:</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Level</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Viewer</strong></td>
+<td>1</td>
+<td>Read-only access to dashboards, events, experiments, datapoints, logs</td>
+</tr>
+<tr>
+<td><strong>Operator</strong></td>
+<td>2</td>
+<td>Everything Viewer can do + create/edit experiments, events, datapoints</td>
+</tr>
+<tr>
+<td><strong>Admin</strong></td>
+<td>3</td>
+<td>Full access including rules, webhooks, OTA, users, API tokens, plugins</td>
+</tr>
+</tbody>
+</table>
+<p>Access checks use the hierarchy: <code>admin (3) &gt; operator (2) &gt; viewer (1)</code>. An endpoint requiring operator access will also allow admin users.</p>
+<p>API endpoints enforce roles via dependency injection — unauthorized requests receive <code>403 Forbidden</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">&quot;detail&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Admin access required.&quot;</span><span class="p">}</span>
+</code></pre></div>
+<p>For details on managing users and roles, see <a href="../users/">Users &amp; Auth</a>.</p>
 <hr />
 <h2 id="secret_key-validation">SECRET_KEY Validation<a class="headerlink" href="#secret_key-validation" title="Permanent link">&para;</a></h2>
 <p>The <code>SECRET_KEY</code> environment variable signs all JWTs. WebMACS enforces minimum security:</p>
@@ -2568,7 +2770,7 @@ A background task runs hourly to prune expired blacklist entries (tokens older t
 </tbody>
 </table>
 <p>Generate a strong key:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import secrets; print(secrets.token_urlsafe(64))&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import secrets; print(secrets.token_urlsafe(64))&#39;</span>
 </code></pre></div>
 <hr />
 <h2 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h2>
@@ -2638,8 +2840,8 @@ A background task runs hourly to prune expired blacklist entries (tokens older t
 <hr />
 <h2 id="cors">CORS<a class="headerlink" href="#cors" title="Permanent link">&para;</a></h2>
 <p>Cross-Origin Resource Sharing is configured via <code>CORS_ORIGINS</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Default (development)</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">cors_origins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http://localhost:3000&quot;</span><span class="p">,</span> <span class="s2">&quot;http://localhost:5173&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Default (development)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">cors_origins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http://localhost:3000&quot;</span><span class="p">,</span> <span class="s2">&quot;http://localhost:5173&quot;</span><span class="p">]</span>
 </code></pre></div>
 <p>In production, set <code>CORS_ORIGINS</code> to the actual frontend URL. All methods and headers are allowed for authenticated requests.</p>
 <hr />
@@ -2664,15 +2866,15 @@ A background task runs hourly to prune expired blacklist entries (tokens older t
 </tbody>
 </table>
 <h3 id="verification-python">Verification (Python)<a class="headerlink" href="#verification-python" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hmac</span><span class="o">,</span><span class="w"> </span><span class="nn">hashlib</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">verify_signature</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">signature</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">secret</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">expected</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        <span class="n">secret</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">payload</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">,</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="k">return</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">signature</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hmac</span><span class="o">,</span><span class="w"> </span><span class="nn">hashlib</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">verify_signature</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">signature</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">secret</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">expected</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>        <span class="n">secret</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">payload</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>        <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="k">return</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">signature</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="replay-protection">Replay Protection<a class="headerlink" href="#replay-protection" title="Permanent link">&para;</a></h3>
 <p>The timestamp is included in the signed message. Receivers should reject payloads where the timestamp is older than 5 minutes.</p>
@@ -2739,25 +2941,25 @@ Only install plugins from trusted sources.</p>
 </div>
 <hr />
 <h2 id="network-architecture">Network Architecture<a class="headerlink" href="#network-architecture" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>┌─────────────┐     HTTPS (443)     ┌───────────┐
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>│   Browser   │ ───────────────────▶│   nginx   │
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>└─────────────┘                     │ (reverse  │
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>                                    │  proxy)   │
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>                                    └─────┬─────┘
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>                                          │ HTTP (8000)
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>                                    ┌─────▼─────┐
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>                                    │  Backend   │
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>                                    │ (FastAPI)  │
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>                                    └─────┬─────┘
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>                                          │ WebSocket
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>                                    ┌─────▼──────┐
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>                                    │ Controller  │
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>                                    │ (Python)    │
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>                                    └─────┬──────┘
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>                                          │ GPIO / Modbus
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>                                    ┌─────▼──────┐
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>                                    │  Hardware   │
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>                                    └────────────┘
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>┌─────────────┐     HTTPS (443)     ┌───────────┐
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>│   Browser   │ ───────────────────▶│   nginx   │
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>└─────────────┘                     │ (reverse  │
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>                                    │  proxy)   │
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>                                    └─────┬─────┘
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>                                          │ HTTP (8000)
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>                                    ┌─────▼─────┐
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>                                    │  Backend   │
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>                                    │ (FastAPI)  │
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>                                    └─────┬─────┘
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>                                          │ WebSocket
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>                                    ┌─────▼──────┐
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>                                    │ Controller  │
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>                                    │ (Python)    │
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>                                    └─────┬──────┘
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>                                          │ GPIO / Modbus
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>                                    ┌─────▼──────┐
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>                                    │  Hardware   │
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>                                    └────────────┘
 </code></pre></div>
 <h3 id="air-gapped-deployments">Air-Gapped Deployments<a class="headerlink" href="#air-gapped-deployments" title="Permanent link">&para;</a></h3>
 <p>WebMACS is designed to run <strong>without internet access</strong>:</p>
@@ -2780,10 +2982,16 @@ Only install plugins from trusted sources.</p>
 <li>[ ] Review plugin sources before installation</li>
 <li>[ ] Configure firewall to restrict port access</li>
 <li>[ ] Set up database backups (see <a href="../../deployment/production/">Production Guide</a>)</li>
+<li>[ ] Configure OIDC SSO if using centralized identity (see <a href="../sso/">SSO Guide</a>)</li>
+<li>[ ] Set <code>OIDC_FRONTEND_URL</code> explicitly when using SSO</li>
+<li>[ ] Use API tokens instead of shared passwords for automation</li>
+<li>[ ] Assign the principle of least privilege — use <code>viewer</code> and <code>operator</code> roles</li>
 </ul>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
+<li><a href="../sso/">Single Sign-On (OIDC)</a> — configure SSO with your Identity Provider</li>
+<li><a href="../users/">Users &amp; Auth</a> — roles, API tokens, user management</li>
 <li><a href="../../deployment/env-vars/">Environment Variables</a> — all configuration options</li>
 <li><a href="../../deployment/production/">Production Deployment</a> — HTTPS, backups, monitoring</li>
 <li><a href="../webhooks/">Webhooks</a> — setting up webhook integrations</li>

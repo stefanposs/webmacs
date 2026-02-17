@@ -14,7 +14,7 @@
         <link rel="prev" href="../logs/">
       
       
-        <link rel="next" href="../security/">
+        <link rel="next" href="../sso/">
       
       
         
@@ -1124,6 +1124,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="User Roles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#role-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role Hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sso-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSO Users
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1299,6 +1327,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#api-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Tokens
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Tokens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-api-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an API Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-an-api-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using an API Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listing-deleting-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listing &amp; Deleting Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#security-best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1324,6 +1413,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sso/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single Sign-On (OIDC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2203,6 +2320,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="User Roles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#role-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role Hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sso-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSO Users
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2378,6 +2523,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#api-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Tokens
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Tokens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-api-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an API Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-an-api-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using an API Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listing-deleting-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listing &amp; Deleting Tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#security-best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2420,13 +2626,14 @@
 
 
 <h1 id="user-management">User Management<a class="headerlink" href="#user-management" title="Permanent link">&para;</a></h1>
-<p>WebMACS supports multiple user accounts with two roles: <strong>Operator</strong> and <strong>Admin</strong>. Admins can create, manage, and delete user accounts.</p>
+<p>WebMACS supports multiple user accounts with three roles: <strong>Admin</strong>, <strong>Operator</strong>, and <strong>Viewer</strong>. Admins can create, manage, and delete user accounts and generate API tokens.</p>
 <div class="admonition info">
 <p class="admonition-title">Admin only</p>
 <p>The Users page is only visible to admin accounts.</p>
 </div>
 <hr />
 <h2 id="user-roles">User Roles<a class="headerlink" href="#user-roles" title="Permanent link">&para;</a></h2>
+<p>WebMACS uses a hierarchical RBAC model: <strong>Admin &gt; Operator &gt; Viewer</strong>.</p>
 <table>
 <thead>
 <tr>
@@ -2436,16 +2643,27 @@
 </thead>
 <tbody>
 <tr>
+<td><strong>Viewer</strong></td>
+<td>Dashboard (read-only), Events, Experiments, Datapoints, CSV Export, Logs</td>
+</tr>
+<tr>
 <td><strong>Operator</strong></td>
-<td>Dashboard, Events, Experiments, Datapoints, CSV Export, Logs</td>
+<td>Everything Viewer can do <strong>+</strong> create/edit experiments, events, and datapoints</td>
 </tr>
 <tr>
 <td><strong>Admin</strong></td>
-<td>Everything above <strong>+</strong> Rules, Webhooks, OTA Updates, User Management</td>
+<td>Everything above <strong>+</strong> Rules, Webhooks, OTA Updates, User Management, API Tokens, Plugin Management</td>
 </tr>
 </tbody>
 </table>
-<p>The sidebar automatically hides admin-only pages for operator accounts.</p>
+<p>The sidebar automatically hides pages that the current user's role does not permit.</p>
+<h3 id="role-hierarchy">Role Hierarchy<a class="headerlink" href="#role-hierarchy" title="Permanent link">&para;</a></h3>
+<p>Roles are compared hierarchically — an admin can perform any action an operator or viewer can, and an operator can perform any action a viewer can:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>admin (3) &gt; operator (2) &gt; viewer (1)
+</code></pre></div>
+<p>When creating a user via the UI, you select one of the three roles. The default role for new users is <strong>Viewer</strong>.</p>
+<h3 id="sso-users">SSO Users<a class="headerlink" href="#sso-users" title="Permanent link">&para;</a></h3>
+<p>Users created via <a href="../sso/">OIDC SSO</a> receive the role configured by <code>OIDC_DEFAULT_ROLE</code> (default: <code>viewer</code>). Admins can change SSO user roles via the Users page.</p>
 <hr />
 <h2 id="default-admin-account">Default Admin Account<a class="headerlink" href="#default-admin-account" title="Permanent link">&para;</a></h2>
 <p>On first startup, WebMACS creates an initial admin account from environment variables:</p>
@@ -2520,7 +2738,7 @@
 </li>
 <li>Click <strong>Create</strong></li>
 </ol>
-<p>New users are created as <strong>Operators</strong> by default.</p>
+<p>New users are created as <strong>Viewers</strong> by default. You can select a different role during creation.</p>
 <h3 id="deleting-a-user">Deleting a User<a class="headerlink" href="#deleting-a-user" title="Permanent link">&para;</a></h3>
 <p>Click the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6z"/></svg></span> delete button on a user row and confirm.</p>
 <div class="admonition warning">
@@ -2530,56 +2748,93 @@
 <hr />
 <h2 id="managing-users-via-api">Managing Users via API<a class="headerlink" href="#managing-users-via-api" title="Permanent link">&para;</a></h2>
 <h3 id="list-all-users-admin-only">List All Users (Admin Only)<a class="headerlink" href="#list-all-users-admin-only" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/users<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/users<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
 <h3 id="create-a-user-admin-only">Create a User (Admin Only)<a class="headerlink" href="#create-a-user-admin-only" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/users<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="s1">    &quot;username&quot;: &quot;operator1&quot;,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="s1">    &quot;email&quot;: &quot;operator1@example.com&quot;,</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="s1">    &quot;password&quot;: &quot;securepassword123&quot;</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="s1">  }&#39;</span>
-</code></pre></div>
-<h3 id="update-a-user-self-or-admin">Update a User (Self or Admin)<a class="headerlink" href="#update-a-user-self-or-admin" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8000/api/v1/users/<span class="nv">$USER_ID</span><span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/users<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;password&quot;: &quot;new-secure-password&quot;}&#39;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="s1">    &quot;username&quot;: &quot;operator1&quot;,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="s1">    &quot;email&quot;: &quot;operator1@example.com&quot;,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="s1">    &quot;password&quot;: &quot;securepassword123&quot;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="s1">  }&#39;</span>
+</code></pre></div>
+<h3 id="update-a-user-self-or-admin">Update a User (Self or Admin)<a class="headerlink" href="#update-a-user-self-or-admin" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>http://localhost:8000/api/v1/users/<span class="nv">$USER_ID</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;password&quot;: &quot;new-secure-password&quot;}&#39;</span>
 </code></pre></div>
 <h3 id="delete-a-user-admin-only">Delete a User (Admin Only)<a class="headerlink" href="#delete-a-user-admin-only" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8000/api/v1/users/<span class="nv">$USER_ID</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>http://localhost:8000/api/v1/users/<span class="nv">$USER_ID</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
 <hr />
 <h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
 <h3 id="login">Login<a class="headerlink" href="#login" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="s1">    &quot;email&quot;: &quot;admin@webmacs.io&quot;,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="s1">    &quot;password&quot;: &quot;admin123&quot;</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="s1">  }&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="s1">    &quot;email&quot;: &quot;admin@webmacs.io&quot;,</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="s1">    &quot;password&quot;: &quot;admin123&quot;</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="s1">  }&#39;</span>
 </code></pre></div>
 <p>Returns:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;access_token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;eyJhbGci...&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;public_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;usr_abc123&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;admin&quot;</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;access_token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;eyJhbGci...&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">&quot;public_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;usr_abc123&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;admin&quot;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="using-the-token">Using the Token<a class="headerlink" href="#using-the-token" title="Permanent link">&para;</a></h3>
 <p>Include the token in all subsequent requests:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGci...&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGci...&quot;</span>
 </code></pre></div>
 <p>Tokens expire after <strong>24 hours</strong> by default (configurable via <code>ACCESS_TOKEN_EXPIRE_MINUTES</code>).</p>
 <h3 id="logout">Logout<a class="headerlink" href="#logout" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/logout<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/logout<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
 <p>Logout <strong>blacklists</strong> the token — it cannot be reused even before expiry. Expired blacklisted tokens are cleaned up automatically.</p>
+<hr />
+<h2 id="api-tokens">API Tokens<a class="headerlink" href="#api-tokens" title="Permanent link">&para;</a></h2>
+<p>API tokens provide long-lived, machine-friendly authentication for scripts, CI pipelines, and integrations. Unlike JWTs, API tokens do not expire automatically (unless an expiry date is set) and are bound to a specific user.</p>
+<h3 id="token-format">Token Format<a class="headerlink" href="#token-format" title="Permanent link">&para;</a></h3>
+<p>API tokens use the prefix <code>wm_</code> followed by 43 random characters:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>wm_Ab3Cd5Ef7Gh9Ij1Kl3Mn5Op7Qr9St1Uv3Wx5Yz7Ab3
+</code></pre></div>
+<p>Only the <strong>SHA-256 hash</strong> of the token is stored in the database. The plaintext token is shown <strong>only once</strong> at creation time.</p>
+<h3 id="creating-an-api-token">Creating an API Token<a class="headerlink" href="#creating-an-api-token" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Navigate to <strong>API Tokens</strong> in the sidebar (Admin only)</li>
+<li>Click <strong>Create Token</strong></li>
+<li>Enter a descriptive <strong>name</strong> (e.g. "CI Pipeline")</li>
+<li>Optionally set an <strong>expiration date</strong></li>
+<li>Click <strong>Create</strong> — copy the displayed token immediately</li>
+</ol>
+<p>Via API:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/tokens<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$JWT</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;name&quot;: &quot;CI Pipeline&quot;, &quot;expires_at&quot;: &quot;2026-12-31T23:59:59Z&quot;}&#39;</span>
+</code></pre></div>
+<h3 id="using-an-api-token">Using an API Token<a class="headerlink" href="#using-an-api-token" title="Permanent link">&para;</a></h3>
+<p>Include the token in the <code>Authorization</code> header just like a JWT:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/events<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer wm_Ab3Cd5Ef7Gh9...&quot;</span>
+</code></pre></div>
+<p>API tokens inherit the <strong>role and permissions</strong> of the user who created them.</p>
+<h3 id="listing-deleting-tokens">Listing &amp; Deleting Tokens<a class="headerlink" href="#listing-deleting-tokens" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Users see their own tokens; admins see all tokens</li>
+<li>Delete a token via the UI or <code>DELETE /api/v1/tokens/{public_id}</code></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Token Security</p>
+<p>Treat API tokens like passwords. Never commit them to version control or share them in plain text.</p>
+</div>
 <hr />
 <h2 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Permanent link">&para;</a></h2>
 <div class="admonition tip">
@@ -2588,13 +2843,16 @@
 <li><strong>Change the default admin password</strong> immediately after first login</li>
 <li><strong>Use strong passwords</strong> — minimum 8 characters, mix of letters, numbers, and symbols</li>
 <li><strong>Set a strong <code>SECRET_KEY</code></strong> — in production, must be at least 32 characters</li>
-<li><strong>Create operator accounts</strong> for regular users — don't share admin credentials</li>
+<li><strong>Create operator/viewer accounts</strong> for regular users — don't share admin credentials</li>
 <li><strong>Use HTTPS</strong> in production — tokens are sent in HTTP headers and must be protected in transit</li>
+<li><strong>Use API tokens</strong> for automation — they can be revoked independently without affecting user sessions</li>
+<li><strong>Enable SSO</strong> for enterprise environments — centralized authentication with OIDC</li>
 </ul>
 </div>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
+<li><a href="../sso/">Single Sign-On (OIDC)</a> — configure SSO with your Identity Provider</li>
 <li><a href="../../getting-started/configuration/">Configuration</a> — environment variables for auth settings</li>
 <li><a href="../dashboard/">Dashboard</a> — get started monitoring data</li>
 <li><a href="../../api/rest/">API Reference</a> — full user and auth endpoint documentation</li>
