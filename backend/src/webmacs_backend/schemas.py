@@ -45,6 +45,23 @@ class TokenData(BaseModel):
     exp: datetime.datetime
 
 
+# ─── SSO / OIDC ──────────────────────────────────────────────────────────────
+
+
+class SsoConfigResponse(BaseModel):
+    """Public SSO configuration (no secrets)."""
+
+    enabled: bool
+    provider_name: str
+    authorize_url: str  # frontend navigates here to start SSO
+
+
+class SsoAuthorizeResponse(BaseModel):
+    """URL the frontend should redirect to."""
+
+    redirect_url: str
+
+
 # ─── User ────────────────────────────────────────────────────────────────────
 
 
@@ -69,6 +86,7 @@ class UserResponse(BaseModel):
     role: UserRole
     admin: bool = False
     registered_on: datetime.datetime
+    sso_provider: str | None = None
 
     model_config = {"from_attributes": True}
 

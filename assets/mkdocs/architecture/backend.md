@@ -21,6 +21,8 @@ backend/src/webmacs_backend/
 ├── api/
 │   └── v1/
 │       ├── auth.py          # POST /auth/login, /logout, GET /me
+│       ├── sso.py           # OIDC SSO: /auth/sso/config, /authorize, /callback, /exchange
+│       ├── tokens.py        # API token management: CRUD /tokens
 │       ├── users.py         # CRUD /users
 │       ├── experiments.py   # CRUD /experiments + CSV export
 │       ├── events.py        # CRUD /events
@@ -91,6 +93,8 @@ All eleven routers are mounted under `/api/v1/`:
 | Router | Prefix | Auth | Key Endpoints |
 |---|---|---|---|
 | `auth` | `/auth` | Public / JWT | `POST /login`, `POST /logout`, `GET /me` |
+| `sso` | `/auth/sso` | Public | `GET /config`, `GET /authorize`, `GET /callback`, `POST /exchange` |
+| `tokens` | `/tokens` | JWT | `GET /`, `POST /`, `DELETE /{id}` |
 | `users` | `/users` | Admin | CRUD |
 | `experiments` | `/experiments` | JWT | CRUD, `PUT /{id}/stop`, `GET /{id}/export/csv` |
 | `events` | `/events` | JWT | CRUD |

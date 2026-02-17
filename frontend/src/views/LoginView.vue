@@ -34,6 +34,15 @@
           {{ loading ? 'Signing in...' : 'Sign In' }}
         </button>
       </form>
+
+      <!-- SSO login -->
+      <div v-if="ssoConfig?.enabled" class="sso-divider">
+        <span>or</span>
+      </div>
+      <a v-if="ssoConfig?.enabled" :href="ssoConfig.authorize_url" class="btn-sso">
+        <i class="pi pi-shield" />
+        Sign in with {{ ssoConfig.provider_name }}
+      </a>
     </div>
 
     <div class="login-footer">
@@ -43,9 +52,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import api from '@/services/api'
+
+interface SsoConfig {
+  enabled: boolean
+  provider_name: string
+  authorize_url: string
+}
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -55,6 +71,16 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
+const ssoConfig = ref<SsoConfig | null>(null)
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get<SsoConfig>('/auth/sso/config')
+    ssoConfig.value = data
+  } catch {
+    // SSO config endpoint not available — hide SSO button
+  }
+})
 
 async function handleLogin() {
   error.value = ''
@@ -62,7 +88,8 @@ async function handleLogin() {
   try {
     await authStore.login(email.value, password.value)
     const redirect = (route.query.redirect as string) || '/'
-    router.push(redirect)
+    const safeRedirect = redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
+    router.push(safeRedirect)
   } catch {
     error.value = 'Invalid credentials. Please try again.'
   } finally {
@@ -222,5 +249,54 @@ async function handleLogin() {
   margin-top: 2rem;
   font-size: 0.75rem;
   color: #475569;
+}
+
+.sso-divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  gap: 0.75rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--wm-border, #e2e8f0);
+  }
+
+  span {
+    color: var(--wm-text-muted, #64748b);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.btn-sso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem;
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  border-radius: var(--wm-radius, 8px);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    background: #334155;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
 }
 </style>

@@ -19,6 +19,12 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      path: '/sso-callback',
+      name: 'sso-callback',
+      component: () => import('@/views/SsoCallbackView.vue'),
+      meta: { requiresAuth: false },
+    },
+    {
       path: '/',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),

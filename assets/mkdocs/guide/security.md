@@ -24,6 +24,19 @@ payload = {"sub": str(user_id), "exp": now + timedelta(minutes=1440), "iat": now
 jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 ```
 
+### API Tokens
+
+API tokens provide long-lived authentication for scripts and integrations. They use the `wm_` prefix and are stored as **SHA-256 hashes** — the plaintext is shown only once at creation.
+
+| Property | Value |
+|---|---|
+| Format | `wm_` + 43 random URL-safe characters |
+| Storage | SHA-256 hash in `api_tokens` table |
+| Permissions | Inherits the role of the owning user |
+| Expiry | Optional (set at creation) |
+
+API tokens are accepted in the same `Authorization: Bearer` header as JWTs. The backend distinguishes them by the `wm_` prefix.
+
 ### Password Hashing
 
 Passwords are hashed with **bcrypt** (auto-salted). The raw password is never stored or logged.
@@ -46,6 +59,45 @@ ws://host/ws/controller/telemetry?token=<jwt>
 ```
 
 The token is validated on the WebSocket handshake — no unauthenticated connections are possible.
+
+### OIDC Single Sign-On
+
+WebMACS supports **OpenID Connect (OIDC)** for enterprise Single Sign-On. The implementation includes multiple security controls:
+
+| Control | Details |
+|---|---|
+| **PKCE S256** | Proof Key for Code Exchange prevents authorization code interception |
+| **Signed state token** | CSRF protection via HMAC-signed JWT with 10-minute expiry |
+| **One-time auth codes** | JWT tokens are never exposed in URLs; a short-lived (60 s) one-time code is used instead |
+| **email_verified** | Rejects SSO logins where the IdP has not verified the user's email |
+| **Admin linking refusal** | Auto-linking SSO accounts to existing admin users is blocked |
+| **Username sanitization** | Only `[a-zA-Z0-9._-]` characters are allowed in auto-generated usernames |
+| **TTL-based discovery cache** | OIDC discovery metadata is refreshed every hour |
+| **Dedicated frontend URL** | Post-login redirect uses an explicit config setting (`OIDC_FRONTEND_URL`) |
+
+For setup instructions, see the [SSO Guide](sso.md).
+
+---
+
+## Role-Based Access Control (RBAC)
+
+WebMACS enforces a three-tier hierarchical role model:
+
+| Role | Level | Access |
+|---|---|---|
+| **Viewer** | 1 | Read-only access to dashboards, events, experiments, datapoints, logs |
+| **Operator** | 2 | Everything Viewer can do + create/edit experiments, events, datapoints |
+| **Admin** | 3 | Full access including rules, webhooks, OTA, users, API tokens, plugins |
+
+Access checks use the hierarchy: `admin (3) > operator (2) > viewer (1)`. An endpoint requiring operator access will also allow admin users.
+
+API endpoints enforce roles via dependency injection — unauthorized requests receive `403 Forbidden`:
+
+```json
+{"detail": "Admin access required."}
+```
+
+For details on managing users and roles, see [Users & Auth](users.md).
 
 ---
 
@@ -217,11 +269,17 @@ Use this checklist before going to production:
 - [ ] Review plugin sources before installation
 - [ ] Configure firewall to restrict port access
 - [ ] Set up database backups (see [Production Guide](../deployment/production.md))
+- [ ] Configure OIDC SSO if using centralized identity (see [SSO Guide](sso.md))
+- [ ] Set `OIDC_FRONTEND_URL` explicitly when using SSO
+- [ ] Use API tokens instead of shared passwords for automation
+- [ ] Assign the principle of least privilege — use `viewer` and `operator` roles
 
 ---
 
 ## Next Steps
 
+- [Single Sign-On (OIDC)](sso.md) — configure SSO with your Identity Provider
+- [Users & Auth](users.md) — roles, API tokens, user management
 - [Environment Variables](../deployment/env-vars.md) — all configuration options
 - [Production Deployment](../deployment/production.md) — HTTPS, backups, monitoring
 - [Webhooks](webhooks.md) — setting up webhook integrations
