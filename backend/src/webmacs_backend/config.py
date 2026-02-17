@@ -52,6 +52,18 @@ class Settings(BaseSettings):
     # GitHub releases (for OTA update checks)
     github_repo: str = "stefanposs/webmacs"
 
+    # ─── OIDC / SSO ─────────────────────────────────────────────────────
+    oidc_enabled: bool = False
+    oidc_provider_name: str = "SSO"  # Display name on login button
+    oidc_issuer_url: str = ""  # e.g. https://auth.example.com/realms/webmacs
+    oidc_client_id: str = ""
+    oidc_client_secret: str = ""
+    oidc_scopes: str = "openid email profile"  # space-separated
+    oidc_redirect_uri: str = ""  # e.g. http://localhost:8000/api/v1/auth/sso/callback
+    oidc_default_role: str = "viewer"  # role assigned to auto-created SSO users
+    oidc_auto_create_users: bool = True  # Auto-create local user on first SSO login
+    oidc_frontend_url: str = ""  # e.g. https://webmacs.example.com — post-SSO redirect target
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "case_sensitive": False}
 
 

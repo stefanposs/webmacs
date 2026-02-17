@@ -68,6 +68,7 @@ nav:
     - Plugins: guide/plugins.md
     - Logs: guide/logs.md
     - Users & Auth: guide/users.md
+    - Single Sign-On (OIDC): guide/sso.md
     - Security: guide/security.md
     - Examples: guide/examples.md
   - Architecture:

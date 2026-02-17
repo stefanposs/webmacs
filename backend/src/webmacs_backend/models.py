@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 import uuid
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from webmacs_backend.database import Base
@@ -29,6 +29,7 @@ class User(Base):
     """User model for authentication and ownership."""
 
     __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("sso_provider", "sso_subject_id", name="uq_users_sso_identity"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
@@ -37,6 +38,10 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole, native_enum=False), default=UserRole.viewer, nullable=False)
     registered_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # SSO / OIDC fields
+    sso_provider: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
+    sso_subject_id: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
 
     # Backwards-compat property
     @property

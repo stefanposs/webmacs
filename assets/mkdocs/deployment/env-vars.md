@@ -26,6 +26,23 @@ Complete reference of all environment variables used by WebMACS.
 
 ---
 
+## OIDC / SSO
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `OIDC_ENABLED` | No | `false` | Enable OIDC Single Sign-On |
+| `OIDC_PROVIDER_NAME` | No | `SSO` | Display name on the login button |
+| `OIDC_ISSUER_URL` | If SSO | *(empty)* | IdP issuer URL (e.g. `https://auth.example.com/realms/webmacs`) |
+| `OIDC_CLIENT_ID` | If SSO | *(empty)* | OAuth2 Client ID |
+| `OIDC_CLIENT_SECRET` | If SSO | *(empty)* | OAuth2 Client Secret |
+| `OIDC_SCOPES` | No | `openid email profile` | Space-separated OIDC scopes |
+| `OIDC_REDIRECT_URI` | If SSO | *(empty)* | Callback URL (`https://<domain>/api/v1/auth/sso/callback`) |
+| `OIDC_DEFAULT_ROLE` | No | `viewer` | Role for auto-created SSO users (`admin`, `operator`, `viewer`) |
+| `OIDC_AUTO_CREATE_USERS` | No | `true` | Auto-create local user on first SSO login |
+| `OIDC_FRONTEND_URL` | No | *(empty)* | Frontend URL for post-login redirect |
+
+---
+
 ## Controller
 
 | Variable | Required | Default | Description |
@@ -95,6 +112,16 @@ ADMIN_PASSWORD=Ch4ng3M3!
 
 # Controller
 TELEMETRY_MODE=websocket
+
+# SSO (optional)
+OIDC_ENABLED=true
+OIDC_PROVIDER_NAME=Company SSO
+OIDC_ISSUER_URL=https://auth.example.com/realms/webmacs
+OIDC_CLIENT_ID=webmacs-client
+OIDC_CLIENT_SECRET=your-client-secret
+OIDC_REDIRECT_URI=https://webmacs.example.com/api/v1/auth/sso/callback
+OIDC_DEFAULT_ROLE=operator
+OIDC_FRONTEND_URL=https://webmacs.example.com
 ```
 
 ---

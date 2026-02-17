@@ -29,6 +29,7 @@ export interface User {
   role: UserRole
   admin: boolean
   registered_on: string
+  sso_provider?: string | null
 }
 
 export interface Event {

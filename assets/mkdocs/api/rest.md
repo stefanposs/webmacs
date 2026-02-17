@@ -62,9 +62,149 @@ Returns the authenticated user's profile.
   "public_id": "usr_abc123",
   "email": "admin@webmacs.io",
   "username": "admin",
-  "admin": true,
+  "role": "admin",
+  "sso_provider": null,
   "created_on": "2025-01-01T00:00:00"
 }
+```
+
+---
+
+## SSO (Single Sign-On)
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/auth/sso/config` | Public | SSO configuration metadata |
+| `GET` | `/api/v1/auth/sso/authorize` | Public | Redirect to Identity Provider |
+| `GET` | `/api/v1/auth/sso/callback` | Public | IdP callback (server-side) |
+| `POST` | `/api/v1/auth/sso/exchange` | Public | Exchange one-time code for JWT |
+
+### `GET /api/v1/auth/sso/config`
+
+Returns whether SSO is enabled and the provider display name.
+
+**Response** `200`:
+
+```json
+{
+  "enabled": true,
+  "provider_name": "Company SSO"
+}
+```
+
+### `GET /api/v1/auth/sso/authorize`
+
+Initiates the OIDC Authorization Code flow. Generates a PKCE code verifier/challenge and a signed state token, then returns a redirect to the Identity Provider's authorization endpoint.
+
+**Response** `307` (redirect to IdP)
+
+### `GET /api/v1/auth/sso/callback`
+
+Handles the IdP redirect after user authentication. Exchanges the authorization code for tokens, validates the ID token, finds or creates a local user, generates a one-time auth code, and redirects to the frontend with `?code=<one-time-code>`.
+
+**Response** `307` (redirect to frontend `/sso-callback?code=...`)
+
+### `POST /api/v1/auth/sso/exchange`
+
+Exchanges a one-time auth code (from the callback redirect) for a JWT access token.
+
+**Request:**
+
+```json
+{
+  "code": "abc123..."
+}
+```
+
+**Response** `200`:
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "public_id": "usr_xyz789",
+  "username": "jane.doe"
+}
+```
+
+**Error** `401`:
+
+```json
+{"detail": "Invalid or expired code."}
+```
+
+!!! info "One-time codes"
+    Codes are valid for **60 seconds** and can only be used once. This prevents JWT tokens from appearing in browser URLs or server logs.
+
+---
+
+## API Tokens
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/tokens` | JWT | List API tokens (own or all for admin) |
+| `POST` | `/api/v1/tokens` | JWT | Create a new API token |
+| `DELETE` | `/api/v1/tokens/{id}` | JWT | Delete an API token |
+
+### `POST /api/v1/tokens`
+
+Create a new API token. The plaintext token is returned **only once**.
+
+**Request:**
+
+```json
+{
+  "name": "CI Pipeline",
+  "expires_at": "2026-12-31T23:59:59Z"
+}
+```
+
+**Response** `201`:
+
+```json
+{
+  "public_id": "tok_abc123",
+  "name": "CI Pipeline",
+  "token": "wm_Ab3Cd5Ef7Gh9Ij1Kl3Mn5Op7Qr9St1Uv3Wx5Yz7Ab3",
+  "expires_at": "2026-12-31T23:59:59Z",
+  "created_at": "2025-07-01T12:00:00Z"
+}
+```
+
+!!! warning "Save the token"
+    The `token` field is only included in the creation response. It cannot be retrieved later.
+
+### `GET /api/v1/tokens`
+
+List API tokens. Users see their own tokens; admins see all.
+
+**Response** `200`:
+
+```json
+{
+  "page": 1,
+  "page_size": 25,
+  "total": 2,
+  "data": [
+    {
+      "public_id": "tok_abc123",
+      "name": "CI Pipeline",
+      "last_used_at": "2025-07-01T13:00:00Z",
+      "expires_at": "2026-12-31T23:59:59Z",
+      "created_at": "2025-07-01T12:00:00Z",
+      "user_public_id": "usr_abc123"
+    }
+  ]
+}
+```
+
+### `DELETE /api/v1/tokens/{id}`
+
+Delete an API token. Users can delete their own; admins can delete any.
+
+**Response** `200`:
+
+```json
+{"status": "success", "message": "API token deleted."}
 ```
 
 ---
