@@ -103,10 +103,21 @@ class APIClient:
                 last_error = exc
                 logger.warning("request_timeout", path=path, attempt=attempt)
             except httpx.HTTPStatusError as exc:
-                if exc.response.status_code < 500:
-                    raise  # client errors are not retryable (except 401 handled above)
-                last_error = exc
-                logger.warning("server_error", path=path, status=exc.response.status_code, attempt=attempt)
+                status = exc.response.status_code
+                if status == 429:
+                    # Rate-limited — honour Retry-After header if present
+                    retry_after = exc.response.headers.get("Retry-After")
+                    delay = float(retry_after) if retry_after else self._backoff_base * (2 ** (attempt - 1))
+                    logger.warning("rate_limited", path=path, retry_after=delay, attempt=attempt)
+                    if attempt < self._max_retries:
+                        await asyncio.sleep(delay)
+                        continue
+                    last_error = exc
+                elif status < 500:
+                    raise  # client errors are not retryable (except 401/429 handled above)
+                else:
+                    last_error = exc
+                    logger.warning("server_error", path=path, status=status, attempt=attempt)
             except httpx.TransportError as exc:
                 last_error = exc
                 logger.warning("transport_error", path=path, error=str(exc), attempt=attempt)

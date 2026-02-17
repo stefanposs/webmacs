@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import datetime
 import io
@@ -13,6 +14,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 
 from webmacs_backend.dependencies import CurrentUser, DbSession
+from webmacs_backend.enums import WebhookEventType
 from webmacs_backend.models import Datapoint, Event, Experiment
 from webmacs_backend.repository import delete_by_public_id, get_or_404, paginate, update_from_schema
 from webmacs_backend.schemas import (
@@ -22,9 +24,13 @@ from webmacs_backend.schemas import (
     PaginatedResponse,
     StatusResponse,
 )
+from webmacs_backend.services import build_payload, dispatch_event
 from webmacs_backend.services.log_service import create_log
 
 router = APIRouter()
+
+# Store background tasks so they aren't garbage-collected (RUF006)
+_background_tasks: set[asyncio.Task[None]] = set()
 
 
 @router.get("", response_model=PaginatedResponse[ExperimentResponse])
@@ -47,6 +53,13 @@ async def create_experiment(data: ExperimentCreate, db: DbSession, current_user:
         )
     )
     await create_log(db, f"Experiment '{data.name}' started.", current_user.public_id)
+
+    # Fire webhook for experiment.started
+    payload = build_payload(WebhookEventType.experiment_started, extra={"experiment": data.name})
+    task = asyncio.create_task(dispatch_event(WebhookEventType.experiment_started, payload))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
     return StatusResponse(status="success", message="Experiment successfully created.")
 
 
@@ -71,6 +84,13 @@ async def stop_experiment(public_id: str, db: DbSession, current_user: CurrentUs
     exp = await get_or_404(db, Experiment, public_id, entity_name="Experiment")
     exp.stopped_on = datetime.datetime.now(datetime.UTC)
     await create_log(db, f"Experiment '{exp.name}' stopped.", current_user.public_id)
+
+    # Fire webhook for experiment.stopped
+    payload = build_payload(WebhookEventType.experiment_stopped, extra={"experiment": exp.name})
+    task = asyncio.create_task(dispatch_event(WebhookEventType.experiment_stopped, payload))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
     return StatusResponse(status="success", message="Experiment successfully stopped.")
 
 

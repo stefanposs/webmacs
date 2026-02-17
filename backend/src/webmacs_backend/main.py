@@ -75,8 +75,10 @@ async def _cleanup_expired_tokens() -> None:
                 minutes=settings.access_token_expire_minutes
             )
             async with async_session() as session:
-                result = await session.execute(delete(BlacklistToken).where(BlacklistToken.blacklisted_on < cutoff))
-                count = result.rowcount  # type: ignore[attr-defined]
+                result = await session.execute(
+                    delete(BlacklistToken).where(BlacklistToken.blacklisted_on < cutoff).returning(BlacklistToken.id)
+                )
+                count = len(result.scalars().all())
                 await session.commit()
             if count:
                 logger.info("blacklist_cleanup", deleted=count)

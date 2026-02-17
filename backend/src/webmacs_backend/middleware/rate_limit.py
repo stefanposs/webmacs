@@ -43,6 +43,9 @@ _EXEMPT_PREFIXES: tuple[str, ...] = (
 # POST-only rate-limit exemptions (e.g. controller pushing sensor data)
 _EXEMPT_POST_PREFIXES: tuple[str, ...] = ("/api/v1/datapoints",)
 
+# GET-only rate-limit exemptions (e.g. live dashboard polling)
+_EXEMPT_GET_PREFIXES: tuple[str, ...] = ("/api/v1/datapoints",)
+
 # ─── Internal / trusted networks (Docker bridge, loopback) ──────────────────
 
 _TRUSTED_PREFIXES: tuple[str, ...] = (
@@ -135,6 +138,9 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
         if method == "POST" and any(path.startswith(prefix) for prefix in _EXEMPT_POST_PREFIXES):
+            await self.app(scope, receive, send)
+            return
+        if method == "GET" and any(path.startswith(prefix) for prefix in _EXEMPT_GET_PREFIXES):
             await self.app(scope, receive, send)
             return
 

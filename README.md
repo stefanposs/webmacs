@@ -331,7 +331,7 @@ ENV=development
 
 # Controller
 WEBMACS_ENV=development
-WEBMACS_POLL_INTERVAL=0.5
+WEBMACS_POLL_INTERVAL=1.0
 ```
 
 See [.env.example](.env.example) for the full list.

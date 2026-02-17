@@ -62,8 +62,8 @@ class ConnectionManager:
 
 1. Controller opens WS to `/ws/controller/telemetry`
 2. Backend authenticates via token query parameter
-3. Controller sends JSON messages at `poll_interval`
-4. Backend persists to DB and broadcasts to `/ws/datapoints/stream` subscribers
+3. Controller sends JSON batches at `poll_interval` (default 1 s, min 0.2 s)
+4. Backend validates batch size (max 500), persists to DB, and broadcasts to `/ws/datapoints/stream` subscribers
 5. Backend sends heartbeat pings every `ws_heartbeat_interval` seconds
 
 ---

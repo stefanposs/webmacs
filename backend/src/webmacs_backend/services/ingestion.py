@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import time
 import uuid
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -32,6 +33,18 @@ logger = structlog.get_logger()
 
 # Store background tasks so they aren't garbage-collected (RUF006)
 _background_tasks: set[asyncio.Task[None]] = set()
+
+# ─── Webhook throttle for sensor.reading ─────────────────────────────────────
+# Minimum seconds between webhook dispatches per sensor channel.
+# Prevents high-frequency datapoint ingestion from flooding external receivers.
+_SENSOR_WEBHOOK_INTERVAL: float = 5.0
+_last_sensor_dispatch: dict[str, float] = {}
+
+# ─── Frontend broadcast throttle ─────────────────────────────────────────────
+# Minimum seconds between WS broadcasts per event to avoid overwhelming
+# browser clients when sub-second polling is active.
+_BROADCAST_INTERVAL: float = 0.2
+_last_broadcast: dict[str, float] = {}
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,7 +94,18 @@ async def active_experiment_id(db: AsyncSession) -> str | None:
 
 
 def _fire_webhook(event_public_id: str, value: float) -> None:
-    """Schedule a fire-and-forget webhook dispatch for a new datapoint."""
+    """Schedule a fire-and-forget webhook dispatch for a new datapoint.
+
+    Throttled: at most one dispatch per sensor every ``_SENSOR_WEBHOOK_INTERVAL``
+    seconds.  This prevents high-frequency ingestion from creating thousands of
+    concurrent webhook HTTP requests and overwhelming the event loop.
+    """
+    now = time.monotonic()
+    last = _last_sensor_dispatch.get(event_public_id, 0.0)
+    if now - last < _SENSOR_WEBHOOK_INTERVAL:
+        return  # throttled — skip this dispatch
+    _last_sensor_dispatch[event_public_id] = now
+
     payload = build_payload(
         WebhookEventType.sensor_reading,
         sensor=event_public_id,
@@ -139,31 +163,48 @@ async def ingest_datapoints(
     for dp in accepted:
         _fire_webhook(dp.event_public_id, dp.value)
 
-    # 4. Rules (best-effort — one failure must not skip remaining datapoints)
+    # 4. Rules — evaluate only the *last* value per event to avoid redundant
+    #    evaluations when a fast poller sends multiple readings for the same
+    #    sensor in one batch.
+    last_per_event: dict[str, float] = {}
     for dp in accepted:
+        last_per_event[dp.event_public_id] = dp.value
+    for event_pid, value in last_per_event.items():
         try:
-            await evaluate_rules_for_datapoint(db, dp.event_public_id, dp.value)
+            await evaluate_rules_for_datapoint(db, event_pid, value)
         except Exception:
             logger.exception(
                 "rule_evaluation_failed",
-                event_public_id=dp.event_public_id,
+                event_public_id=event_pid,
             )
 
-    # 5. Broadcast to frontend WebSocket
-    await manager.broadcast(
-        "frontend",
-        {
-            "type": "datapoints_batch",
-            "datapoints": [
-                {
-                    "value": dp.value,
-                    "event_public_id": dp.event_public_id,
-                    "timestamp": now.isoformat(),
-                    "experiment_public_id": exp_id,
-                }
-                for dp in accepted
-            ],
-        },
-    )
+    # 5. Broadcast to frontend WebSocket (throttled per event)
+    broadcast_now = time.monotonic()
+    broadcast_events: set[str] = set()
+    for dp in accepted:
+        eid = dp.event_public_id
+        last_b = _last_broadcast.get(eid, 0.0)
+        if broadcast_now - last_b >= _BROADCAST_INTERVAL:
+            broadcast_events.add(eid)
+            _last_broadcast[eid] = broadcast_now
+
+    # Only include datapoints whose events passed the throttle
+    broadcast_dps = [dp for dp in accepted if dp.event_public_id in broadcast_events]
+    if broadcast_dps:
+        await manager.broadcast(
+            "frontend",
+            {
+                "type": "datapoints_batch",
+                "datapoints": [
+                    {
+                        "value": dp.value,
+                        "event_public_id": dp.event_public_id,
+                        "timestamp": now.isoformat(),
+                        "experiment_public_id": exp_id,
+                    }
+                    for dp in broadcast_dps
+                ],
+            },
+        )
 
     return IngestionResult(accepted=len(accepted), rejected=len(datapoints) - len(accepted))

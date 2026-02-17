@@ -62,7 +62,18 @@ def validate_manifest(manifest: dict[str, str]) -> bool:
 def _run(cmd: list[str], *, check: bool = True, timeout: int = 300) -> subprocess.CompletedProcess[str]:
     """Run a shell command with logging."""
     logger.info("updater_exec", cmd=" ".join(cmd))
-    return subprocess.run(cmd, capture_output=True, text=True, check=check, timeout=timeout)  # noqa: S603
+    try:
+        return subprocess.run(  # noqa: S603
+            cmd, capture_output=True, text=True, check=check, timeout=timeout
+        )
+    except subprocess.CalledProcessError as exc:
+        logger.error(
+            "updater_exec_failed",
+            cmd=" ".join(cmd),
+            returncode=exc.returncode,
+            stderr=(exc.stderr or "").strip(),
+        )
+        raise
 
 
 def load_images(images_tar: Path) -> bool:
@@ -72,7 +83,8 @@ def load_images(images_tar: Path) -> bool:
         logger.info("docker_load_complete", output=result.stdout.strip())
         return True
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        logger.error("docker_load_failed", error=str(exc))
+        stderr = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else None
+        logger.error("docker_load_failed", error=str(exc), stderr=(stderr or "").strip())
         return False
 
 
@@ -102,7 +114,8 @@ def create_db_backup() -> Path | None:
         logger.info("db_backup_created", path=str(backup_path), size=backup_path.stat().st_size)
         return backup_path
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        logger.error("db_backup_failed", error=str(exc))
+        stderr = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else None
+        logger.error("db_backup_failed", error=str(exc), stderr=(stderr or "").strip())
         return None
 
 
@@ -113,22 +126,31 @@ def restart_services(version: str) -> bool:
     """Restart the Docker Compose stack with the new version tag."""
     env = os.environ.copy()
     env["WEBMACS_VERSION"] = version
-    try:
-        subprocess.run(  # noqa: S603
-            ["docker", "compose", "-f", str(COMPOSE_FILE), "up", "-d", "--no-build", "--remove-orphans"],  # noqa: S607
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=300,
-            env=env,
-        )
-        # Persist version to .env so it survives reboots
-        _persist_version(version)
-        logger.info("services_restarted", version=version)
-        return True
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        logger.error("service_restart_failed", error=str(exc))
-        return False
+    cmd = ["docker", "compose", "-f", str(COMPOSE_FILE), "up", "-d", "--no-build", "--remove-orphans"]
+    for attempt in (1, 2):
+        try:
+            result = subprocess.run(  # noqa: S603
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=300,
+                env=env,
+            )
+            _persist_version(version)
+            logger.info("services_restarted", version=version, attempt=attempt, stderr=(result.stderr or "").strip())
+            return True
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+            stderr = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else None
+            logger.error(
+                "service_restart_failed",
+                error=str(exc),
+                attempt=attempt,
+                stderr=(stderr or "").strip(),
+            )
+            if attempt == 1:
+                time.sleep(5)
+    return False
 
 
 def _persist_version(version: str) -> None:

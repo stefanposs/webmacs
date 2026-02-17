@@ -53,6 +53,7 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quick-start.md
     - Configuration: getting-started/configuration.md
+    - Hardware & Sizing: getting-started/hardware-sizing.md
   - User Guide:
     - Overview: guide/index.md
     - Dashboard: guide/dashboard.md

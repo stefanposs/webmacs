@@ -52,19 +52,24 @@ This endpoint receives **batches of sensor readings** from the IoT controller an
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `datapoints` | array | Yes | Batch of readings |
+| `datapoints` | array | Yes | Batch of readings (max **500** items) |
 | `datapoints[].value` | number | Yes | Sensor reading value |
 | `datapoints[].event_public_id` | string (UUID) | Yes | Matches an Event's `public_id` |
+
+!!! warning "Batch size limit"
+    Batches exceeding **500 datapoints** are rejected with an error message.
+    The controller automatically chunks large batches via `WEBMACS_MAX_BATCH_SIZE`.
 
 ### Processing Pipeline
 
 For each valid batch, the backend:
 
 1. **Validates** each datapoint (must have `value` and `event_public_id`)
-2. **Persists** to PostgreSQL (bulk `INSERT` with `experiment_public_id` from active experiment)
-3. **Evaluates rules** — checks all threshold rules against each datapoint value
-4. **Dispatches webhooks** — fires `sensor_reading` webhook events
-5. **Broadcasts** to all connected frontends (see below)
+2. **Filters** by active plugin linkage — only events with an enabled plugin instance are accepted
+3. **Persists** to PostgreSQL (bulk `INSERT` with `experiment_public_id` from active experiment)
+4. **Dispatches webhooks** — fires `sensor_reading` webhook events (throttled to 1 per 5 s per sensor)
+5. **Evaluates rules** — checks threshold rules for the **last value per event** in the batch
+6. **Broadcasts** to all connected frontends (throttled to ≥ 200 ms per event)
 
 ### Error Response
 

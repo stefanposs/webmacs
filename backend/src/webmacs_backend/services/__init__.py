@@ -32,6 +32,17 @@ logger = structlog.get_logger()
 MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds: 2, 4, 8
 DELIVERY_TIMEOUT = 10.0  # seconds
+MAX_CONCURRENT_DELIVERIES = 10  # limit parallel outgoing HTTP requests
+
+# Lazy-initialised semaphore (must be created inside event loop context)
+_semaphore_holder: dict[str, asyncio.Semaphore] = {}
+
+
+def _get_semaphore() -> asyncio.Semaphore:
+    """Return a module-level semaphore, creating it on first use."""
+    if "sem" not in _semaphore_holder:
+        _semaphore_holder["sem"] = asyncio.Semaphore(MAX_CONCURRENT_DELIVERIES)
+    return _semaphore_holder["sem"]
 
 
 def _sign_payload(payload: str, secret: str, timestamp: str) -> str:
@@ -100,6 +111,17 @@ async def _dispatch_to_webhook(
     payload: dict[str, Any],
 ) -> None:
     """Dispatch payload to a single webhook with retry logic."""
+    sem = _get_semaphore()
+    async with sem:
+        await _dispatch_to_webhook_inner(webhook, event_type, payload)
+
+
+async def _dispatch_to_webhook_inner(
+    webhook: Webhook,
+    event_type: WebhookEventType,
+    payload: dict[str, Any],
+) -> None:
+    """Inner dispatch logic, guarded by the concurrency semaphore."""
     payload_str = json.dumps(payload)
 
     async with db_session() as session:
@@ -136,7 +158,7 @@ async def _dispatch_to_webhook(
                     logger.info(
                         "Webhook delivered",
                         webhook_url=webhook.url,
-                        event=event_type.value,
+                        webhook_event=event_type.value,
                         attempt=attempt,
                     )
                     return
@@ -147,7 +169,7 @@ async def _dispatch_to_webhook(
             logger.warning(
                 "Webhook delivery failed, retrying",
                 webhook_url=webhook.url,
-                event=event_type.value,
+                webhook_event=event_type.value,
                 attempt=attempt,
                 error=error,
             )
@@ -165,7 +187,7 @@ async def _dispatch_to_webhook(
     logger.error(
         "Webhook dead-lettered after max retries",
         webhook_url=webhook.url,
-        event=event_type.value,
+        webhook_event=event_type.value,
         max_retries=MAX_RETRIES,
     )
 
@@ -198,7 +220,7 @@ async def dispatch_event(
 
     logger.info(
         "Dispatching webhook event",
-        event=event_type.value,
+        webhook_event=event_type.value,
         target_count=len(matching),
     )
 

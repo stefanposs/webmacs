@@ -23,9 +23,13 @@ class ControllerSettings(BaseSettings):
     admin_password: str = Field(default="", alias="WEBMACS_ADMIN_PASSWORD")
 
     # Timing
-    poll_interval: float = Field(default=0.1, alias="WEBMACS_POLL_INTERVAL")
+    poll_interval: float = Field(default=1.0, ge=0.2, alias="WEBMACS_POLL_INTERVAL")
     request_timeout: float = Field(default=30.0, alias="WEBMACS_REQUEST_TIMEOUT")
     event_round_digit: int = 2
+
+    # Batching & deduplication
+    max_batch_size: int = Field(default=100, ge=1, le=500, alias="WEBMACS_MAX_BATCH_SIZE")
+    dedup_enabled: bool = Field(default=False, alias="WEBMACS_DEDUP_ENABLED")
 
     # Telemetry transport (http | websocket)
     telemetry_mode: str = Field(default="http", alias="WEBMACS_TELEMETRY_MODE")

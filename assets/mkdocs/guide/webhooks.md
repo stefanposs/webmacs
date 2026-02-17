@@ -49,7 +49,9 @@ sequenceDiagram
 | `system.health_changed` | System health status changes (degraded / recovered) |
 
 !!! tip "Choose wisely"
-    Subscribing to `sensor.reading` generates a webhook delivery for **every** datapoint — potentially hundreds per minute. For most integrations, `sensor.threshold_exceeded` is more useful.
+    `sensor.reading` webhooks are **throttled**: at most one delivery per sensor channel every 5 seconds.
+    With 8 channels, this means ~96 deliveries per minute maximum.
+    For alerting, `sensor.threshold_exceeded` is usually more appropriate — it fires only when a [rule](rules.md) triggers.
 
 ---
 
@@ -192,6 +194,23 @@ Filter by status: `?status=failed`
 
 ---
 
+## Rate Limiting & Safeguards
+
+WebMACS includes built-in protection to prevent webhook dispatching from
+overwhelming your endpoints or the backend itself:
+
+| Safeguard | Detail |
+|---|---|
+| **Sensor throttle** | `sensor.reading` events are dispatched at most once per sensor channel every **5 seconds** — high-frequency ingestion does not create a flood of deliveries |
+| **Concurrency limit** | At most **10** outgoing webhook HTTP requests run simultaneously; additional deliveries queue until a slot is free |
+| **Retry cap** | Failed deliveries are retried at most **3 times** with exponential backoff (2 s, 4 s) — then permanently marked `dead_letter` |
+| **Delivery timeout** | Each outgoing HTTP request times out after **10 seconds** to prevent slow endpoints from blocking the dispatch queue |
+
+These safeguards ensure that even if a receiving endpoint goes down or returns
+errors, the WebMACS backend remains responsive for all users.
+
+---
+
 ## Best Practices
 
 !!! tip "Recommendations"
@@ -201,6 +220,7 @@ Filter by status: `?status=failed`
     - **Disable unused webhooks** to reduce unnecessary network traffic
     - **Use `sensor.threshold_exceeded`** instead of `sensor.reading` for alerting — it fires only when rules trigger, not on every reading
     - **Set appropriate timeouts** on your receiving endpoint — WebMACS waits up to 10 seconds per delivery
+    - **Avoid free webhook testers** (e.g. webhook.site) for sustained traffic — they rate-limit aggressively
 
 ---
 

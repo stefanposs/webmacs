@@ -10,9 +10,11 @@ import structlog
 from fastapi import APIRouter, HTTPException, Query, UploadFile, status
 
 from webmacs_backend.dependencies import AdminUser, CurrentUser, DbSession
+from webmacs_backend.enums import UpdateStatus
 from webmacs_backend.models import FirmwareUpdate
 from webmacs_backend.repository import ConflictError, delete_by_public_id, get_or_404, paginate
 from webmacs_backend.schemas import (
+    FirmwareApplyRequest,
     FirmwareUpdateCreate,
     FirmwareUpdateResponse,
     PaginatedResponse,
@@ -24,6 +26,7 @@ from webmacs_backend.services.ota_service import (
     apply_update,
     check_for_updates,
     rollback_update,
+    start_update_with_download,
 )
 
 router = APIRouter()
@@ -92,16 +95,25 @@ async def apply_firmware_update(
     public_id: str,
     db: DbSession,
     admin_user: AdminUser,
+    data: FirmwareApplyRequest | None = None,
 ) -> StatusResponse:
     """Apply a firmware update (admin only)."""
     fw = await get_or_404(db, FirmwareUpdate, public_id, entity_name="FirmwareUpdate")
     try:
+        if data and data.download_url:
+            await start_update_with_download(db, fw, data.download_url, expected_hash=data.file_hash_sha256)
+            if fw.status == UpdateStatus.failed:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=fw.error_message or "Firmware download failed.",
+                )
         await apply_update(db, fw)
     except InvalidTransitionError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
         ) from exc
+    await db.commit()
     return StatusResponse(status="success", message="Firmware update applied successfully.")
 
 

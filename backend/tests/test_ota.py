@@ -8,7 +8,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
+import httpx
 import pytest
+import respx
 
 from webmacs_backend.enums import UpdateStatus
 from webmacs_backend.services.ota_service import compare_versions, get_current_version, verify_update
@@ -246,6 +248,38 @@ async def test_apply_firmware_update(
     # Verify status changed
     detail = await client.get("/api/v1/ota/fw-update-001", headers=auth_headers)
     assert detail.json()["status"] == UpdateStatus.completed
+
+
+@respx.mock
+async def test_apply_firmware_update_with_download(
+    client: AsyncClient,
+    auth_headers: dict[str, str],
+    admin_user: User,
+    sample_firmware_update: FirmwareUpdate,
+    tmp_path: Path,
+) -> None:
+    """POST /apply downloads firmware, verifies hash, and completes update."""
+
+    from webmacs_backend.services import ota_service
+
+    content = b"firmware-binary"
+    download_url = "https://example.com/fw.bin"
+    expected_hash = hashlib.sha256(content).hexdigest()
+
+    ota_service.UPDATE_DIR = tmp_path
+    respx.get(download_url).mock(return_value=httpx.Response(200, content=content))
+
+    response = await client.post(
+        "/api/v1/ota/fw-update-001/apply",
+        headers=auth_headers,
+        json={"download_url": download_url, "file_hash_sha256": expected_hash},
+    )
+    assert response.status_code == 200
+
+    detail = await client.get("/api/v1/ota/fw-update-001", headers=auth_headers)
+    data = detail.json()
+    assert data["status"] == UpdateStatus.completed
+    assert data["has_firmware_file"] is True
 
 
 async def test_rollback_firmware_update(

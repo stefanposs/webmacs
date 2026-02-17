@@ -6,11 +6,15 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Request interceptor: attach JWT
+// Request interceptor: attach JWT + prevent browser caching of GET requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  }
+  // Bust browser cache on GET requests so mutations are always visible
+  if (config.method === 'get' || !config.method) {
+    config.params = { ...config.params, _t: Date.now() }
   }
   return config
 })

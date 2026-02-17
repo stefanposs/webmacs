@@ -10,6 +10,7 @@ flow for plugin-managed channels:
 
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -17,6 +18,7 @@ import structlog
 from webmacs_plugins_core.registry import PluginRegistry
 
 if TYPE_CHECKING:
+    from webmacs_controller.config import ControllerSettings
     from webmacs_controller.services.api_client import APIClient
     from webmacs_controller.services.telemetry import TelemetryTransport
 
@@ -71,12 +73,25 @@ class PluginBridge:
         self,
         api_client: APIClient,
         telemetry: TelemetryTransport,
+        *,
+        settings: ControllerSettings | None = None,
     ) -> None:
         self._api = api_client
         self._telemetry = telemetry
         self._registry = PluginRegistry()
         self._channel_map = ChannelEventMap()
         self._initialized = False
+
+        # Sub-second polling guards
+        if settings is None:
+            from webmacs_controller.config import ControllerSettings
+
+            settings = ControllerSettings()
+        self._settings = settings
+        # Per-sensor monotonic timestamp of last accepted read
+        self._last_read: dict[tuple[str, str], float] = {}
+        # Per-sensor last numeric value (for optional dedup)
+        self._last_value: dict[tuple[str, str], float] = {}
 
     @property
     def registry(self) -> PluginRegistry:
@@ -157,12 +172,22 @@ class PluginBridge:
     # ── Sensor loop tick ─────────────────────────────────────────────────
 
     async def read_and_send(self) -> None:
-        """Read all plugin input channels and send mapped values as telemetry."""
+        """Read all plugin input channels and send mapped values as telemetry.
+
+        Guards applied per sensor:
+        * **Throttle** — each channel is read at most once per ``poll_interval``.
+        * **Dedup** — if ``dedup_enabled``, unchanged values are silently dropped.
+        * **Chunking** — the batch is split into slices of ``max_batch_size``
+          before transmission so the backend never receives an oversized payload.
+        """
         if not self._initialized:
             return
 
         all_values = await self._registry.read_all_inputs()
         datapoints: list[dict[str, Any]] = []
+        now = time.monotonic()
+        poll_interval = self._settings.poll_interval
+        dedup = self._settings.dedup_enabled
 
         for entry in all_values:
             iid = str(entry["instance_id"])
@@ -170,12 +195,41 @@ class PluginBridge:
             value = entry["value"]
 
             event_pid = self._channel_map.event_for(iid, ch_id)
-            if event_pid:
-                datapoints.append({"value": float(value), "event_public_id": event_pid})  # type: ignore[arg-type]
+            if not event_pid:
+                continue
 
-        if datapoints:
-            await self._telemetry.send(datapoints)
-            logger.debug("plugin_telemetry_sent", count=len(datapoints))
+            key = (iid, ch_id)
+
+            # ── Per-sensor throttle ──
+            last_t = self._last_read.get(key, 0.0)
+            if now - last_t < poll_interval:
+                continue  # too soon — skip this sensor
+
+            try:
+                numeric = float(value)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                logger.warning("plugin_value_invalid", instance=iid, channel=ch_id, value=value)
+                continue
+
+            # ── Optional dedup ──
+            if dedup and key in self._last_value and self._last_value[key] == numeric:
+                self._last_read[key] = now  # reset timer even on dup
+                continue
+
+            self._last_read[key] = now
+            self._last_value[key] = numeric
+            datapoints.append({"value": numeric, "event_public_id": event_pid})
+
+        if not datapoints:
+            return
+
+        # ── Chunk into max_batch_size slices ──
+        batch_size = self._settings.max_batch_size
+        for i in range(0, len(datapoints), batch_size):
+            chunk = datapoints[i : i + batch_size]
+            await self._telemetry.send(chunk)
+
+        logger.debug("plugin_telemetry_sent", count=len(datapoints))
 
     # ── Actuator loop tick ───────────────────────────────────────────────
 

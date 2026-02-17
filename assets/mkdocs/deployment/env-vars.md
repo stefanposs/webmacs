@@ -35,10 +35,14 @@ Complete reference of all environment variables used by WebMACS.
 | `WEBMACS_SERVER_PORT` | Yes | `8000` | Backend port |
 | `WEBMACS_ADMIN_EMAIL` | Yes | — | Login credentials for controller |
 | `WEBMACS_ADMIN_PASSWORD` | Yes | — | Login password |
-| `WEBMACS_POLL_INTERVAL` | No | `0.5` | Sensor read interval (seconds) |
+| `WEBMACS_POLL_INTERVAL` | No | `1.0` | Sensor read interval in seconds (min `0.2`) |
 | `WEBMACS_REQUEST_TIMEOUT` | No | `30.0` | HTTP timeout (seconds) |
+| `WEBMACS_MAX_BATCH_SIZE` | No | `100` | Max datapoints per telemetry payload (1–500) |
+| `WEBMACS_DEDUP_ENABLED` | No | `false` | Drop unchanged sensor values to reduce I/O |
 | `WEBMACS_TELEMETRY_MODE` | No | `http` | `http` or `websocket` |
 | `WEBMACS_RULE_EVENT_ID` | No | *(empty)* | Event triggering rule evaluation |
+| `WEBMACS_AUTO_SEED` | No | `true` | Auto-register simulated plugin in dev mode |
+| `WEBMACS_PLUGIN_SYNC_INTERVAL` | No | `10.0` | Plugin re-sync interval (seconds) |
 | `WEBMACS_REVPI_MAPPING` | No | `{}` | JSON: RevPi I/O pin → event ID |
 
 ---

@@ -54,7 +54,7 @@ export interface CrudStore<T> {
   error: Ref<string | null>
 
   /** Fetch a page of items from the backend. */
-  fetch: (page?: number, pageSize?: number) => Promise<void>
+  fetch: (page?: number, pageSize?: number, showLoading?: boolean) => Promise<void>
 
   /** Create a new item and re-fetch the list. */
   create: (payload: Partial<T> | Record<string, unknown>) => Promise<void>
@@ -95,8 +95,12 @@ export function useCrudStore<T>(
 
   // ── Actions ─────────────────────────────────────────────────────────────
 
-  async function fetch(page = 1, pageSize: number = defaultPageSize): Promise<void> {
-    loading.value = true
+  async function fetch(
+    page = 1,
+    pageSize: number = defaultPageSize,
+    showLoading = true,
+  ): Promise<void> {
+    if (showLoading) loading.value = true
     error.value = null
     try {
       const { data } = await api.get<PaginatedResponse<T>>(endpoint, {
@@ -110,7 +114,7 @@ export function useCrudStore<T>(
       error.value = msg
       notify.error(`Fetch failed`, msg)
     } finally {
-      loading.value = false
+      if (showLoading) loading.value = false
     }
   }
 
@@ -118,7 +122,7 @@ export function useCrudStore<T>(
     try {
       await api.post(endpoint, payload)
       notify.success(`${capitalize(name)} created`)
-      await fetch()
+      await fetch(1, defaultPageSize, false)
     } catch (e) {
       const msg = e instanceof Error ? e.message : `Failed to create ${name}`
       notify.error(`Create failed`, msg)
@@ -133,7 +137,7 @@ export function useCrudStore<T>(
     try {
       await api.put(`${endpoint}/${id}`, payload)
       notify.success(`${capitalize(name)} updated`)
-      await fetch()
+      await fetch(1, defaultPageSize, false)
     } catch (e) {
       const msg = e instanceof Error ? e.message : `Failed to update ${name}`
       notify.error(`Update failed`, msg)

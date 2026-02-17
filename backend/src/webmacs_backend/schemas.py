@@ -130,7 +130,7 @@ class DatapointCreate(BaseModel):
 
 
 class DatapointBatchCreate(BaseModel):
-    datapoints: list[DatapointCreate]
+    datapoints: list[DatapointCreate] = Field(max_length=500)
 
 
 class DatapointResponse(BaseModel):
@@ -327,6 +327,11 @@ class FirmwareUpdateCreate(BaseModel):
     changelog: str | None = None
 
 
+class FirmwareApplyRequest(BaseModel):
+    download_url: str | None = Field(default=None, max_length=2048)
+    file_hash_sha256: str | None = Field(default=None, min_length=64, max_length=64)
+
+
 class FirmwareUpdateResponse(BaseModel):
     public_id: str
     version: str
@@ -343,7 +348,7 @@ class FirmwareUpdateResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    @computed_field  # type: ignore[prop-decorator]
+    @computed_field  # type: ignore[misc]
     @property
     def has_firmware_file(self) -> bool:
         """True when a firmware binary has been uploaded."""

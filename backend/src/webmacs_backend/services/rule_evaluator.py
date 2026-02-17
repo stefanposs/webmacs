@@ -138,8 +138,9 @@ async def evaluate_rules_for_datapoint(
                 | (Rule.last_triggered_at < now - datetime.timedelta(seconds=rule.cooldown_seconds)),
             )
             .values(last_triggered_at=now)
+            .returning(Rule.id)
         )
-        if result.rowcount == 0:  # type: ignore[attr-defined]
+        if not result.scalars().first():
             # Another request already triggered this rule
             continue
         triggered += 1

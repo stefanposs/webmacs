@@ -25,6 +25,9 @@ logger = structlog.get_logger()
 
 router = APIRouter()
 
+# Maximum datapoints accepted in a single WebSocket batch (same as REST schema cap).
+_MAX_WS_BATCH = 500
+
 
 async def _authenticate_ws(ws: WebSocket) -> User | None:
     """Validate JWT token from query parameter and return the User, or None on failure.
@@ -96,6 +99,16 @@ async def controller_telemetry(ws: WebSocket) -> None:
             data = await ws.receive_json()
             raw_datapoints = data.get("datapoints", [])
             if not raw_datapoints:
+                continue
+
+            # Enforce batch size cap (same limit as REST schema)
+            if len(raw_datapoints) > _MAX_WS_BATCH:
+                await ws.send_json(
+                    {
+                        "type": "error",
+                        "message": f"Batch too large ({len(raw_datapoints)}), max {_MAX_WS_BATCH}",
+                    }
+                )
                 continue
 
             # Validate each datapoint has the required fields

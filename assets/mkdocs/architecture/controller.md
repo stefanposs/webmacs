@@ -96,8 +96,10 @@ class ControllerSettings(BaseSettings):
     webmacs_env: str = "development"
     webmacs_server_url: str = "http://localhost"
     webmacs_server_port: int = 8000
-    webmacs_poll_interval: float = 0.5
-    webmacs_telemetry_mode: str = "http"  # "http" | "websocket"
+    webmacs_poll_interval: float = 1.0      # min 0.2 s
+    webmacs_max_batch_size: int = 100       # 1–500
+    webmacs_dedup_enabled: bool = False
+    webmacs_telemetry_mode: str = "http"    # "http" | "websocket"
     webmacs_admin_email: str
     webmacs_admin_password: str
 ```

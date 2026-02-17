@@ -90,7 +90,7 @@ class Application:
             )
 
             # 6. Initialize plugin bridge (sole sensor/actuator path)
-            self._plugin_bridge = PluginBridge(self._api_client, self._telemetry)
+            self._plugin_bridge = PluginBridge(self._api_client, self._telemetry, settings=self._settings)
             await self._plugin_bridge.initialize()
             logger.info("Plugin bridge initialized")
 

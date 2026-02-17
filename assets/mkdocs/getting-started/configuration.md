@@ -40,10 +40,14 @@ WebMACS is configured entirely through **environment variables**. Copy `.env.exa
 | `WEBMACS_SERVER_PORT` | `8000` | Backend port |
 | `WEBMACS_ADMIN_EMAIL` | `admin@example.com` | Credentials for controller ↔ backend auth |
 | `WEBMACS_ADMIN_PASSWORD` | *(set in .env)* | Password for auto-login |
-| `WEBMACS_POLL_INTERVAL` | `0.5` | Sensor polling interval (seconds) |
+| `WEBMACS_POLL_INTERVAL` | `1.0` | Sensor polling interval in seconds (min `0.2`, see [Fast Mode](hardware-sizing.md#fast-mode-sub-second-polling)) |
 | `WEBMACS_REQUEST_TIMEOUT` | `30.0` | HTTP request timeout |
+| `WEBMACS_MAX_BATCH_SIZE` | `100` | Max datapoints per telemetry payload (1–500) |
+| `WEBMACS_DEDUP_ENABLED` | `false` | Drop unchanged sensor values to reduce write I/O |
 | `WEBMACS_TELEMETRY_MODE` | `http` | `http` or `websocket` |
 | `WEBMACS_RULE_EVENT_ID` | *(empty)* | Event public_id triggering rule evaluation |
+| `WEBMACS_AUTO_SEED` | `true` | Auto-register simulated plugin in dev mode |
+| `WEBMACS_PLUGIN_SYNC_INTERVAL` | `10.0` | Plugin re-sync interval (seconds) |
 | `WEBMACS_REVPI_MAPPING` | `{}` | JSON mapping of RevPi I/O pins to event ids |
 
 ---

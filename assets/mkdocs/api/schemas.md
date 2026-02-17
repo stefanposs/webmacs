@@ -135,9 +135,13 @@ WebMACS uses **Pydantic v2** for all request/response validation. This page docu
 
 ### DatapointBatchCreate
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `datapoints` | `list[DatapointCreate]` | Yes | Array of datapoints to insert |
+| Field | Type | Required | Constraints | Description |
+|---|---|---|---|---|
+| `datapoints` | `list[DatapointCreate]` | Yes | max **500** items | Array of datapoints to insert |
+
+!!! info "Batch size limit"
+    Batches exceeding 500 datapoints will return **422 Unprocessable Entity**.
+    The same limit is enforced on the WebSocket telemetry endpoint.
 
 ### DatapointResponse
 

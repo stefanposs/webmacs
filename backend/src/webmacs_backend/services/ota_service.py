@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import hashlib
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -27,6 +28,9 @@ logger = structlog.get_logger()
 
 GITHUB_API = "https://api.github.com"
 _GITHUB_TIMEOUT = 8.0  # seconds
+_DOWNLOAD_TIMEOUT = 30.0  # seconds
+
+UPDATE_DIR = Path(os.environ.get("WEBMACS_UPDATE_DIR", "/updates"))
 
 
 async def check_github_releases() -> dict[str, str | None]:
@@ -183,11 +187,93 @@ async def check_for_updates(db: AsyncSession) -> UpdateCheckResponse:
 
 
 async def start_update(db: AsyncSession, fw: FirmwareUpdate) -> None:
-    """Mark a firmware record as *downloading*.
-
-    .. todo:: Phase 3b — trigger actual firmware download + progress tracking.
-    """
+    """Mark firmware as downloading (legacy entry point without remote fetch)."""
     _transition(fw, UpdateStatus.downloading)
+    fw.started_on = datetime.datetime.now(datetime.UTC)
+    fw.error_message = None
+
+
+async def start_update_with_download(
+    db: AsyncSession,
+    fw: FirmwareUpdate,
+    download_url: str,
+    *,
+    expected_hash: str | None = None,
+) -> None:
+    """Download firmware from HTTPS URL, verify optional SHA-256, advance state.
+
+    Transitions: pending -> downloading -> verifying -> applying
+    On any failure: status=failed with error_message.
+    """
+
+    _transition(fw, UpdateStatus.downloading)
+    fw.started_on = datetime.datetime.now(datetime.UTC)
+    fw.error_message = None
+
+    UPDATE_DIR.mkdir(parents=True, exist_ok=True)
+    safe_version = fw.version.replace("/", "-")
+    dest = UPDATE_DIR / f"firmware-{safe_version}.tar.gz"
+
+    hasher = hashlib.sha256() if expected_hash else None
+    bytes_written = 0
+
+    try:
+        async with (
+            httpx.AsyncClient(timeout=_DOWNLOAD_TIMEOUT) as client,
+            client.stream("GET", download_url, follow_redirects=True) as resp,
+        ):
+            if resp.status_code != 200:
+                _transition(fw, UpdateStatus.failed)
+                fw.error_message = f"download_failed: status {resp.status_code}"
+                logger.warning(
+                    "firmware_download_failed",
+                    firmware_id=fw.public_id,
+                    status=resp.status_code,
+                )
+                return
+
+            with dest.open("wb") as fh:
+                async for chunk in resp.aiter_bytes():
+                    if not chunk:
+                        continue
+                    fh.write(chunk)
+                    bytes_written += len(chunk)
+                    if hasher:
+                        hasher.update(chunk)
+    except Exception as exc:
+        _transition(fw, UpdateStatus.failed)
+        fw.error_message = f"download_failed: {exc}"
+        logger.warning("firmware_download_failed", firmware_id=fw.public_id, error=str(exc))
+        dest.unlink(missing_ok=True)
+        return
+
+    fw.file_path = str(dest)
+    fw.file_size_bytes = bytes_written
+
+    _transition(fw, UpdateStatus.verifying)
+
+    if expected_hash and hasher:
+        actual_hash = hasher.hexdigest()
+        fw.file_hash_sha256 = actual_hash
+        if actual_hash != expected_hash:
+            _transition(fw, UpdateStatus.failed)
+            fw.error_message = "SHA-256 hash verification failed"
+            logger.warning(
+                "firmware_hash_mismatch",
+                firmware_id=fw.public_id,
+                expected=expected_hash,
+                actual=actual_hash,
+            )
+            dest.unlink(missing_ok=True)
+            return
+
+    _transition(fw, UpdateStatus.applying)
+    logger.info(
+        "firmware_downloaded",
+        firmware_id=fw.public_id,
+        path=str(dest),
+        size_bytes=bytes_written,
+    )
 
 
 def verify_update(file_path: str, expected_hash: str) -> bool:
