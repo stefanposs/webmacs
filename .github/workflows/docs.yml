@@ -1,7 +1,7 @@
-# GitHub Actions workflow for deploying mkdocs documentation to GitHub Pages
-# Builds docs and deploys directly via GitHub Actions (no commit to main needed).
-# GitHub Pages must be configured to "Deploy from GitHub Actions" in repo settings.
-name: Deploy Documentation
+# GitHub Actions workflow for building mkdocs documentation.
+# Builds from assets/mkdocs/ → docs/ and commits the result to main.
+# GitHub Pages is configured to serve from main/docs.
+name: Build Documentation
 
 on:
   push:
@@ -13,12 +13,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: docs-build
   cancel-in-progress: true
 
 jobs:
@@ -39,23 +37,20 @@ jobs:
           pip install \
             mkdocs-material==9.7.* \
             mkdocs>=1.6 \
-            mkdocstrings[python]
+            'mkdocstrings[python]'
 
       - name: Build documentation
         run: mkdocs build --config-file mkdocs.yml --strict
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Commit & push docs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          # Only commit if there are actual changes
+          if git diff --cached --quiet; then
+            echo "No documentation changes to commit."
+          else
+            git commit -m "docs: rebuild documentation site [skip ci]"
+            git push
+          fi
