@@ -25,7 +25,7 @@ async def login(request: LoginRequest, db: DbSession) -> LoginResponse:
     if not user or not verify_password(request.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
 
-    token = create_access_token(user.id)
+    token = create_access_token(user.id, role=user.role.value)
     await create_log(db, f"User '{user.username}' logged in.", user.public_id)
     return LoginResponse(access_token=token, public_id=user.public_id, username=user.username)
 

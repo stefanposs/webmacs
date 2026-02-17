@@ -8,7 +8,7 @@ import structlog
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import desc, func, select
 
-from webmacs_backend.dependencies import CurrentUser, DbSession
+from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.models import Datapoint, Event
 from webmacs_backend.repository import delete_by_public_id, get_or_404
 from webmacs_backend.schemas import (
@@ -33,7 +33,7 @@ router = APIRouter()
 @router.get("", response_model=PaginatedResponse[DatapointResponse])
 async def list_datapoints(
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[DatapointResponse]:
@@ -50,7 +50,7 @@ async def list_datapoints(
 
 
 @router.post("", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
-async def create_datapoint(data: DatapointCreate, db: DbSession, current_user: CurrentUser) -> StatusResponse:
+async def create_datapoint(data: DatapointCreate, db: DbSession, current_user: OperatorUser) -> StatusResponse:
     event_result = await db.execute(select(Event.public_id).where(Event.public_id == data.event_public_id))
     if not event_result.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found.")
@@ -71,7 +71,7 @@ async def create_datapoint(data: DatapointCreate, db: DbSession, current_user: C
 async def create_datapoints_batch(
     data: DatapointBatchCreate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: OperatorUser,
 ) -> StatusResponse:
     incoming = [IncomingDatapoint(value=dp.value, event_public_id=dp.event_public_id) for dp in data.datapoints]
     result = await ingest_datapoints(db, incoming)
@@ -82,7 +82,7 @@ async def create_datapoints_batch(
 async def get_datapoint_series(
     data: DatapointSeriesRequest,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
 ) -> dict[str, list[DatapointResponse]]:
     """Return recent datapoints grouped by event_public_id (for dashboard charts)."""
     cutoff = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=data.minutes)
@@ -106,7 +106,7 @@ async def get_datapoint_series(
 
 
 @router.get("/latest", response_model=list[DatapointResponse])
-async def get_latest_datapoints(db: DbSession, current_user: CurrentUser) -> list[DatapointResponse]:
+async def get_latest_datapoints(db: DbSession, current_user: ViewerUser) -> list[DatapointResponse]:
     # Subquery: for each event, find the max id among the rows with the latest timestamp.
     ts_subq = (
         select(Datapoint.event_public_id, func.max(Datapoint.timestamp).label("max_ts"))
@@ -127,11 +127,11 @@ async def get_latest_datapoints(db: DbSession, current_user: CurrentUser) -> lis
 
 
 @router.get("/{public_id}", response_model=DatapointResponse)
-async def get_datapoint(public_id: str, db: DbSession, current_user: CurrentUser) -> DatapointResponse:
+async def get_datapoint(public_id: str, db: DbSession, current_user: ViewerUser) -> DatapointResponse:
     dp = await get_or_404(db, Datapoint, public_id, entity_name="Datapoint")
     return DatapointResponse.model_validate(dp)
 
 
 @router.delete("/{public_id}", response_model=StatusResponse)
-async def delete_datapoint(public_id: str, db: DbSession, current_user: CurrentUser) -> StatusResponse:
+async def delete_datapoint(public_id: str, db: DbSession, current_user: OperatorUser) -> StatusResponse:
     return await delete_by_public_id(db, Datapoint, public_id, entity_name="Datapoint")

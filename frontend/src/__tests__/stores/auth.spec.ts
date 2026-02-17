@@ -37,7 +37,7 @@ describe('Auth Store', () => {
 
     const mockMe = api.get as Mock
     mockMe.mockResolvedValueOnce({
-      data: { public_id: 'u1', email: 'admin@test.io', username: 'admin', admin: true, registered_on: '2024-01-01' },
+      data: { public_id: 'u1', email: 'admin@test.io', username: 'admin', role: 'admin', admin: true, registered_on: '2024-01-01' },
     })
 
     const store = useAuthStore()
@@ -58,7 +58,7 @@ describe('Auth Store', () => {
     })
     const mockGet = api.get as Mock
     mockGet.mockResolvedValueOnce({
-      data: { public_id: 'u1', email: 'a@t.io', username: 'admin', admin: true, registered_on: '2024-01-01' },
+      data: { public_id: 'u1', email: 'a@t.io', username: 'admin', role: 'admin', admin: true, registered_on: '2024-01-01' },
     })
 
     const store = useAuthStore()

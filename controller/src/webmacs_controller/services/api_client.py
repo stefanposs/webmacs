@@ -34,6 +34,7 @@ class APIClient:
         backoff_base: float = _BACKOFF_BASE,
     ) -> None:
         self._token: str | None = None
+        self._api_token: str | None = None  # Static API token (wm_...)
         self._base_url = base_url
         self._max_retries = max_retries
         self._backoff_base = backoff_base
@@ -49,18 +50,27 @@ class APIClient:
     @property
     def _auth_headers(self) -> dict[str, str]:
         headers: dict[str, str] = {"Content-Type": "application/json"}
-        if self._token:
-            headers["Authorization"] = f"Bearer {self._token}"
+        token = self._api_token or self._token
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         return headers
 
     @property
     def auth_token(self) -> str | None:
-        """Return the current JWT token (or *None* if not authenticated)."""
-        return self._token
+        """Return the current auth token (API token, JWT, or *None*)."""
+        return self._api_token or self._token
 
     # ------------------------------------------------------------------
     # Authentication
     # ------------------------------------------------------------------
+
+    def set_api_token(self, token: str) -> None:
+        """Set a static API token (wm_...) for authentication.
+
+        When an API token is configured, login/re-authentication is skipped.
+        """
+        self._api_token = token
+        logger.info("using_api_token_auth")
 
     async def login(self, email: str, password: str) -> str:
         """Authenticate with the backend and store JWT token."""
@@ -73,7 +83,9 @@ class APIClient:
         return self._token
 
     async def _reauthenticate(self) -> None:
-        """Re-login using stored credentials."""
+        """Re-login using stored credentials (skipped when using API tokens)."""
+        if self._api_token:
+            return  # API tokens don't expire via JWT mechanism
         if not self._credentials:
             raise APIClientError("Cannot re-authenticate: no credentials stored.")
         email, password = self._credentials

@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import or_, select
 from sqlalchemy.orm import selectinload
 
-from webmacs_backend.dependencies import CurrentUser, DbSession
+from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.models import Dashboard, DashboardWidget, Event
 from webmacs_backend.repository import delete_by_public_id, get_or_404, paginate
 from webmacs_backend.schemas import (
@@ -33,7 +33,7 @@ logger = structlog.get_logger()
 @router.get("", response_model=PaginatedResponse[DashboardResponse])
 async def list_dashboards(
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[DashboardResponse]:
@@ -51,7 +51,7 @@ async def list_dashboards(
 async def create_dashboard(
     data: DashboardCreate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: OperatorUser,
 ) -> DashboardResponse:
     dashboard = Dashboard(
         public_id=str(uuid.uuid4()),
@@ -66,7 +66,7 @@ async def create_dashboard(
 
 
 @router.get("/{public_id}", response_model=DashboardResponse)
-async def get_dashboard(public_id: str, db: DbSession, current_user: CurrentUser) -> DashboardResponse:
+async def get_dashboard(public_id: str, db: DbSession, current_user: ViewerUser) -> DashboardResponse:
     result = await db.execute(
         select(Dashboard).options(selectinload(Dashboard.widgets)).where(Dashboard.public_id == public_id)
     )
@@ -81,10 +81,10 @@ async def get_dashboard(public_id: str, db: DbSession, current_user: CurrentUser
 
 @router.put("/{public_id}", response_model=StatusResponse)
 async def update_dashboard(
-    public_id: str, data: DashboardUpdate, db: DbSession, current_user: CurrentUser
+    public_id: str, data: DashboardUpdate, db: DbSession, current_user: OperatorUser
 ) -> StatusResponse:
     dashboard = await get_or_404(db, Dashboard, public_id, entity_name="Dashboard")
-    if dashboard.user_public_id != current_user.public_id:
+    if dashboard.user_public_id != current_user.public_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed.")
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(dashboard, field, value)
@@ -92,9 +92,9 @@ async def update_dashboard(
 
 
 @router.delete("/{public_id}", response_model=StatusResponse)
-async def delete_dashboard(public_id: str, db: DbSession, current_user: CurrentUser) -> StatusResponse:
+async def delete_dashboard(public_id: str, db: DbSession, current_user: OperatorUser) -> StatusResponse:
     dashboard = await get_or_404(db, Dashboard, public_id, entity_name="Dashboard")
-    if dashboard.user_public_id != current_user.public_id:
+    if dashboard.user_public_id != current_user.public_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed.")
     return await delete_by_public_id(db, Dashboard, public_id, entity_name="Dashboard")
 
@@ -107,10 +107,10 @@ async def add_widget(
     dashboard_id: str,
     data: DashboardWidgetCreate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: OperatorUser,
 ) -> DashboardWidgetResponse:
     dashboard = await get_or_404(db, Dashboard, dashboard_id, entity_name="Dashboard")
-    if dashboard.user_public_id != current_user.public_id:
+    if dashboard.user_public_id != current_user.public_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed.")
 
     # Validate event exists (if provided)
@@ -142,10 +142,10 @@ async def update_widget(
     widget_id: str,
     data: DashboardWidgetUpdate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: OperatorUser,
 ) -> StatusResponse:
     dashboard = await get_or_404(db, Dashboard, dashboard_id, entity_name="Dashboard")
-    if dashboard.user_public_id != current_user.public_id:
+    if dashboard.user_public_id != current_user.public_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed.")
     widget = await get_or_404(db, DashboardWidget, widget_id, entity_name="DashboardWidget")
     if widget.dashboard_id != dashboard.id:
@@ -169,10 +169,10 @@ async def delete_widget(
     dashboard_id: str,
     widget_id: str,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: OperatorUser,
 ) -> StatusResponse:
     dashboard = await get_or_404(db, Dashboard, dashboard_id, entity_name="Dashboard")
-    if dashboard.user_public_id != current_user.public_id:
+    if dashboard.user_public_id != current_user.public_id and not current_user.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed.")
     widget = await get_or_404(db, DashboardWidget, widget_id, entity_name="DashboardWidget")
     if widget.dashboard_id != dashboard.id:

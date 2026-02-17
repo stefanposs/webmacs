@@ -18,6 +18,7 @@ from webmacs_backend.enums import (
     RuleOperator,
     StatusType,
     UpdateStatus,
+    UserRole,
     WebhookDeliveryStatus,
     WebhookEventType,
     WidgetType,
@@ -51,19 +52,22 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str = Field(min_length=2, max_length=50)
     password: str = Field(min_length=8)
+    role: UserRole = UserRole.viewer
 
 
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     username: str | None = Field(default=None, min_length=2, max_length=50)
     password: str | None = Field(default=None, min_length=8)
+    role: UserRole | None = None
 
 
 class UserResponse(BaseModel):
     public_id: str
     email: str
     username: str
-    admin: bool
+    role: UserRole
+    admin: bool = False
     registered_on: datetime.datetime
 
     model_config = {"from_attributes": True}
@@ -533,3 +537,32 @@ class PluginPackageResponse(BaseModel):
         return v if isinstance(v, list) else []
 
     model_config = {"from_attributes": True}
+
+
+# ─── API Tokens ──────────────────────────────────────────────────────────────
+
+
+class ApiTokenCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    expires_at: datetime.datetime | None = None
+
+
+class ApiTokenResponse(BaseModel):
+    public_id: str
+    name: str
+    last_used_at: datetime.datetime | None = None
+    expires_at: datetime.datetime | None = None
+    created_at: datetime.datetime | None = None
+    user_public_id: str = ""
+
+    model_config = {"from_attributes": True}
+
+
+class ApiTokenCreatedResponse(BaseModel):
+    """Returned once when a token is created — includes the plaintext token."""
+
+    public_id: str
+    name: str
+    token: str  # plaintext — shown only once
+    expires_at: datetime.datetime | None = None
+    created_at: datetime.datetime | None = None

@@ -19,6 +19,7 @@ from webmacs_backend.enums import (
     RuleOperator,
     StatusType,
     UpdateStatus,
+    UserRole,
     WebhookDeliveryStatus,
     WidgetType,
 )
@@ -34,13 +35,20 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, native_enum=False), default=UserRole.viewer, nullable=False)
     registered_on: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # Backwards-compat property
+    @property
+    def admin(self) -> bool:
+        """Legacy property — True when role is admin."""
+        return self.role == UserRole.admin
 
     # Relationships
     events: Mapped[list[Event]] = relationship(back_populates="user", cascade="all, delete-orphan")
     experiments: Mapped[list[Experiment]] = relationship(back_populates="user", cascade="all, delete-orphan")
     log_entries: Mapped[list[LogEntry]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    api_tokens: Mapped[list[ApiToken]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Event(Base):
@@ -114,6 +122,26 @@ class BlacklistToken(Base):
         server_default=func.now(),
         index=True,
     )
+
+
+class ApiToken(Base):
+    """Long-lived API token for machine-to-machine authentication."""
+
+    __tablename__ = "api_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    public_id: Mapped[str] = mapped_column(String(100), unique=True, default=lambda: str(uuid.uuid4()))
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    last_used_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    user: Mapped[User] = relationship(back_populates="api_tokens")
 
 
 class LogEntry(Base):
