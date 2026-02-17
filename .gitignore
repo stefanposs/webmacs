@@ -47,9 +47,6 @@ npm-debug.log*
 # Vue/Vite build
 frontend/dist/
 
-# MkDocs build output (deployed via GitHub Actions, not committed)
-docs/
-
 # Docker
 .docker/
 
