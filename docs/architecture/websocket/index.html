@@ -621,6 +621,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/hardware-sizing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware & Sizing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2331,8 +2359,8 @@
 <ol>
 <li>Controller opens WS to <code>/ws/controller/telemetry</code></li>
 <li>Backend authenticates via token query parameter</li>
-<li>Controller sends JSON messages at <code>poll_interval</code></li>
-<li>Backend persists to DB and broadcasts to <code>/ws/datapoints/stream</code> subscribers</li>
+<li>Controller sends JSON batches at <code>poll_interval</code> (default 1 s, min 0.2 s)</li>
+<li>Backend validates batch size (max 500), persists to DB, and broadcasts to <code>/ws/datapoints/stream</code> subscribers</li>
 <li>Backend sends heartbeat pings every <code>ws_heartbeat_interval</code> seconds</li>
 </ol>
 <hr />

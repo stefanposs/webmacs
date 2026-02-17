@@ -621,6 +621,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/hardware-sizing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware & Sizing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2403,7 +2431,7 @@
 <td><code>datapoints</code></td>
 <td>array</td>
 <td>Yes</td>
-<td>Batch of readings</td>
+<td>Batch of readings (max <strong>500</strong> items)</td>
 </tr>
 <tr>
 <td><code>datapoints[].value</code></td>
@@ -2419,14 +2447,20 @@
 </tr>
 </tbody>
 </table>
+<div class="admonition warning">
+<p class="admonition-title">Batch size limit</p>
+<p>Batches exceeding <strong>500 datapoints</strong> are rejected with an error message.
+The controller automatically chunks large batches via <code>WEBMACS_MAX_BATCH_SIZE</code>.</p>
+</div>
 <h3 id="processing-pipeline">Processing Pipeline<a class="headerlink" href="#processing-pipeline" title="Permanent link">&para;</a></h3>
 <p>For each valid batch, the backend:</p>
 <ol>
 <li><strong>Validates</strong> each datapoint (must have <code>value</code> and <code>event_public_id</code>)</li>
+<li><strong>Filters</strong> by active plugin linkage — only events with an enabled plugin instance are accepted</li>
 <li><strong>Persists</strong> to PostgreSQL (bulk <code>INSERT</code> with <code>experiment_public_id</code> from active experiment)</li>
-<li><strong>Evaluates rules</strong> — checks all threshold rules against each datapoint value</li>
-<li><strong>Dispatches webhooks</strong> — fires <code>sensor_reading</code> webhook events</li>
-<li><strong>Broadcasts</strong> to all connected frontends (see below)</li>
+<li><strong>Dispatches webhooks</strong> — fires <code>sensor_reading</code> webhook events (throttled to 1 per 5 s per sensor)</li>
+<li><strong>Evaluates rules</strong> — checks threshold rules for the <strong>last value per event</strong> in the batch</li>
+<li><strong>Broadcasts</strong> to all connected frontends (throttled to ≥ 200 ms per event)</li>
 </ol>
 <h3 id="error-response">Error Response<a class="headerlink" href="#error-response" title="Permanent link">&para;</a></h3>
 <p>If no valid datapoints are found in a batch:</p>

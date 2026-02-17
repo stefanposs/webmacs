@@ -621,6 +621,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/hardware-sizing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware & Sizing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1074,6 +1102,17 @@
     <span class="md-ellipsis">
       
         Integration Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rate-limiting-safeguards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate Limiting &amp; Safeguards
       
     </span>
   </a>
@@ -2306,6 +2345,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#rate-limiting-safeguards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate Limiting &amp; Safeguards
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2412,7 +2462,9 @@ webhooks complete the integration trifecta: <strong>pull, stream, and push</stro
 </table>
 <div class="admonition tip">
 <p class="admonition-title">Choose wisely</p>
-<p>Subscribing to <code>sensor.reading</code> generates a webhook delivery for <strong>every</strong> datapoint — potentially hundreds per minute. For most integrations, <code>sensor.threshold_exceeded</code> is more useful.</p>
+<p><code>sensor.reading</code> webhooks are <strong>throttled</strong>: at most one delivery per sensor channel every 5 seconds.
+With 8 channels, this means ~96 deliveries per minute maximum.
+For alerting, <code>sensor.threshold_exceeded</code> is usually more appropriate — it fires only when a <a href="../rules/">rule</a> triggers.</p>
 </div>
 <hr />
 <h2 id="creating-a-webhook">Creating a Webhook<a class="headerlink" href="#creating-a-webhook" title="Permanent link">&para;</a></h2>
@@ -2606,6 +2658,38 @@ webhooks complete the integration trifecta: <strong>pull, stream, and push</stro
 </div>
 </div>
 <hr />
+<h2 id="rate-limiting-safeguards">Rate Limiting &amp; Safeguards<a class="headerlink" href="#rate-limiting-safeguards" title="Permanent link">&para;</a></h2>
+<p>WebMACS includes built-in protection to prevent webhook dispatching from
+overwhelming your endpoints or the backend itself:</p>
+<table>
+<thead>
+<tr>
+<th>Safeguard</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sensor throttle</strong></td>
+<td><code>sensor.reading</code> events are dispatched at most once per sensor channel every <strong>5 seconds</strong> — high-frequency ingestion does not create a flood of deliveries</td>
+</tr>
+<tr>
+<td><strong>Concurrency limit</strong></td>
+<td>At most <strong>10</strong> outgoing webhook HTTP requests run simultaneously; additional deliveries queue until a slot is free</td>
+</tr>
+<tr>
+<td><strong>Retry cap</strong></td>
+<td>Failed deliveries are retried at most <strong>3 times</strong> with exponential backoff (2 s, 4 s) — then permanently marked <code>dead_letter</code></td>
+</tr>
+<tr>
+<td><strong>Delivery timeout</strong></td>
+<td>Each outgoing HTTP request times out after <strong>10 seconds</strong> to prevent slow endpoints from blocking the dispatch queue</td>
+</tr>
+</tbody>
+</table>
+<p>These safeguards ensure that even if a receiving endpoint goes down or returns
+errors, the WebMACS backend remains responsive for all users.</p>
+<hr />
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
 <div class="admonition tip">
 <p class="admonition-title">Recommendations</p>
@@ -2616,6 +2700,7 @@ webhooks complete the integration trifecta: <strong>pull, stream, and push</stro
 <li><strong>Disable unused webhooks</strong> to reduce unnecessary network traffic</li>
 <li><strong>Use <code>sensor.threshold_exceeded</code></strong> instead of <code>sensor.reading</code> for alerting — it fires only when rules trigger, not on every reading</li>
 <li><strong>Set appropriate timeouts</strong> on your receiving endpoint — WebMACS waits up to 10 seconds per delivery</li>
+<li><strong>Avoid free webhook testers</strong> (e.g. webhook.site) for sustained traffic — they rate-limit aggressively</li>
 </ul>
 </div>
 <hr />

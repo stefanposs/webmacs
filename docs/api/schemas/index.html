@@ -621,6 +621,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/hardware-sizing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware & Sizing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4101,6 +4129,7 @@ There is no <code>experiment_public_id</code> field on create.</p>
 <th>Field</th>
 <th>Type</th>
 <th>Required</th>
+<th>Constraints</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -4109,10 +4138,16 @@ There is no <code>experiment_public_id</code> field on create.</p>
 <td><code>datapoints</code></td>
 <td><code>list[DatapointCreate]</code></td>
 <td>Yes</td>
+<td>max <strong>500</strong> items</td>
 <td>Array of datapoints to insert</td>
 </tr>
 </tbody>
 </table>
+<div class="admonition info">
+<p class="admonition-title">Batch size limit</p>
+<p>Batches exceeding 500 datapoints will return <strong>422 Unprocessable Entity</strong>.
+The same limit is enforced on the WebSocket telemetry endpoint.</p>
+</div>
 <h3 id="datapointresponse">DatapointResponse<a class="headerlink" href="#datapointresponse" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

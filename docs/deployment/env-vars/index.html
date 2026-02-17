@@ -619,6 +619,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/hardware-sizing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware & Sizing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2262,14 +2290,26 @@
 <tr>
 <td><code>WEBMACS_POLL_INTERVAL</code></td>
 <td>No</td>
-<td><code>0.5</code></td>
-<td>Sensor read interval (seconds)</td>
+<td><code>1.0</code></td>
+<td>Sensor read interval in seconds (min <code>0.2</code>)</td>
 </tr>
 <tr>
 <td><code>WEBMACS_REQUEST_TIMEOUT</code></td>
 <td>No</td>
 <td><code>30.0</code></td>
 <td>HTTP timeout (seconds)</td>
+</tr>
+<tr>
+<td><code>WEBMACS_MAX_BATCH_SIZE</code></td>
+<td>No</td>
+<td><code>100</code></td>
+<td>Max datapoints per telemetry payload (1–500)</td>
+</tr>
+<tr>
+<td><code>WEBMACS_DEDUP_ENABLED</code></td>
+<td>No</td>
+<td><code>false</code></td>
+<td>Drop unchanged sensor values to reduce I/O</td>
 </tr>
 <tr>
 <td><code>WEBMACS_TELEMETRY_MODE</code></td>
@@ -2282,6 +2322,18 @@
 <td>No</td>
 <td><em>(empty)</em></td>
 <td>Event triggering rule evaluation</td>
+</tr>
+<tr>
+<td><code>WEBMACS_AUTO_SEED</code></td>
+<td>No</td>
+<td><code>true</code></td>
+<td>Auto-register simulated plugin in dev mode</td>
+</tr>
+<tr>
+<td><code>WEBMACS_PLUGIN_SYNC_INTERVAL</code></td>
+<td>No</td>
+<td><code>10.0</code></td>
+<td>Plugin re-sync interval (seconds)</td>
 </tr>
 <tr>
 <td><code>WEBMACS_REVPI_MAPPING</code></td>

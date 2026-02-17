@@ -621,6 +621,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/hardware-sizing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware & Sizing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1779,6 +1807,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#load-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Load Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-the-load-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Load Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrics-collected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics Collected
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-status-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage Status Icons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-results-single-worker-docker-on-mac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference Results (Single Worker, Docker on Mac)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2261,6 +2361,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#load-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Load Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-the-load-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Load Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrics-collected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics Collected
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-status-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage Status Icons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-results-single-worker-docker-on-mac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference Results (Single Worker, Docker on Mac)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2296,20 +2468,23 @@
 <hr />
 <h2 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>├── backend/tests/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│   ├── conftest.py           # Fixtures (async session, test client, auth)
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── test_auth.py          # Login, JWT validation, logout
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── test_datapoints.py    # Datapoints batch, latest, CRUD
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   └── test_events.py        # Events CRUD + duplicates
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── controller/tests/
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── conftest.py           # Fixtures (mock API client)
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── test_api_client.py    # HTTP client + retry logic
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   ├── test_hardware.py      # Hardware abstraction tests
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   └── test_sensor_manager.py # Sensor reading tests
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>└── frontend/src/
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├── composables/__tests__/  # useFormatters, useNotification
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    ├── stores/__tests__/       # auth, events, experiments, datapoints
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    ├── services/__tests__/     # api, websocket
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    └── types/__tests__/        # TypeScript enum validation
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│   ├── conftest.py               # Fixtures (async session, test client, auth)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── test_auth.py              # Login, JWT validation, logout
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── test_datapoints.py        # Datapoints batch, latest, CRUD
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── test_events.py            # Events CRUD + duplicates
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── test_hardening.py         # OTA download, returning(), subprocess retry
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── test_polling_safeguards.py # Batch cap, rule-eval opt, broadcast throttle
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   └── test_webhook_safeguards.py # Webhook throttle, concurrency, rate limiter
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── controller/tests/
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   ├── conftest.py               # Fixtures (mock API client)
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   ├── test_api_client.py        # HTTP client + retry logic (incl. 429)
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   ├── test_hardware.py          # Hardware abstraction tests
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   └── test_polling_safeguards.py # Per-sensor throttle, dedup, chunking
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>└── frontend/src/
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    ├── composables/__tests__/    # useFormatters, useNotification
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    ├── stores/__tests__/         # auth, events, experiments, datapoints
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    ├── services/__tests__/       # api, websocket
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    └── types/__tests__/          # TypeScript enum validation
 </code></pre></div>
 <hr />
 <h2 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
@@ -2432,6 +2607,161 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span>unit
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span>integration
 </code></pre></div>
+<hr />
+<h2 id="load-testing">Load Testing<a class="headerlink" href="#load-testing" title="Permanent link">&para;</a></h2>
+<p>WebMACS includes a built-in sensor scaling load test to determine system capacity.</p>
+<h3 id="running-the-load-test">Running the Load Test<a class="headerlink" href="#running-the-load-test" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python3<span class="w"> </span>scripts/load_test.py
+</code></pre></div>
+<p>The script authenticates against the API, creates test sensors linked to the active plugin instance, sends batch datapoints at 2 Hz (matching the real controller), and measures latency, throughput, and error rates per stage.</p>
+<h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--stages</code></td>
+<td><code>10,50,100,250,500</code></td>
+<td>Comma-separated sensor counts per stage</td>
+</tr>
+<tr>
+<td><code>--duration</code></td>
+<td><code>30</code></td>
+<td>Seconds per stage</td>
+</tr>
+<tr>
+<td><code>--frequency</code></td>
+<td><code>2.0</code></td>
+<td>Batches per second (Hz)</td>
+</tr>
+<tr>
+<td><code>--base-url</code></td>
+<td><code>http://localhost:8000</code></td>
+<td>Backend URL</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Quick smoke test</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python3<span class="w"> </span>scripts/load_test.py<span class="w"> </span>--stages<span class="w"> </span><span class="m">10</span>,50<span class="w"> </span>--duration<span class="w"> </span><span class="m">10</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Extended stress test</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>python3<span class="w"> </span>scripts/load_test.py<span class="w"> </span>--stages<span class="w"> </span><span class="m">10</span>,50,100,250,500,1000<span class="w"> </span>--duration<span class="w"> </span><span class="m">60</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Against a remote server</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>python3<span class="w"> </span>scripts/load_test.py<span class="w"> </span>--base-url<span class="w"> </span>http://192.168.1.50:8000
+</code></pre></div>
+<h3 id="metrics-collected">Metrics Collected<a class="headerlink" href="#metrics-collected" title="Permanent link">&para;</a></h3>
+<p>Per stage, the script reports:</p>
+<ul>
+<li><strong>Throughput</strong> — actual datapoints/second accepted by the backend</li>
+<li><strong>Batch Latency</strong> — P50, P95, P99 of <code>POST /datapoints/batch</code> response time</li>
+<li><strong>Dashboard Latency</strong> — P95 of <code>GET /datapoints/latest</code> (simulates frontend polling)</li>
+<li><strong>Error Rate</strong> — percentage of failed batch requests</li>
+</ul>
+<h3 id="stage-status-icons">Stage Status Icons<a class="headerlink" href="#stage-status-icons" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Icon</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅</td>
+<td>P95 &lt; 200 ms, 0% errors</td>
+</tr>
+<tr>
+<td>⚠️</td>
+<td>P95 200–1000 ms or &lt; 2% errors</td>
+</tr>
+<tr>
+<td>❌</td>
+<td>P95 &gt; 1 s or &gt; 2% errors</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reference-results-single-worker-docker-on-mac">Reference Results (Single Worker, Docker on Mac)<a class="headerlink" href="#reference-results-single-worker-docker-on-mac" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Sensors</th>
+<th>dp/s</th>
+<th>P50</th>
+<th>P95</th>
+<th>P99</th>
+<th>Dashboard P95</th>
+<th>Errors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>20</td>
+<td>12 ms</td>
+<td>17 ms</td>
+<td>20 ms</td>
+<td>43 ms</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>50</td>
+<td>100</td>
+<td>27 ms</td>
+<td>228 ms</td>
+<td>247 ms</td>
+<td>44 ms</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>100</td>
+<td>199</td>
+<td>43 ms</td>
+<td>243 ms</td>
+<td>248 ms</td>
+<td>46 ms</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>250</td>
+<td>498</td>
+<td>92 ms</td>
+<td>353 ms</td>
+<td>362 ms</td>
+<td>52 ms</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>500</td>
+<td>990</td>
+<td>186 ms</td>
+<td>532 ms</td>
+<td>552 ms</td>
+<td>83 ms</td>
+<td>0%</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Sweet Spot</p>
+<p>With the default single-worker configuration, <strong>10 sensors</strong> provide the best experience with P95 &lt; 20 ms. The system remains stable and error-free up to <strong>500+ sensors</strong> (~1000 dp/s), though latency increases.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Scaling Beyond 500 Sensors</p>
+<p>To improve high-sensor performance, consider:</p>
+<ul>
+<li>Adding uvicorn workers: <code>--workers 4</code></li>
+<li>PostgreSQL connection pooling (PgBouncer)</li>
+<li>Database partitioning for the datapoints table</li>
+<li>Reducing the controller poll interval</li>
+</ul>
+</div>
 <hr />
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
