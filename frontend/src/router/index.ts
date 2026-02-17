@@ -1,5 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import type { UserRole } from '@/types'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean
+    requiredRole?: UserRole
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,7 +46,7 @@ const router = createRouter({
       path: '/users',
       name: 'users',
       component: () => import('@/views/UsersView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiredRole: 'admin' as UserRole },
     },
     {
       path: '/logs',
@@ -50,19 +58,19 @@ const router = createRouter({
       path: '/webhooks',
       name: 'webhooks',
       component: () => import('@/views/WebhooksView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiredRole: 'admin' as UserRole },
     },
     {
       path: '/rules',
       name: 'rules',
       component: () => import('@/views/RulesView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiredRole: 'operator' as UserRole },
     },
     {
       path: '/ota',
       name: 'ota',
       component: () => import('@/views/OtaView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiredRole: 'admin' as UserRole },
     },
     {
       path: '/dashboards',
@@ -80,19 +88,25 @@ const router = createRouter({
       path: '/plugins',
       name: 'plugins',
       component: () => import('@/views/PluginsView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiredRole: 'admin' as UserRole },
     },
     {
       path: '/plugins/packages',
       name: 'plugin-packages',
       component: () => import('@/views/PluginPackagesView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiredRole: 'admin' as UserRole },
     },
     {
       path: '/plugins/:id',
       name: 'plugin-detail',
       component: () => import('@/views/PluginDetailView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiredRole: 'admin' as UserRole },
+    },
+    {
+      path: '/tokens',
+      name: 'tokens',
+      component: () => import('@/views/TokensView.vue'),
+      meta: { requiresAuth: true },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -107,7 +121,7 @@ router.beforeEach((to) => {
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
+  if (to.meta.requiredRole && !auth.hasRole(to.meta.requiredRole)) {
     return { name: 'dashboard' }
   }
 })

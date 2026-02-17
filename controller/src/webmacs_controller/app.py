@@ -54,12 +54,16 @@ class Application:
         )
 
         try:
-            # 1. Authenticate
-            await self._api_client.login(
-                self._settings.admin_email,
-                self._settings.admin_password,
-            )
-            logger.info("Authenticated with backend")
+            # 1. Authenticate (prefer API token over email/password)
+            if self._settings.api_token:
+                self._api_client.set_api_token(self._settings.api_token)
+                logger.info("Using API token authentication")
+            else:
+                await self._api_client.login(
+                    self._settings.admin_email,
+                    self._settings.admin_password,
+                )
+                logger.info("Authenticated with backend")
 
             # 2. In dev mode, auto-register a simulated plugin if no instances exist
             if not self._settings.is_production:

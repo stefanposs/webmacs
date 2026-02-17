@@ -346,12 +346,11 @@ class TestDashboardWidgets:
             email="other@test.io",
             username="other",
             password_hash=hash_password("otherpass123"),
-            admin=False,
         )
         db_session.add(other_user)
         await db_session.commit()
         await db_session.refresh(other_user)
-        other_token = create_access_token(other_user.id)
+        other_token = create_access_token(other_user.id, role=other_user.role.value)
         other_headers = {"Authorization": f"Bearer {other_token}"}
 
         resp = await client.put(

@@ -15,6 +15,8 @@ export enum LoggingType {
   error = 'error',
 }
 
+export type UserRole = 'admin' | 'operator' | 'viewer'
+
 export interface StatusResponse {
   status: string
   message: string
@@ -24,6 +26,7 @@ export interface User {
   public_id: string
   email: string
   username: string
+  role: UserRole
   admin: boolean
   registered_on: string
 }
@@ -279,4 +282,23 @@ export interface PluginPackage {
   file_size_bytes: number | null
   installed_on: string | null
   removable: boolean
+}
+
+// API Token types
+export interface ApiToken {
+  public_id: string
+  name: string
+  last_used_at: string | null
+  expires_at: string | null
+  created_at: string
+  user_public_id: string
+}
+
+export interface ApiTokenCreated extends ApiToken {
+  token: string
+}
+
+export interface ApiTokenCreatePayload {
+  name: string
+  expires_at?: string | null
 }

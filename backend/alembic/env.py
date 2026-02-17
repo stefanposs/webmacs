@@ -15,8 +15,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Override sqlalchemy.url from environment
-config.set_main_option("sqlalchemy.url", settings.database_url.replace("+asyncpg", "+psycopg2"))
+# Override sqlalchemy.url from environment – keep +asyncpg for the async engine
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 target_metadata = Base.metadata
 

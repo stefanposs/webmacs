@@ -1,14 +1,19 @@
-"""Security utilities — password hashing, token creation/decoding."""
+"""Security utilities — password hashing, token creation/decoding, API token generation."""
 
 from __future__ import annotations
 
 import datetime
+import hashlib
+import secrets
 from dataclasses import dataclass
 
 import bcrypt
 from jose import JWTError, jwt  # type: ignore[import-untyped]
 
 from webmacs_backend.config import settings
+
+# API token prefix — makes tokens easily identifiable (e.g. by secret scanners)
+API_TOKEN_PREFIX = "wm_"
 
 
 class InvalidTokenError(Exception):
@@ -21,6 +26,7 @@ class TokenPayload:
 
     user_id: int
     exp: datetime.datetime
+    role: str = "viewer"
 
 
 def hash_password(password: str) -> str:
@@ -36,11 +42,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     )
 
 
-def create_access_token(user_id: int) -> str:
-    """Create a JWT access token."""
+def create_access_token(user_id: int, role: str = "viewer") -> str:
+    """Create a JWT access token with role claim."""
     now = datetime.datetime.now(datetime.UTC)
     expire = now + datetime.timedelta(minutes=settings.access_token_expire_minutes)
-    payload = {"sub": str(user_id), "exp": expire, "iat": now}
+    payload = {"sub": str(user_id), "exp": expire, "iat": now, "role": role}
     encoded: str = jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
     return encoded
 
@@ -56,4 +62,28 @@ def decode_access_token(token: str) -> TokenPayload:
     if user_id_str is None:
         raise InvalidTokenError("Token missing 'sub' claim")
 
-    return TokenPayload(user_id=int(user_id_str), exp=payload["exp"])
+    return TokenPayload(
+        user_id=int(user_id_str),
+        exp=payload["exp"],
+        role=payload.get("role", "viewer"),
+    )
+
+
+# ─── API Token helpers ──────────────────────────────────────────────────────
+
+
+def generate_api_token() -> tuple[str, str]:
+    """Generate a new API token.
+
+    Returns (plaintext_token, sha256_hash) — the plaintext is shown to the
+    user exactly once; only the hash is stored in the database.
+    """
+    raw = secrets.token_urlsafe(48)
+    plaintext = f"{API_TOKEN_PREFIX}{raw}"
+    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    return plaintext, token_hash
+
+
+def hash_api_token(plaintext: str) -> str:
+    """Hash an API token for database lookup."""
+    return hashlib.sha256(plaintext.encode()).hexdigest()

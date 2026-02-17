@@ -21,10 +21,12 @@ from webmacs_backend.api.v1 import logging as logging_api
 from webmacs_backend.api.v1 import ota as ota_api
 from webmacs_backend.api.v1 import plugins as plugins_api
 from webmacs_backend.api.v1 import rules as rules_api
+from webmacs_backend.api.v1 import tokens as tokens_api
 from webmacs_backend.api.v1 import webhooks as webhooks_api
 from webmacs_backend.api.v1.health import reset_start_time
 from webmacs_backend.config import settings, validate_secret_key
 from webmacs_backend.database import async_session, engine, init_db
+from webmacs_backend.enums import UserRole
 from webmacs_backend.middleware.rate_limit import RateLimitMiddleware
 from webmacs_backend.middleware.request_id import RequestIdMiddleware
 from webmacs_backend.models import BlacklistToken, User
@@ -100,7 +102,7 @@ async def _seed_admin() -> None:
             email=settings.initial_admin_email,
             username=settings.initial_admin_username,
             password_hash=hash_password(settings.initial_admin_password),
-            admin=True,
+            role=UserRole.admin,
         )
         session.add(admin)
         await session.commit()
@@ -110,7 +112,7 @@ async def _seed_admin() -> None:
 async def _log_startup() -> None:
     """Create a log entry recording that the backend has started."""
     async with async_session() as session:
-        result = await session.execute(select(User).where(User.admin.is_(True)).limit(1))
+        result = await session.execute(select(User).where(User.role == UserRole.admin).limit(1))
         admin = result.scalar_one_or_none()
         if admin is None:
             return
@@ -196,6 +198,7 @@ def create_app() -> FastAPI:
     application.include_router(ota_api.router, prefix=f"{api_prefix}/ota", tags=["OTA Updates"])
     application.include_router(dashboards_api.router, prefix=f"{api_prefix}/dashboards", tags=["Dashboards"])
     application.include_router(plugins_api.router, prefix=f"{api_prefix}/plugins", tags=["Plugins"])
+    application.include_router(tokens_api.router, prefix=f"{api_prefix}/tokens", tags=["API Tokens"])
 
     # WebSocket endpoints
     application.include_router(ws_endpoints.router, prefix="/ws", tags=["WebSocket"])

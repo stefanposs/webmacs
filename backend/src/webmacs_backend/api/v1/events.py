@@ -7,7 +7,7 @@ import uuid
 from fastapi import APIRouter, Query, status
 from sqlalchemy import select
 
-from webmacs_backend.dependencies import CurrentUser, DbSession
+from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.models import Event
 from webmacs_backend.repository import ConflictError, delete_by_public_id, get_or_404, paginate, update_from_schema
 from webmacs_backend.schemas import EventCreate, EventResponse, EventUpdate, PaginatedResponse, StatusResponse
@@ -18,7 +18,7 @@ router = APIRouter()
 @router.get("", response_model=PaginatedResponse[EventResponse])
 async def list_events(
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[EventResponse]:
@@ -26,7 +26,7 @@ async def list_events(
 
 
 @router.post("", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
-async def create_event(data: EventCreate, db: DbSession, current_user: CurrentUser) -> StatusResponse:
+async def create_event(data: EventCreate, db: DbSession, current_user: OperatorUser) -> StatusResponse:
     result = await db.execute(select(Event).where(Event.name == data.name))
     if result.scalar_one_or_none():
         raise ConflictError("Event")
@@ -46,7 +46,7 @@ async def create_event(data: EventCreate, db: DbSession, current_user: CurrentUs
 
 
 @router.get("/{public_id}", response_model=EventResponse)
-async def get_event(public_id: str, db: DbSession, current_user: CurrentUser) -> EventResponse:
+async def get_event(public_id: str, db: DbSession, current_user: ViewerUser) -> EventResponse:
     event = await get_or_404(db, Event, public_id, entity_name="Event")
     return EventResponse.model_validate(event)
 
@@ -56,11 +56,11 @@ async def update_event(
     public_id: str,
     data: EventUpdate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: OperatorUser,
 ) -> StatusResponse:
     return await update_from_schema(db, Event, public_id, data, entity_name="Event")
 
 
 @router.delete("/{public_id}", response_model=StatusResponse)
-async def delete_event(public_id: str, db: DbSession, current_user: CurrentUser) -> StatusResponse:
+async def delete_event(public_id: str, db: DbSession, current_user: OperatorUser) -> StatusResponse:
     return await delete_by_public_id(db, Event, public_id, entity_name="Event")

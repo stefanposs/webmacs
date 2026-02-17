@@ -21,6 +21,7 @@ class ControllerSettings(BaseSettings):
     # Authentication
     admin_email: str = Field(default="", alias="WEBMACS_ADMIN_EMAIL")
     admin_password: str = Field(default="", alias="WEBMACS_ADMIN_PASSWORD")
+    api_token: str = Field(default="", alias="WEBMACS_API_TOKEN")
 
     # Timing
     poll_interval: float = Field(default=1.0, ge=0.2, alias="WEBMACS_POLL_INTERVAL")

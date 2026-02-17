@@ -39,6 +39,7 @@ async def create_user(data: UserCreate, db: DbSession, admin_user: AdminUser) ->
             email=data.email,
             username=data.username,
             password_hash=hash_password(data.password),
+            role=data.role,
         )
     )
     return StatusResponse(status="success", message="User successfully created.")
@@ -62,6 +63,11 @@ async def update_user(public_id: str, data: UserUpdate, db: DbSession, current_u
         user.username = data.username
     if data.password is not None:
         user.password_hash = hash_password(data.password)
+    if data.role is not None:
+        # Only admins may change roles
+        if not current_user.admin:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can change user roles.")
+        user.role = data.role
     return StatusResponse(status="success", message="User successfully updated.")
 
 

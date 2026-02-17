@@ -9,20 +9,25 @@ Strategy
 """
 
 
-from typing import TYPE_CHECKING
+from collections.abc import AsyncGenerator
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from webmacs_backend.database import Base, get_db
-from webmacs_backend.enums import EventType, ChannelDirection, PluginStatus, RuleActionType, RuleOperator, UpdateStatus
+from webmacs_backend.enums import (
+    ChannelDirection,
+    EventType,
+    PluginStatus,
+    RuleActionType,
+    RuleOperator,
+    UpdateStatus,
+    UserRole,
+)
 from webmacs_backend.main import create_app
 from webmacs_backend.models import ChannelMapping, Event, FirmwareUpdate, PluginInstance, Rule, User, Webhook
 from webmacs_backend.security import create_access_token, hash_password
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
 
 # ---------------------------------------------------------------------------
 # In-memory SQLite for tests (requires `aiosqlite` in dev deps)
@@ -99,7 +104,7 @@ async def admin_user(db_session: AsyncSession) -> User:
         email=ADMIN_EMAIL,
         username=ADMIN_USERNAME,
         password_hash=hash_password(ADMIN_PASSWORD),
-        admin=True,
+        role=UserRole.admin,
     )
     db_session.add(user)
     await db_session.commit()
@@ -110,7 +115,7 @@ async def admin_user(db_session: AsyncSession) -> User:
 @pytest_asyncio.fixture
 async def auth_headers(admin_user: User) -> dict[str, str]:
     """Return Bearer auth headers (no HTTP call — uses create_access_token)."""
-    token = create_access_token(admin_user.id)
+    token = create_access_token(admin_user.id, role=admin_user.role.value)
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -262,3 +267,54 @@ async def sample_plugin(db_session: AsyncSession, admin_user: User) -> PluginIns
     await db_session.commit()
     await db_session.refresh(plugin)
     return plugin
+
+
+# ---------------------------------------------------------------------------
+# RBAC fixtures — operator and viewer users
+# ---------------------------------------------------------------------------
+
+
+@pytest_asyncio.fixture
+async def operator_user(db_session: AsyncSession) -> User:
+    """Insert an operator user and return the ORM instance."""
+    user = User(
+        public_id="operator-public-id",
+        email="operator@test.io",
+        username="operator",
+        password_hash=hash_password("operatorpass123"),
+        role=UserRole.operator,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture
+async def operator_headers(operator_user: User) -> dict[str, str]:
+    """Bearer headers for operator user."""
+    token = create_access_token(operator_user.id, role=operator_user.role.value)
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def viewer_user(db_session: AsyncSession) -> User:
+    """Insert a viewer user and return the ORM instance."""
+    user = User(
+        public_id="viewer-public-id",
+        email="viewer@test.io",
+        username="viewer",
+        password_hash=hash_password("viewerpass123"),
+        role=UserRole.viewer,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture
+async def viewer_headers(viewer_user: User) -> dict[str, str]:
+    """Bearer headers for viewer user."""
+    token = create_access_token(viewer_user.id, role=viewer_user.role.value)
+    return {"Authorization": f"Bearer {token}"}

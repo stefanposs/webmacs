@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from webmacs_backend.dependencies import AdminUser, CurrentUser, DbSession
+from webmacs_backend.dependencies import AdminUser, DbSession, ViewerUser
 from webmacs_backend.enums import PluginSource
 from webmacs_backend.models import (
     ChannelMapping,
@@ -50,7 +50,7 @@ MAX_WHEEL_SIZE = 50 * 1024 * 1024  # 50 MB
 
 
 @router.get("/available", response_model=list[PluginMetaResponse])
-async def list_available_plugins(current_user: CurrentUser) -> list[PluginMetaResponse]:
+async def list_available_plugins(current_user: ViewerUser) -> list[PluginMetaResponse]:
     """List all installed plugin classes (discovered via entry_points)."""
     try:
         from webmacs_plugins_core.discovery import discover_plugins
@@ -80,7 +80,7 @@ async def list_available_plugins(current_user: CurrentUser) -> list[PluginMetaRe
 @router.get("/packages", response_model=list[PluginPackageResponse])
 async def list_plugin_packages(
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
 ) -> list[PluginPackageResponse]:
     """List all installed plugin packages (bundled + uploaded)."""
     result = await db.execute(
@@ -311,7 +311,7 @@ async def uninstall_plugin_package(
 @router.get("", response_model=PaginatedResponse[PluginInstanceResponse])
 async def list_plugin_instances(
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
 ) -> PaginatedResponse[PluginInstanceResponse]:
@@ -330,7 +330,7 @@ async def list_plugin_instances(
 async def create_plugin_instance(
     data: PluginInstanceCreate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: AdminUser,
 ) -> StatusResponse:
     result = await db.execute(select(PluginInstance).where(PluginInstance.instance_name == data.instance_name))
     if result.scalar_one_or_none():
@@ -420,7 +420,7 @@ async def create_plugin_instance(
 async def get_plugin_instance(
     public_id: str,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
 ) -> PluginInstanceResponse:
     result = await db.execute(
         select(PluginInstance)
@@ -438,7 +438,7 @@ async def update_plugin_instance(
     public_id: str,
     data: PluginInstanceUpdate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: AdminUser,
 ) -> StatusResponse:
     return await update_from_schema(db, PluginInstance, public_id, data, entity_name="Plugin instance")
 
@@ -447,7 +447,7 @@ async def update_plugin_instance(
 async def delete_plugin_instance(
     public_id: str,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: AdminUser,
 ) -> StatusResponse:
     instance = await get_or_404(db, PluginInstance, public_id, entity_name="Plugin instance")
     await delete_plugin_cascade(db, instance)
@@ -461,7 +461,7 @@ async def delete_plugin_instance(
 async def list_channel_mappings(
     public_id: str,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: ViewerUser,
 ) -> list[ChannelMappingResponse]:
     instance = await get_or_404(db, PluginInstance, public_id, entity_name="Plugin instance")
     result = await db.execute(select(ChannelMapping).where(ChannelMapping.plugin_instance_id == instance.id))
@@ -473,7 +473,7 @@ async def create_channel_mapping(
     public_id: str,
     data: ChannelMappingCreate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: AdminUser,
 ) -> StatusResponse:
     instance = await get_or_404(db, PluginInstance, public_id, entity_name="Plugin instance")
     mapping = ChannelMapping(
@@ -495,7 +495,7 @@ async def update_channel_mapping(
     mapping_id: str,
     data: ChannelMappingUpdate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: AdminUser,
 ) -> StatusResponse:
     # Verify parent instance exists
     await get_or_404(db, PluginInstance, public_id, entity_name="Plugin instance")
@@ -507,7 +507,7 @@ async def delete_channel_mapping(
     public_id: str,
     mapping_id: str,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: AdminUser,
 ) -> StatusResponse:
     await get_or_404(db, PluginInstance, public_id, entity_name="Plugin instance")
     return await delete_by_public_id(db, ChannelMapping, mapping_id, entity_name="Channel mapping")

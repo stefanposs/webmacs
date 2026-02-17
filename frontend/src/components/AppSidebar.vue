@@ -36,13 +36,15 @@
         <span>{{ item.label }}</span>
       </router-link>
 
-      <template v-if="authStore.isAdmin">
+      <template v-if="authStore.isOperator">
         <div class="sidebar-section-label">Automation</div>
         <router-link to="/rules" class="sidebar-link" active-class="sidebar-link--active">
           <i class="pi pi-bolt" />
           <span>Rules</span>
         </router-link>
+      </template>
 
+      <template v-if="authStore.isAdmin">
         <div class="sidebar-section-label">System</div>
         <router-link to="/plugins" class="sidebar-link" active-class="sidebar-link--active">
           <i class="pi pi-microchip" />
@@ -63,6 +65,12 @@
           <span>Users</span>
         </router-link>
       </template>
+
+      <div class="sidebar-section-label">Account</div>
+      <router-link to="/tokens" class="sidebar-link" active-class="sidebar-link--active">
+        <i class="pi pi-key" />
+        <span>API Tokens</span>
+      </router-link>
     </nav>
 
     <div class="sidebar-footer">
@@ -70,7 +78,7 @@
         <div class="sidebar-avatar">{{ initials }}</div>
         <div class="sidebar-user-info">
           <span class="sidebar-username">{{ authStore.user?.username }}</span>
-          <span class="sidebar-role">{{ authStore.isAdmin ? 'Admin' : 'User' }}</span>
+          <span class="sidebar-role">{{ roleName }}</span>
         </div>
       </div>
       <button class="btn-logout" @click="handleLogout" title="Sign out">
@@ -91,6 +99,11 @@ const router = useRouter()
 const initials = computed(() => {
   const name = authStore.user?.username ?? '?'
   return name.slice(0, 2).toUpperCase()
+})
+
+const roleName = computed(() => {
+  const r = authStore.userRole
+  return r.charAt(0).toUpperCase() + r.slice(1)
 })
 
 const mainItems = [

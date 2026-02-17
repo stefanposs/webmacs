@@ -5,6 +5,19 @@ from __future__ import annotations
 from enum import StrEnum
 
 
+class UserRole(StrEnum):
+    """User role for RBAC — hierarchical: admin > operator > viewer."""
+
+    admin = "admin"
+    operator = "operator"
+    viewer = "viewer"
+
+    def has_at_least(self, required: UserRole) -> bool:
+        """Return True if this role is equal to or higher than *required*."""
+        hierarchy = {"admin": 3, "operator": 2, "viewer": 1}
+        return hierarchy[self.value] >= hierarchy[required.value]
+
+
 class EventType(StrEnum):
     """Event type classification."""
 
