@@ -20,6 +20,7 @@ import httpx
 import pytest
 from fastapi import HTTPException
 from httpx import AsyncClient
+from pydantic import SecretStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,7 +47,7 @@ def _enable_oidc() -> None:
     settings.oidc_enabled = True
     settings.oidc_issuer_url = "https://idp.example.com"
     settings.oidc_client_id = "test-client"
-    settings.oidc_client_secret = "test-secret"  # noqa: S105
+    settings.oidc_client_secret = SecretStr("test-secret")  # noqa: S105
     settings.oidc_provider_name = "TestIDP"
     settings.oidc_auto_create_users = True
     settings.oidc_default_role = "viewer"
@@ -58,7 +59,7 @@ def _disable_oidc() -> None:
     settings.oidc_enabled = False
     settings.oidc_issuer_url = ""
     settings.oidc_client_id = ""
-    settings.oidc_client_secret = ""
+    settings.oidc_client_secret = SecretStr("")
     settings.oidc_provider_name = "SSO"
     settings.oidc_auto_create_users = True
     settings.oidc_default_role = "viewer"

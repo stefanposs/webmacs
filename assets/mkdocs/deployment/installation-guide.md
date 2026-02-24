@@ -1,30 +1,42 @@
 # Installation Guide
 
-Step-by-step instructions for installing WebMACS on a Revolution Pi or any Debian/Ubuntu-based system.
+Step-by-step instructions for installing WebMACS on a Revolution Pi, Raspberry Pi, or any Debian/Ubuntu-based system.
 
 ---
 
 ## Prerequisites
 
-| Requirement         | Minimum                        |
-|---------------------|--------------------------------|
-| **Hardware**        | Kunbus Revolution Pi, Raspberry Pi 4, or x86_64 server |
-| **OS**              | Debian 11+ / Ubuntu 22.04+ (64-bit recommended) |
-| **RAM**             | 2 GB                           |
-| **Storage**         | 8 GB free                      |
-| **Network**         | Ethernet (for sensor I/O and web access) |
+| Requirement         | Revolution Pi / RPi 4/5     | Raspberry Pi 3              |
+|---------------------|-----------------------------|-----------------------------||
+| **OS**              | Debian 11+ / Raspberry Pi OS Bookworm (64-bit recommended) | Raspberry Pi OS Bullseye/Bookworm |
+| **RAM**             | 2 GB+                       | 1 GB (750 MB minimum)       |
+| **Storage**         | 8 GB free                   | 16 GB+ SD card or USB SSD   |
+| **Network**         | Ethernet recommended        | Ethernet recommended        |
 
 Docker and Docker Compose are installed automatically by the installation script if not already present.
 
 ---
 
+## Choosing the Right Installer
+
+| Hardware | Script | Notes |
+|----------|--------|-------|
+| **KUNBUS Revolution Pi** (Connect, Connect 4, Connect S) | `install-revpi.sh` | Industrial-grade, no cgroup patching needed |
+| **Raspberry Pi 4 / Pi 5** | `install-rpi.sh` | Configures cgroup + swap automatically |
+| **Raspberry Pi 3** (1 GB) | `install-rpi.sh` | Supported; 3 GB swap configured; startup takes ~3 min |
+| **x86\_64 server / mini-PC** | `install-revpi.sh` | Works on any Debian/Ubuntu |
+
+!!! tip "Not sure?"
+    If you’re running standard Raspberry Pi OS on consumer hardware, use `install-rpi.sh`.
+    For Revolution Pi or server deployments, use `install-revpi.sh`.
+
+---
+
 ## Installation
 
-### Option A — Automated Install with `scripts/install.sh` (Recommended)
+### Option A — Revolution Pi: `scripts/install-revpi.sh` (Recommended)
 
-The easiest way to install WebMACS is the install script in the `scripts/` directory. It handles everything automatically — Docker, credentials, services, and auto-start.
-
-You will receive a **WebMACS update bundle** (`.tar.gz` file) from your system integrator or download it from [GitHub Releases](https://github.com/stefanposs/webmacs/releases).
+For **KUNBUS Revolution Pi** and any Debian/Ubuntu server:
 
 ```bash
 # Copy the bundle to the device (from your workstation)
@@ -34,17 +46,55 @@ scp webmacs-update-2.0.0.tar.gz pi@<device-ip>:/tmp/
 ssh pi@<device-ip>
 
 # Run the installer
-sudo bash scripts/install.sh /tmp/webmacs-update-2.0.0.tar.gz
+sudo bash scripts/install-revpi.sh /tmp/webmacs-update-2.0.0.tar.gz
 ```
 
-The installer will:
+Or use the one-liner on a fresh device:
 
-1. Install Docker and Docker Compose (if missing)
-2. Create the `/opt/webmacs` directory structure
-3. Generate a secure `.env` with random passwords
-4. Load the Docker images from the bundle
-5. Start all services
-6. Create a systemd service for automatic start on boot
+```bash
+curl -sSL https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install-revpi.sh | sudo bash
+```
+
+### Option A — Raspberry Pi 3/4/5: `scripts/install-rpi.sh`
+
+For **consumer Raspberry Pi** hardware. Adds cgroup memory configuration, swap management,
+and Docker daemon tuning on top of the base installer:
+
+```bash
+# Copy the bundle to the Pi
+scp webmacs-update-2.0.0.tar.gz pi@<rpi-ip>:/tmp/
+
+# SSH into the Pi
+ssh pi@<rpi-ip>
+
+# Run the RPi-specific installer
+sudo bash scripts/install-rpi.sh /tmp/webmacs-update-2.0.0.tar.gz
+```
+
+One-liner:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install-rpi.sh | sudo bash
+```
+
+!!! warning "Reboot may be required"
+    On a fresh Raspberry Pi OS, the script patches `cmdline.txt` to enable cgroup memory.
+    If patched, it will remind you to run `sudo reboot` before Docker works correctly.
+
+!!! note "Raspberry Pi 3 (1 GB RAM)"
+    Fully supported. The script automatically configures 3 GB swap to compensate for
+    limited RAM. First startup takes approximately **3 minutes** while the database
+    initialises. Subsequent starts are faster.
+
+Both installers will:
+
+1. Detect hardware and verify compatibility
+2. Install Docker and Docker Compose (if missing)
+3. Create the `/opt/webmacs` directory structure
+4. Generate a secure `.env` with random passwords
+5. Load the Docker images from the bundle (SHA-256 verified)
+6. Start all services
+7. Create a systemd service for automatic start on boot
 
 !!! warning "Save Your Credentials"
     The admin password is displayed **only once** during installation.

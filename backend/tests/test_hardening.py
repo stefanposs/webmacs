@@ -15,6 +15,7 @@ from unittest.mock import patch
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+from pydantic import SecretStr
 from sqlalchemy import delete, select
 from starlette.testclient import TestClient
 
@@ -195,7 +196,7 @@ class TestSecretKeyValidation:
     def test_empty_key_production_raises(self) -> None:
         """An empty SECRET_KEY in production must raise WeakSecretKeyError."""
         with (
-            patch("webmacs_backend.config.settings.secret_key", ""),
+            patch("webmacs_backend.config.settings.secret_key", SecretStr("")),
             patch("webmacs_backend.config.settings.env", "production"),
             pytest.raises(WeakSecretKeyError, match="SECRET_KEY must be set"),
         ):
@@ -204,7 +205,7 @@ class TestSecretKeyValidation:
     def test_short_key_production_raises(self) -> None:
         """A SHORT SECRET_KEY in production must raise WeakSecretKeyError."""
         with (
-            patch("webmacs_backend.config.settings.secret_key", "tooshort"),
+            patch("webmacs_backend.config.settings.secret_key", SecretStr("tooshort")),
             patch("webmacs_backend.config.settings.env", "production"),
             pytest.raises(WeakSecretKeyError, match="at least 32 characters"),
         ):
@@ -214,7 +215,7 @@ class TestSecretKeyValidation:
         """A long-enough SECRET_KEY in production should not raise."""
         long_key = "a" * 64
         with (
-            patch("webmacs_backend.config.settings.secret_key", long_key),
+            patch("webmacs_backend.config.settings.secret_key", SecretStr(long_key)),
             patch("webmacs_backend.config.settings.env", "production"),
         ):
             validate_secret_key()  # no error
@@ -222,7 +223,7 @@ class TestSecretKeyValidation:
     def test_empty_key_development_warns(self) -> None:
         """An empty SECRET_KEY in development should log a warning but not raise."""
         with (
-            patch("webmacs_backend.config.settings.secret_key", ""),
+            patch("webmacs_backend.config.settings.secret_key", SecretStr("")),
             patch("webmacs_backend.config.settings.env", "development"),
         ):
             validate_secret_key()
@@ -230,7 +231,7 @@ class TestSecretKeyValidation:
     def test_short_key_development_warns(self) -> None:
         """A short SECRET_KEY in development should log a warning but not raise."""
         with (
-            patch("webmacs_backend.config.settings.secret_key", "short"),
+            patch("webmacs_backend.config.settings.secret_key", SecretStr("short")),
             patch("webmacs_backend.config.settings.env", "development"),
         ):
             validate_secret_key()

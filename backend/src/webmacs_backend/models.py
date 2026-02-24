@@ -25,7 +25,21 @@ from webmacs_backend.enums import (
 )
 
 
-class User(Base):
+class ReprMixin:
+    """Mixin that provides a useful ``__repr__`` for all ORM models.
+
+    Falls back from ``public_id`` → ``id`` → ``"?"`` so every model in the
+    inheritance chain gets a searchable string representation without extra
+    boilerplate.
+    """
+
+    def __repr__(self) -> str:
+        cls = type(self).__name__
+        pk: object = getattr(self, "public_id", None) or getattr(self, "id", "?")
+        return f"<{cls} {pk!r}>"
+
+
+class User(ReprMixin, Base):
     """User model for authentication and ownership."""
 
     __tablename__ = "users"
@@ -56,7 +70,7 @@ class User(Base):
     api_tokens: Mapped[list[ApiToken]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
-class Event(Base):
+class Event(ReprMixin, Base):
     """Event model - represents a sensor or actuator channel."""
 
     __tablename__ = "events"
@@ -75,7 +89,7 @@ class Event(Base):
     datapoints: Mapped[list[Datapoint]] = relationship(back_populates="event", cascade="all, delete-orphan")
 
 
-class Experiment(Base):
+class Experiment(ReprMixin, Base):
     """Experiment model - a time-bounded measurement session."""
 
     __tablename__ = "experiments"
@@ -92,7 +106,7 @@ class Experiment(Base):
     datapoints: Mapped[list[Datapoint]] = relationship(back_populates="experiment", cascade="all, delete-orphan")
 
 
-class Datapoint(Base):
+class Datapoint(ReprMixin, Base):
     """Datapoint model - a single sensor/actuator measurement."""
 
     __tablename__ = "datapoints"
@@ -115,7 +129,7 @@ class Datapoint(Base):
     experiment: Mapped[Experiment | None] = relationship(back_populates="datapoints")
 
 
-class BlacklistToken(Base):
+class BlacklistToken(ReprMixin, Base):
     """Blacklisted JWT tokens for logout."""
 
     __tablename__ = "blacklist_tokens"
@@ -129,7 +143,7 @@ class BlacklistToken(Base):
     )
 
 
-class ApiToken(Base):
+class ApiToken(ReprMixin, Base):
     """Long-lived API token for machine-to-machine authentication."""
 
     __tablename__ = "api_tokens"
@@ -149,7 +163,7 @@ class ApiToken(Base):
     user: Mapped[User] = relationship(back_populates="api_tokens")
 
 
-class LogEntry(Base):
+class LogEntry(ReprMixin, Base):
     """Application log entry model."""
 
     __tablename__ = "log_entries"
@@ -175,7 +189,7 @@ class LogEntry(Base):
         return self.user.username if self.user else None
 
 
-class Webhook(Base):
+class Webhook(ReprMixin, Base):
     """Webhook subscription — delivers payloads to external URLs on events."""
 
     __tablename__ = "webhooks"
@@ -194,7 +208,7 @@ class Webhook(Base):
     deliveries: Mapped[list[WebhookDelivery]] = relationship(back_populates="webhook", cascade="all, delete-orphan")
 
 
-class WebhookDelivery(Base):
+class WebhookDelivery(ReprMixin, Base):
     """Record of a single webhook delivery attempt (including dead letters)."""
 
     __tablename__ = "webhook_deliveries"
@@ -226,7 +240,7 @@ class WebhookDelivery(Base):
     webhook: Mapped[Webhook] = relationship(back_populates="deliveries")
 
 
-class Rule(Base):
+class Rule(ReprMixin, Base):
     """Rule model — evaluates incoming datapoints against a condition and triggers actions."""
 
     __tablename__ = "rules"
@@ -256,7 +270,7 @@ class Rule(Base):
     user: Mapped[User] = relationship()
 
 
-class FirmwareUpdate(Base):
+class FirmwareUpdate(ReprMixin, Base):
     """Firmware update record — tracks OTA update lifecycle."""
 
     __tablename__ = "firmware_updates"
@@ -283,7 +297,7 @@ class FirmwareUpdate(Base):
     user: Mapped[User | None] = relationship()
 
 
-class Dashboard(Base):
+class Dashboard(ReprMixin, Base):
     """Custom dashboard — user-defined layout with widgets."""
 
     __tablename__ = "dashboards"
@@ -302,7 +316,7 @@ class Dashboard(Base):
     )
 
 
-class DashboardWidget(Base):
+class DashboardWidget(ReprMixin, Base):
     """A single widget placed on a dashboard grid."""
 
     __tablename__ = "dashboard_widgets"
@@ -335,7 +349,7 @@ class DashboardWidget(Base):
     event: Mapped[Event | None] = relationship()
 
 
-class PluginInstance(Base):
+class PluginInstance(ReprMixin, Base):
     """Installed plugin instance — ties a plugin class to its configuration."""
 
     __tablename__ = "plugin_instances"
@@ -362,7 +376,7 @@ class PluginInstance(Base):
     )
 
 
-class ChannelMapping(Base):
+class ChannelMapping(ReprMixin, Base):
     """Maps a plugin channel to a WebMACS Event for data storage and display."""
 
     __tablename__ = "channel_mappings"
@@ -387,7 +401,7 @@ class ChannelMapping(Base):
     event: Mapped[Event | None] = relationship()
 
 
-class PluginPackage(Base):
+class PluginPackage(ReprMixin, Base):
     """Tracks installed plugin packages — both bundled and uploaded."""
 
     __tablename__ = "plugin_packages"

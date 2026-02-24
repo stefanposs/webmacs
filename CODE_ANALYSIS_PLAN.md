@@ -969,52 +969,52 @@
 
 | ID | Titel | Priorität | Tokens | Status | Abhängigkeiten | Qualitätsdimension |
 |----|-------|-----------|--------|--------|----------------|-------------------|
-| B1 | models.py – Monolith | P1 | L | ⬜ | – | Wartbarkeit |
-| B2 | schemas.py – Monolith | P1 | XL | ⬜ | B1 | Wartbarkeit, DRY |
-| B3 | repository + database | P1 | M | ⬜ | B1 | Skalierbarkeit |
-| B4 | config + dependencies | P2 | M | ⬜ | – | Austauschbarkeit |
-| B5 | enums.py | P3 | M | ⬜ | – | Lesbarkeit |
-| B6 | main.py | P2 | M | ⬜ | – | Wartbarkeit |
-| B7 | security.py | P1 | S | ⬜ | B4 | Sicherheit |
-| A1 | auth + tokens Router | P1 | M | ⬜ | B7 | Sicherheit |
-| A2 | users + health Router | P2 | S | ⬜ | B3, B4 | Lesbarkeit |
-| A3 | events + experiments Router | P2 | M | ⬜ | B3 | Skalierbarkeit |
-| A4 | datapoints + logging Router | P1 | M | ⬜ | B3, S2 | Skalierbarkeit |
-| A5 | dashboards Router | P2 | M | ⬜ | B3 | Erweiterbarkeit |
-| A6 | webhooks + rules Router | P2 | M | ⬜ | S1, S4 | Erweiterbarkeit |
-| A7 | plugins.py Router (God-Router) | P1 | XL | ⬜ | S5 | Wartbarkeit |
-| A8 | ota Router | P2 | M | ⬜ | S6 | Verständlichkeit |
-| A9 | sso.py Router (God-Router) | P1 | XL | ⬜ | B7 | Sicherheit, Austauschbarkeit |
-| S1 | services/__init__.py (falsch platziert) | P1 | M | ⬜ | B3 | Lesbarkeit |
-| S2 | ingestion.py | P1 | M | ⬜ | B3 | Skalierbarkeit |
-| S3 | log_service.py | P3 | S | ⬜ | B3 | Wartbarkeit |
-| S4 | rule_evaluator.py | P2 | M | ⬜ | A6 | Sicherheit, Erweiterbarkeit |
-| S5 | plugin_service + wheel_validator | P2 | M | ⬜ | A7 | Sicherheit |
-| S6 | ota_service + updater | P2 | L | ⬜ | A8 | Wartbarkeit |
-| W1 | ws/ connection + endpoints | P2 | M | ⬜ | B7 | Skalierbarkeit |
-| W2 | middleware/ rate_limit + request_id | P2 | M | ⬜ | B4 | Skalierbarkeit |
-| C1 | controller app.py | P2 | M | ⬜ | – | Wartbarkeit |
-| C2 | plugin_bridge.py (God-Class) | P1 | L | ⬜ | C1 | Wartbarkeit |
-| C3 | controller api_client.py | P2 | M | ⬜ | C1 | Austauschbarkeit |
-| C4 | rule_engine + hardware + telemetry | P2 | M | ⬜ | C1 | Austauschbarkeit |
-| F1 | stores dashboards + logs | P2 | M | ⬜ | F3 | Lesbarkeit |
-| F2 | stores plugins + ota | P2 | M | ⬜ | F3 | Lesbarkeit |
-| F3 | useCrudStore (Pattern-Kern) | P1 | M | ⬜ | – | Erweiterbarkeit |
-| F4 | useRealtimeDatapoints + usePolling | P2 | M | ⬜ | X2 | Skalierbarkeit |
-| F5 | auth store + useAuditLog | P2 | S | ⬜ | – | Sicherheit |
-| V1 | DatapointsView (God-Component) | P1 | XL | ⬜ | F4 | Wartbarkeit |
-| V2 | DashboardCustomView + DashboardView | P1 | XL | ⬜ | F1 | Wartbarkeit |
-| V3 | OtaView.vue | P2 | L | ⬜ | F2 | Lesbarkeit |
-| V4 | PluginsView + PluginDetailView | P2 | L | ⬜ | F2 | Wartbarkeit |
-| V5 | RulesView.vue | P2 | M | ⬜ | – | Erweiterbarkeit |
-| X1 | types/index.ts | P2 | M | ⬜ | B2 | Verständlichkeit |
-| X2 | services/api.ts + websocket.ts | P1 | S | ⬜ | X1 | Austauschbarkeit |
-| P1 | Plugin-Interface & Core | P1 | M | ⬜ | S5, C2 | Erweiterbarkeit |
-| P2 | revpi + system Plugins | P3 | M | ⬜ | P1 | Austauschbarkeit |
-| T1 | conftest.py – Test-Infrastruktur | P1 | M | ⬜ | – | Verständlichkeit |
-| T2 | test_sso.py – Riesentest-Datei | P2 | XL | ⬜ | T1, A9 | Wartbarkeit |
-| T3 | test_integration + test_new_features | P2 | L | ⬜ | T1 | Verständlichkeit |
-| T4 | Coverage-Analyse | P2 | S | ⬜ | T1-T3 | Verständlichkeit |
+| B1 | models.py – Monolith | P1 | L | ✅ | – | Wartbarkeit |
+| B2 | schemas.py – Monolith | P1 | XL | ✅ | B1 | Wartbarkeit, DRY |
+| B3 | repository + database | P1 | M | ✅ | B1 | Skalierbarkeit |
+| B4 | config + dependencies | P2 | M | ✅ | – | Austauschbarkeit |
+| B5 | enums.py | P3 | M | ✅ | – | Lesbarkeit |
+| B6 | main.py | P2 | M | ✅ | – | Wartbarkeit |
+| B7 | security.py | P1 | S | ✅ | B4 | Sicherheit |
+| A1 | auth + tokens Router | P1 | M | ✅ | B7 | Sicherheit |
+| A2 | users + health Router | P2 | S | ✅ | B3, B4 | Lesbarkeit |
+| A3 | events + experiments Router | P2 | M | ✅ | B3 | Skalierbarkeit |
+| A4 | datapoints + logging Router | P1 | M | ✅ | B3, S2 | Skalierbarkeit |
+| A5 | dashboards Router | P2 | M | ✅ | B3 | Erweiterbarkeit |
+| A6 | webhooks + rules Router | P2 | M | ✅ | S1, S4 | Erweiterbarkeit |
+| A7 | plugins.py Router (God-Router) | P1 | XL | ✅ | S5 | Wartbarkeit |
+| A8 | ota Router | P2 | M | ✅ | S6 | Verständlichkeit |
+| A9 | sso.py Router (God-Router) | P1 | XL | ✅ | B7 | Sicherheit, Austauschbarkeit |
+| S1 | services/__init__.py (falsch platziert) | P1 | M | ✅ | B3 | Lesbarkeit |
+| S2 | ingestion.py | P1 | M | ✅ | B3 | Skalierbarkeit |
+| S3 | log_service.py | P3 | S | ✅ | B3 | Wartbarkeit |
+| S4 | rule_evaluator.py | P2 | M | ✅ | A6 | Sicherheit, Erweiterbarkeit |
+| S5 | plugin_service + wheel_validator | P2 | M | ✅ | A7 | Sicherheit |
+| S6 | ota_service + updater | P2 | L | ✅ | A8 | Wartbarkeit |
+| W1 | ws/ connection + endpoints | P2 | M | ✅ | B7 | Skalierbarkeit |
+| W2 | middleware/ rate_limit + request_id | P2 | M | ✅ | B4 | Skalierbarkeit |
+| C1 | controller app.py | P2 | M | ✅ | – | Wartbarkeit |
+| C2 | plugin_bridge.py (God-Class) | P1 | L | ✅ | C1 | Wartbarkeit |
+| C3 | controller api_client.py | P2 | M | ✅ | C1 | Austauschbarkeit |
+| C4 | rule_engine + hardware + telemetry | P2 | M | ✅ | C1 | Austauschbarkeit |
+| F1 | stores dashboards + logs | P2 | M | ✅ | F3 | Lesbarkeit |
+| F2 | stores plugins + ota | P2 | M | ✅ | F3 | Lesbarkeit |
+| F3 | useCrudStore (Pattern-Kern) | P1 | M | ✅ | – | Erweiterbarkeit |
+| F4 | useRealtimeDatapoints + usePolling | P2 | M | ✅ | X2 | Skalierbarkeit |
+| F5 | auth store + useAuditLog | P2 | S | ✅ | – | Sicherheit |
+| V1 | DatapointsView (God-Component) | P1 | XL | ✅ | F4 | Wartbarkeit |
+| V2 | DashboardCustomView + DashboardView | P1 | XL | ✅ | F1 | Wartbarkeit |
+| V3 | OtaView.vue | P2 | L | ✅ | F2 | Lesbarkeit |
+| V4 | PluginsView + PluginDetailView | P2 | L | ✅ | F2 | Wartbarkeit |
+| V5 | RulesView.vue | P2 | M | ✅ | – | Erweiterbarkeit |
+| X1 | types/index.ts | P2 | M | ✅ | B2 | Verständlichkeit |
+| X2 | services/api.ts + websocket.ts | P1 | S | ✅ | X1 | Austauschbarkeit |
+| P1 | Plugin-Interface & Core | P1 | M | ✅ | S5, C2 | Erweiterbarkeit |
+| P2 | revpi + system Plugins | P3 | M | ✅ | P1 | Austauschbarkeit |
+| T1 | conftest.py – Test-Infrastruktur | P1 | M | ✅ | – | Verständlichkeit |
+| T2 | test_sso.py – Riesentest-Datei | P2 | XL | ✅ | T1, A9 | Wartbarkeit |
+| T3 | test_integration + test_new_features | P2 | L | ✅ | T1 | Verständlichkeit |
+| T4 | Coverage-Analyse | P2 | S | ✅ | T1-T3 | Verständlichkeit |
 
 ---
 

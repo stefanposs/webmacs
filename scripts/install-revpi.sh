@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# WebMACS — First-Time Installation Script
-# Run this on a fresh Revolution Pi (or any Debian/Ubuntu with Docker).
+# WebMACS — Revolution Pi Installation Script
+# Tested on: Revolution Pi Connect, Connect 4, Connect S (Raspberry Pi CM-based)
+# Also works on any Debian/Ubuntu ARM system with Docker.
 #
 # Usage:
-#   curl -sSL https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install-revpi.sh | sudo bash
 #   — or —
-#   ./scripts/install.sh [update-bundle.tar.gz]
+#   sudo ./scripts/install-revpi.sh [update-bundle.tar.gz]
+#
+# For Raspberry Pi 4/5 (consumer hardware): use install-rpi.sh instead.
 #
 # What it does:
-#   1. Installs Docker + Docker Compose (if missing)
-#   2. Creates /opt/webmacs directory structure
-#   3. Generates secure .env file
-#   4. Loads images from bundle (if provided) or pulls from build
-#   5. Starts the WebMACS stack
-#   6. Creates systemd service for auto-start on boot
+#   1. Verifies Revolution Pi / ARM hardware
+#   2. Installs Docker + Docker Compose (if missing)
+#   3. Creates /opt/webmacs directory structure
+#   4. Generates secure .env file
+#   5. Loads images from bundle (if provided) or pulls from registry
+#   6. Starts the WebMACS stack
+#   7. Creates systemd service for auto-start on boot
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -35,7 +39,7 @@ err()   { echo -e "${RED}❌${NC} $*"; exit 1; }
 
 echo ""
 echo "═══════════════════════════════════════════════════════"
-echo "   WebMACS Installation"
+echo "   WebMACS — Revolution Pi Installation"
 echo "   Web-based Monitoring and Control System"
 echo "═══════════════════════════════════════════════════════"
 echo ""
@@ -44,13 +48,39 @@ echo ""
 info "Checking prerequisites..."
 
 if [[ $EUID -ne 0 ]]; then
-    err "This script must be run as root (sudo)."
+    err "Run with sudo: sudo bash $0 ${*:-}"
 fi
 
 ARCH=$(uname -m)
-if [[ "$ARCH" != "aarch64" && "$ARCH" != "armv7l" && "$ARCH" != "x86_64" ]]; then
-    warn "Unsupported architecture: $ARCH (expected aarch64, armv7l, or x86_64)"
+
+# Detect Revolution Pi model
+REVPI_MODEL=""
+for model_file in /proc/device-tree/model /sys/firmware/devicetree/base/model; do
+    if [[ -f "$model_file" ]]; then
+        REVPI_MODEL=$(tr -d '\0' < "$model_file" 2>/dev/null || true)
+        break
+    fi
+done
+if [[ -z "$REVPI_MODEL" ]]; then
+    REVPI_MODEL=$(grep -i "Model" /proc/cpuinfo 2>/dev/null | head -1 | cut -d':' -f2 | xargs || true)
 fi
+
+if [[ "$REVPI_MODEL" == *"RevPi"* || "$REVPI_MODEL" == *"Revolution Pi"* ]]; then
+    ok "Detected: ${REVPI_MODEL}"
+elif [[ "$REVPI_MODEL" == *"Raspberry Pi"* ]]; then
+    warn "Detected consumer Raspberry Pi ('${REVPI_MODEL}')."
+    warn "Consider using install-rpi.sh for consumer hardware instead."
+else
+    warn "Could not confirm Revolution Pi hardware (model: '${REVPI_MODEL:-unknown}')."
+    warn "Continuing anyway — this script works on any Debian/Ubuntu ARM system."
+fi
+
+case "$ARCH" in
+    aarch64) ok "Architecture: 64-bit ARM (aarch64)" ;;
+    armv7l)  ok "Architecture: 32-bit ARM (armv7l)" ;;
+    x86_64)  ok "Architecture: x86_64 (testing/dev mode)" ;;
+    *)       err "Unsupported architecture: ${ARCH}" ;;
+esac
 
 # ── 2. Install Docker ───────────────────────────────────────────────────
 if ! command -v docker &> /dev/null; then
@@ -165,7 +195,7 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
 elif [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
     ok "Using existing images"
 else
-    err "No update bundle provided and no existing installation found.\n   Usage: $0 <path-to-webmacs-update-bundle.tar.gz>"
+    err "No update bundle provided and no existing installation found.\n   Usage: sudo $0 <path-to-webmacs-update-bundle.tar.gz>"
 fi
 
 # Ensure compose file exists
@@ -245,6 +275,6 @@ echo ""
 echo "   To update:"
 echo "      Upload a .tar.gz bundle via the WebMACS UI (OTA Updates → Upload)"
 echo "      — or —"
-echo "      Copy a bundle to ${INSTALL_DIR}/updates/"
+echo "      sudo bash install-revpi.sh /path/to/webmacs-update-bundle.tar.gz"
 echo ""
 echo "═══════════════════════════════════════════════════════"

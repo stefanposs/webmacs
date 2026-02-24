@@ -1,0 +1,154 @@
+"""Pydantic v2 schemas for request/response validation.
+
+This package exposes the same public symbols as the former ``schemas.py``
+monolith so that all existing ``from webmacs_backend.schemas import ...``
+imports continue to work without modification.
+
+Add new schemas to the appropriate domain module and re-export them here.
+"""
+
+from __future__ import annotations
+
+from webmacs_backend.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    SsoAuthorizeResponse,
+    SsoConfigResponse,
+    TokenData,
+)
+from webmacs_backend.schemas.common import (
+    HealthResponse,
+    PaginatedResponse,
+    StatusResponse,
+)
+from webmacs_backend.schemas.dashboards import (
+    DashboardCreate,
+    DashboardResponse,
+    DashboardUpdate,
+    DashboardWidgetCreate,
+    DashboardWidgetResponse,
+    DashboardWidgetUpdate,
+)
+from webmacs_backend.schemas.datapoints import (
+    DatapointBatchCreate,
+    DatapointCreate,
+    DatapointResponse,
+    DatapointSeriesRequest,
+)
+from webmacs_backend.schemas.events import (
+    EventCreate,
+    EventResponse,
+    EventUpdate,
+    ExperimentCreate,
+    ExperimentResponse,
+    ExperimentUpdate,
+)
+from webmacs_backend.schemas.logging import (
+    LogEntryCreate,
+    LogEntryResponse,
+    LogEntryUpdate,
+)
+from webmacs_backend.schemas.ota import (
+    FirmwareApplyRequest,
+    FirmwareUpdateCreate,
+    FirmwareUpdateResponse,
+    UpdateCheckResponse,
+)
+from webmacs_backend.schemas.plugins import (
+    ChannelMappingCreate,
+    ChannelMappingResponse,
+    ChannelMappingUpdate,
+    PluginInstanceCreate,
+    PluginInstanceResponse,
+    PluginInstanceUpdate,
+    PluginMetaResponse,
+    PluginPackageResponse,
+)
+from webmacs_backend.schemas.rules import (
+    RuleCreate,
+    RuleResponse,
+    RuleUpdate,
+)
+from webmacs_backend.schemas.tokens import (
+    ApiTokenCreate,
+    ApiTokenCreatedResponse,
+    ApiTokenResponse,
+)
+from webmacs_backend.schemas.users import (
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+)
+from webmacs_backend.schemas.webhooks import (
+    WebhookCreate,
+    WebhookDeliveryResponse,
+    WebhookResponse,
+    WebhookUpdate,
+)
+
+__all__ = [
+    # auth
+    "LoginRequest",
+    "LoginResponse",
+    "TokenData",
+    "SsoConfigResponse",
+    "SsoAuthorizeResponse",
+    # users
+    "UserCreate",
+    "UserUpdate",
+    "UserResponse",
+    # events & experiments
+    "EventCreate",
+    "EventUpdate",
+    "EventResponse",
+    "ExperimentCreate",
+    "ExperimentUpdate",
+    "ExperimentResponse",
+    # datapoints
+    "DatapointCreate",
+    "DatapointBatchCreate",
+    "DatapointResponse",
+    "DatapointSeriesRequest",
+    # logging
+    "LogEntryCreate",
+    "LogEntryUpdate",
+    "LogEntryResponse",
+    # common
+    "PaginatedResponse",
+    "StatusResponse",
+    "HealthResponse",
+    # webhooks
+    "WebhookCreate",
+    "WebhookUpdate",
+    "WebhookResponse",
+    "WebhookDeliveryResponse",
+    # rules
+    "RuleCreate",
+    "RuleUpdate",
+    "RuleResponse",
+    # ota
+    "FirmwareUpdateCreate",
+    "FirmwareApplyRequest",
+    "FirmwareUpdateResponse",
+    "UpdateCheckResponse",
+    # dashboards
+    "DashboardWidgetCreate",
+    "DashboardWidgetUpdate",
+    "DashboardWidgetResponse",
+    "DashboardCreate",
+    "DashboardUpdate",
+    "DashboardResponse",
+    # plugins
+    "PluginMetaResponse",
+    "PluginInstanceCreate",
+    "PluginInstanceUpdate",
+    "PluginInstanceResponse",
+    "ChannelMappingCreate",
+    "ChannelMappingUpdate",
+    "ChannelMappingResponse",
+    "PluginPackageResponse",
+    # tokens
+    "ApiTokenCreate",
+    "ApiTokenResponse",
+    "ApiTokenCreatedResponse",
+]

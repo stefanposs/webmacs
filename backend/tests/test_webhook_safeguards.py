@@ -124,7 +124,7 @@ class TestDispatchConcurrencyLimit:
 
     async def test_semaphore_exists_and_limits(self) -> None:
         """_get_semaphore returns a semaphore with the configured limit."""
-        from webmacs_backend.services import MAX_CONCURRENT_DELIVERIES, _get_semaphore
+        from webmacs_backend.services.webhook_dispatcher import MAX_CONCURRENT_DELIVERIES, _get_semaphore
 
         sem = _get_semaphore()
         assert isinstance(sem, asyncio.Semaphore)
@@ -133,7 +133,7 @@ class TestDispatchConcurrencyLimit:
 
     async def test_concurrent_deliveries_are_bounded(self) -> None:
         """At most MAX_CONCURRENT_DELIVERIES run simultaneously."""
-        from webmacs_backend.services import MAX_CONCURRENT_DELIVERIES, _dispatch_to_webhook
+        from webmacs_backend.services.webhook_dispatcher import MAX_CONCURRENT_DELIVERIES, _dispatch_to_webhook
 
         max_concurrent = 0
         current_concurrent = 0
@@ -141,7 +141,7 @@ class TestDispatchConcurrencyLimit:
 
         original_inner = None
         # Import and patch the inner function
-        import webmacs_backend.services as svc
+        import webmacs_backend.services.webhook_dispatcher as svc
 
         original_inner = svc._dispatch_to_webhook_inner
 
@@ -183,7 +183,7 @@ class TestDispatchConcurrencyLimit:
 
     async def test_max_concurrent_deliveries_value(self) -> None:
         """MAX_CONCURRENT_DELIVERIES should be a reasonable bounded value."""
-        from webmacs_backend.services import MAX_CONCURRENT_DELIVERIES
+        from webmacs_backend.services.webhook_dispatcher import MAX_CONCURRENT_DELIVERIES
 
         # Must be > 0 (otherwise nothing dispatches)
         assert MAX_CONCURRENT_DELIVERIES > 0
@@ -205,7 +205,7 @@ class TestThrottleConfig:
 
     def test_max_retries_bounded(self) -> None:
         """MAX_RETRIES should not cause exponential task explosion."""
-        from webmacs_backend.services import MAX_RETRIES, RETRY_BACKOFF_BASE
+        from webmacs_backend.services.webhook_dispatcher import MAX_RETRIES, RETRY_BACKOFF_BASE
 
         assert MAX_RETRIES <= 5
         # Worst case total wait: sum of backoff^attempt

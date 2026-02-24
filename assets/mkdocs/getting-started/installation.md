@@ -4,35 +4,68 @@
 
 | Path | Target Audience | Method |
 |---|---|---|
-| **Production (RevPi / Server)** | Operators, customers | `scripts/install.sh` — fully automated |
+| **Revolution Pi** | Industrial operators | `scripts/install-revpi.sh` — fully automated |
+| **Raspberry Pi 3/4/5** | Makers, home automation | `scripts/install-rpi.sh` — fully automated, RPi-optimised |
 | **Development (local)** | Developers | `docker compose up` or local services |
 
 !!! tip "For most users"
-    The **easiest way** to install and run WebMACS is the `install.sh` script in the `scripts/` directory.
-    It handles Docker installation, credential generation, and service startup — no manual setup required.
+    The **easiest way** to install WebMACS is the appropriate install script in `scripts/`.
+    It handles Docker installation, credential generation, cgroup configuration, and service startup — no manual setup required.
 
 ---
 
 ## Production Installation (Recommended)
 
-### Using `scripts/install.sh`
+### Revolution Pi — `scripts/install-revpi.sh`
 
-The install script is designed for **Revolution Pi, Raspberry Pi, or any Debian/Ubuntu server**.
-It performs a complete, hands-free installation:
+Designed for **KUNBUS Revolution Pi** (Connect, Connect 4, Connect S) and any Debian/Ubuntu ARM server:
 
 ```bash
-# On the target device:
-sudo bash scripts/install.sh webmacs-update-2.0.0.tar.gz
+# On the RevPi:
+sudo bash scripts/install-revpi.sh webmacs-update-2.0.0.tar.gz
 ```
 
-**What the script does (in order):**
+Or via one-liner (fresh device):
 
-1. Installs Docker + Docker Compose (if missing)
-2. Creates `/opt/webmacs` with an `updates/` directory structure
-3. Generates a secure `.env` file with random `SECRET_KEY`, `DB_PASSWORD`, and admin password
-4. Extracts and loads Docker images from the bundle (SHA-256 verified)
-5. Starts all 4 containers via `docker-compose.prod.yml`
-6. Creates a **systemd service** (`webmacs.service`) for auto-start on boot
+```bash
+curl -sSL https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install-revpi.sh | sudo bash
+```
+
+### Raspberry Pi 3/4/5 — `scripts/install-rpi.sh`
+
+Designed for **consumer Raspberry Pi** hardware (Pi 3B/3B+, Pi 4, Pi 5). Extends the RevPi
+script with additional RPi-specific setup:
+
+- Enables **cgroup memory** in `cmdline.txt` (required for Docker on RPi)
+- Configures **swap** automatically based on available RAM
+- Sets optimal **Docker storage driver** (`overlay2` + journald)
+- Supports **Raspberry Pi 3** with 1 GB RAM (minimum 750 MB)
+
+```bash
+# On the Raspberry Pi:
+sudo bash scripts/install-rpi.sh webmacs-update-2.0.0.tar.gz
+```
+
+Or via one-liner:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install-rpi.sh | sudo bash
+```
+
+!!! warning "Reboot may be required (RPi only)"
+    On a fresh Raspberry Pi OS installation, the script enables cgroup memory in `cmdline.txt`.
+    A **reboot is required** before Docker works correctly. The script will display a clear notice
+    if a reboot is needed.
+
+**What both scripts do (in order):**
+
+1. Detects hardware and verifies compatibility
+2. Installs Docker + Docker Compose (if missing)
+3. Creates `/opt/webmacs` with an `updates/` directory structure
+4. Generates a secure `.env` file with random `SECRET_KEY`, `DB_PASSWORD`, and admin password
+5. Extracts and loads Docker images from the bundle (SHA-256 verified)
+6. Starts all 4 containers via `docker-compose.prod.yml`
+7. Creates a **systemd service** (`webmacs.service`) for auto-start on boot
 
 !!! danger "Save Your Credentials"
     The admin password is shown **only once** during installation.

@@ -114,14 +114,14 @@ def _create_state_token(code_verifier: str) -> str:
         "exp": int((now + datetime.timedelta(seconds=_STATE_TTL_SECONDS)).timestamp()),
     }
     header = {"alg": _STATE_ALGORITHM}
-    token: bytes = authlib_jwt.encode(header, payload, settings.secret_key)
+    token: bytes = authlib_jwt.encode(header, payload, settings.secret_key.get_secret_value())
     return token.decode("utf-8")
 
 
 def _verify_state_token(state: str) -> dict[str, object] | None:
     """Verify a state token and return claims, or None on failure."""
     try:
-        claims = authlib_jwt.decode(state, settings.secret_key)
+        claims = authlib_jwt.decode(state, settings.secret_key.get_secret_value())
         claims.validate()
         return dict(claims)
     except Exception:
@@ -180,7 +180,7 @@ def _build_oauth_client(oidc_cfg: dict[str, object]) -> AsyncOAuth2Client:
     """Create a configured ``AsyncOAuth2Client``."""
     return AsyncOAuth2Client(
         client_id=settings.oidc_client_id,
-        client_secret=settings.oidc_client_secret or None,
+        client_secret=settings.oidc_client_secret.get_secret_value() or None,
         scope=settings.oidc_scopes,
         token_endpoint=str(oidc_cfg["token_endpoint"]),
         redirect_uri=_get_redirect_uri(),
