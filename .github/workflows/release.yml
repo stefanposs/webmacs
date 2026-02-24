@@ -36,30 +36,26 @@ jobs:
         with:
           platforms: linux/arm64
 
-      # Build each service for both amd64 (servers/dev) and arm64 (RevPi).
-      # buildx --load only supports a single platform, so we build twice
-      # and combine via docker save.
+      # Build each service per platform as Docker-format tar (buildx --load
+      # does not support multi-platform; OCI export cannot be reliably
+      # re-imported via docker load). We build amd64 + arm64 separately,
+      # load both, then save all arch-tagged images into one bundle tar.
       - name: Build & load multi-arch images
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           for svc in backend frontend controller; do
-            echo "▶ Building ${svc} for linux/amd64 + linux/arm64..."
-            docker buildx build \
-              --platform linux/amd64,linux/arm64 \
-              --tag "webmacs-${svc}:${VERSION}" \
-              --tag "webmacs-${svc}:latest" \
-              --output "type=oci,dest=${svc}-oci.tar" \
-              -f "docker/${svc}.Dockerfile" .
-          done
-
-      # Re-import OCI archives so `docker save` works
-      - name: Import OCI images
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          for svc in backend frontend controller; do
-            docker load -i "${svc}-oci.tar" 2>/dev/null || true
-            # Tag from OCI manifest if needed
-            docker tag "webmacs-${svc}:${VERSION}" "webmacs-${svc}:${VERSION}" 2>/dev/null || true
+            for arch in amd64 arm64; do
+              echo "▶ Building webmacs-${svc}:${VERSION}-${arch}..."
+              docker buildx build \
+                --platform "linux/${arch}" \
+                --tag "webmacs-${svc}:${VERSION}-${arch}" \
+                --output "type=docker,dest=${svc}-${arch}.tar" \
+                -f "docker/${svc}.Dockerfile" .
+              docker load -i "${svc}-${arch}.tar"
+            done
+            # Convenience alias pointing to amd64 (used by docker save below)
+            docker tag "webmacs-${svc}:${VERSION}-amd64" "webmacs-${svc}:${VERSION}"
+            docker tag "webmacs-${svc}:${VERSION}-amd64" "webmacs-${svc}:latest"
           done
 
       # Uses the same bundle structure as scripts/build-update-bundle.sh
@@ -69,12 +65,15 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           WORK_DIR=$(mktemp -d)
 
-          # ── Export images ──
+          # ── Export images (both amd64 and arm64 variants) ──
           echo "▶ Exporting images to tar..."
           docker save \
-            "webmacs-backend:${VERSION}" \
-            "webmacs-frontend:${VERSION}" \
-            "webmacs-controller:${VERSION}" \
+            "webmacs-backend:${VERSION}-amd64" \
+            "webmacs-backend:${VERSION}-arm64" \
+            "webmacs-frontend:${VERSION}-amd64" \
+            "webmacs-frontend:${VERSION}-arm64" \
+            "webmacs-controller:${VERSION}-amd64" \
+            "webmacs-controller:${VERSION}-arm64" \
             -o "${WORK_DIR}/images.tar"
 
           # ── Checksum ──
@@ -89,9 +88,12 @@ jobs:
               "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
               "changelog": "WebMACS v${VERSION} — see GitHub Release notes",
               "images": [
-                  "webmacs-backend:${VERSION}",
-                  "webmacs-frontend:${VERSION}",
-                  "webmacs-controller:${VERSION}"
+                  "webmacs-backend:${VERSION}-amd64",
+                  "webmacs-backend:${VERSION}-arm64",
+                  "webmacs-frontend:${VERSION}-amd64",
+                  "webmacs-frontend:${VERSION}-arm64",
+                  "webmacs-controller:${VERSION}-amd64",
+                  "webmacs-controller:${VERSION}-arm64"
               ]
           }
           EOF
