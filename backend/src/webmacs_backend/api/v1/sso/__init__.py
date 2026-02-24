@@ -162,7 +162,7 @@ def _cleanup_auth_codes() -> None:
         _auth_codes.pop(k, None)
 
 
-# ─── PKCE helpers ───────────────────────────────────────────────────────────
+# ─── PKCE helpers ──────────────────────────────────────────────────────────
 
 
 def _generate_pkce() -> tuple[str, str]:
@@ -173,7 +173,7 @@ def _generate_pkce() -> tuple[str, str]:
     return code_verifier, code_challenge
 
 
-# ─── Build OAuth2 client ────────────────────────────────────────────────────
+# ─── Build OAuth2 client ───────────────────────────────────────────────────
 
 
 def _build_oauth_client(oidc_cfg: dict[str, object]) -> AsyncOAuth2Client:
@@ -197,7 +197,7 @@ def _get_redirect_uri() -> str:
     return f"{scheme}://{host}:{settings.backend_port}/api/v1/auth/sso/callback"
 
 
-# ─── Endpoints ──────────────────────────────────────────────────────────────
+# ─── Endpoints ────────────────────────────────────────────────────────────
 
 
 @router.get("/config", response_model=SsoConfigResponse)
@@ -352,7 +352,7 @@ async def sso_exchange(request: SsoExchangeRequest) -> SsoExchangeResponse:
     return SsoExchangeResponse(access_token=access_token)
 
 
-# ─── Helpers ────────────────────────────────────────────────────────────────
+# ─── Helpers ─────────────────────────────────────────────────────────────
 
 
 async def _fetch_userinfo(oidc_cfg: dict[str, object], token_response: dict[str, object]) -> dict[str, object]:

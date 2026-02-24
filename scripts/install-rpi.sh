@@ -256,6 +256,41 @@ else
     ok "Docker daemon config already exists — leaving unchanged"
 fi
 
+# Verify Docker daemon is responsive (some systems need a moment to start)
+step "Verifying Docker daemon"
+RETRIES=10
+for i in $(seq 1 $RETRIES); do
+    if docker info >/dev/null 2>&1; then
+        ok "Docker daemon responsive"
+        DOCKER_READY=true
+        break
+    fi
+    info "Waiting for docker daemon to be ready... ($i/$RETRIES)"
+    sleep 2
+done
+if [[ "${DOCKER_READY:-false}" != true ]]; then
+    warn "Docker daemon not responsive; attempting to restart docker service..."
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl restart docker || true
+    else
+        warn "systemctl not available — cannot restart docker automatically"
+    fi
+
+    # Give it more time
+    for i in $(seq 1 30); do
+        if docker info >/dev/null 2>&1; then
+            ok "Docker daemon responsive after restart"
+            DOCKER_READY=true
+            break
+        fi
+        sleep 2
+    done
+fi
+
+if [[ "${DOCKER_READY:-false}" != true ]]; then
+    err "Docker daemon is not running or not accessible. Check: 'systemctl status docker' and 'journalctl -u docker'"
+fi
+
 # ── 7. Create directory structure ───────────────────────────────────────────
 step "Creating directory structure"
 
@@ -351,9 +386,26 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
     sed -i "s/^WEBMACS_VERSION=.*/WEBMACS_VERSION=${VERSION}/" "$ENV_FILE"
 
 elif [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
-    ok "Using existing images"
+    ok "Using existing compose at ${INSTALL_DIR}/docker-compose.prod.yml"
 else
-    err "No update bundle provided and no existing installation found.\nUsage: sudo $0 <path-to-webmacs-update-bundle.tar.gz>"
+    info "No update bundle provided and no existing installation found. Attempting to download compose from GitHub..."
+
+    # Fallback: try to download docker-compose.prod.yml from the repository's main branch
+    GITHUB_RAW_URL="${GITHUB_RAW_URL:-https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml}"
+    mkdir -p "${INSTALL_DIR}"
+    if curl -fsSL "$GITHUB_RAW_URL" -o "${INSTALL_DIR}/docker-compose.prod.yml"; then
+        ok "Downloaded docker-compose.prod.yml from ${GITHUB_RAW_URL}"
+        info "Pulling images from registry (may take a while)..."
+        cd "${INSTALL_DIR}"
+        # Ensure .env exists (created above). Pull images referenced by the compose file.
+        if ! docker compose -f docker-compose.prod.yml --env-file .env pull; then
+            warn "docker compose pull failed — images may need to be pulled manually or bundle provided"
+        else
+            ok "Images pulled from registry"
+        fi
+    else
+        err "No update bundle provided and no existing installation found.\nUsage: sudo $0 <path-to-webmacs-update-bundle.tar.gz>"
+    fi
 fi
 
 if [[ ! -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
