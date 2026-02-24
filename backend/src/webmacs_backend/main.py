@@ -9,8 +9,9 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 import structlog
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import delete, select
 
 from webmacs_backend import __version__
@@ -166,6 +167,21 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
         lifespan=lifespan,
     )
+
+    # ── Global error handler ──────────────────────────────────────────────
+    @application.exception_handler(Exception)
+    async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        """Catch-all for unhandled exceptions — returns 500 with request ID."""
+        logger.error(
+            "unhandled_exception",
+            error=str(exc),
+            path=str(request.url),
+            exc_info=True,
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "An unexpected error occurred. Please try again later."},
+        )
 
     # Middleware order (Starlette uses LIFO: last added = outermost):
     #   Request flow: RequestIdMiddleware → CORSMiddleware → RateLimitMiddleware → app
