@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@/services/api'
+import { useAuditLog } from '@/composables/useAuditLog'
 import type { Datapoint, PaginatedResponse } from '@/types'
 
 export const useDatapointStore = defineStore('datapoints', () => {
@@ -9,6 +10,7 @@ export const useDatapointStore = defineStore('datapoints', () => {
   const total = ref(0)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const { logAction } = useAuditLog()
 
   async function fetchDatapoints(page = 1, pageSize = 50): Promise<void> {
     loading.value = true
@@ -33,10 +35,12 @@ export const useDatapointStore = defineStore('datapoints', () => {
 
   async function createDatapoint(payload: { value: number; event_public_id: string }): Promise<void> {
     await api.post('/datapoints', payload)
+    await logAction('datapoint.create', payload)
   }
 
   async function createBatch(items: { value: number; event_public_id: string }[]): Promise<void> {
     await api.post('/datapoints/batch', { datapoints: items })
+    await logAction('datapoint.batch_create', { count: items.length })
   }
 
   return { datapoints, latestDatapoints, total, loading, error, fetchDatapoints, fetchLatest, createDatapoint, createBatch }
