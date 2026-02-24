@@ -64,6 +64,25 @@
       </div>
     </div>
 
+    <!-- Stream Controls -->
+    <div class="stream-controls">
+      <button class="btn-pause" :class="{ 'btn-pause--active': isPaused }" @click="togglePause" :title="isPaused ? 'Resume live updates' : 'Pause live updates'" :aria-label="isPaused ? 'Resume live updates' : 'Pause live updates'">
+        <i :class="isPaused ? 'pi pi-play' : 'pi pi-pause'" />
+        {{ isPaused ? 'Resume' : 'Pause' }}
+      </button>
+      <div class="throttle-control">
+        <label class="throttle-label">Update interval:</label>
+        <select class="throttle-select" :value="throttleMs" @change="onThrottleChange">
+          <option :value="250">0.25s</option>
+          <option :value="500">0.5s</option>
+          <option :value="1000">1s</option>
+          <option :value="2000">2s</option>
+          <option :value="5000">5s</option>
+        </select>
+      </div>
+      <span v-if="isPaused" class="pause-indicator"><i class="pi pi-info-circle" /> Updates paused — data is still being collected</span>
+    </div>
+
     <!-- Sensor Cards -->
     <section class="dashboard-section">
       <h2 class="section-title"><i class="pi pi-bolt" /> Sensors</h2>
@@ -154,9 +173,14 @@ const eventStore = useEventStore()
 const datapointStore = useDatapointStore()
 const pluginStore = usePluginStore()
 const { formatNumber } = useFormatters()
-const { latestDatapoints: realtimeDatapoints, connectionMode, isConnected } = useRealtimeDatapoints(1500)
+const { latestDatapoints: realtimeDatapoints, connectionMode, isConnected, isPaused, togglePause, throttleMs, setThrottleMs } = useRealtimeDatapoints(1500)
 
 const chartHistory = ref<Record<string, { time: string; value: number }[]>>({})
+
+function onThrottleChange(ev: globalThis.Event) {
+  const target = ev.target as HTMLSelectElement
+  setThrottleMs(parseInt(target.value, 10))
+}
 
 const sensorEvents = computed(() => eventStore.events.filter((e) => e.type === EventType.sensor))
 const actuatorEvents = computed(() => eventStore.events.filter((e) => e.type === EventType.actuator))
@@ -167,11 +191,21 @@ const disabledPluginName = computed(() => pluginStore.instances.find((p) => !p.e
 const showDemoBanner = computed(() => pluginStore.instances.some((p) => p.enabled && p.demo_mode) && !showDisabledBanner.value)
 const demoPluginName = computed(() => pluginStore.instances.find((p) => p.enabled && p.demo_mode)?.instance_name ?? 'Plugin')
 
+// O(1) lookup map for real-time + store datapoints
+const realtimeMap = computed(() => {
+  const map = new Map<string, number>()
+  for (const dp of datapointStore.latestDatapoints) {
+    map.set(dp.event_public_id, dp.value)
+  }
+  // Real-time data takes priority (overwrite store values)
+  for (const dp of realtimeDatapoints.value) {
+    map.set(dp.event_public_id, dp.value)
+  }
+  return map
+})
+
 function getLatestRaw(publicId: string): number | null {
-  // Prefer real-time data, fall back to store
-  const dp = realtimeDatapoints.value.find((d) => d.event_public_id === publicId)
-    ?? datapointStore.latestDatapoints.find((d) => d.event_public_id === publicId)
-  return dp?.value ?? null
+  return realtimeMap.value.get(publicId) ?? null
 }
 
 function getBarPercent(sensor: Event): number {
@@ -184,7 +218,7 @@ function getBarPercent(sensor: Event): number {
 
 function isActive(publicId: string): boolean {
   const val = getLatestRaw(publicId)
-  return val === 1 || val === 1.0
+  return val != null && val >= 0.5
 }
 
 async function toggleActuator(event: Event) {
@@ -199,8 +233,10 @@ async function toggleActuator(event: Event) {
 
 async function onRangeChange(ev: globalThis.Event, event: Event) {
   const target = ev.target as HTMLInputElement
+  const value = parseFloat(target.value)
+  if (!Number.isFinite(value)) return
   try {
-    await datapointStore.createDatapoint({ event_public_id: event.public_id, value: parseFloat(target.value) })
+    await datapointStore.createDatapoint({ event_public_id: event.public_id, value })
     await datapointStore.fetchLatest()
   } catch {
     // best-effort
@@ -257,6 +293,11 @@ const chartOptions = computed(() => ({
 
 function recordHistory() {
   const now = new Date().toLocaleTimeString()
+  // Prune orphaned sensor histories
+  const activeSensorIds = new Set(sensorEvents.value.map(s => s.public_id))
+  for (const key of Object.keys(chartHistory.value)) {
+    if (!activeSensorIds.has(key)) delete chartHistory.value[key]
+  }
   for (const sensor of sensorEvents.value) {
     const val = getLatestRaw(sensor.public_id)
     if (val != null) {
@@ -270,8 +311,8 @@ function recordHistory() {
   }
 }
 
-// Record chart history whenever real-time data updates
-watch(realtimeDatapoints, recordHistory, { deep: true })
+// Record chart history whenever real-time data updates (shallow watch — array is replaced entirely)
+watch(realtimeDatapoints, recordHistory)
 
 onMounted(async () => {
   await Promise.all([eventStore.fetchEvents(), datapointStore.fetchLatest(), pluginStore.fetchInstances()])
@@ -400,6 +441,73 @@ onMounted(async () => {
 
 .stat-value { font-size: 1.25rem; font-weight: 700; color: var(--wm-text); }
 .stat-label { font-size: 0.75rem; color: var(--wm-text-muted); }
+
+/* Stream controls */
+.stream-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-pause {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border: 1.5px solid var(--wm-border);
+  border-radius: var(--wm-radius, 8px);
+  background: var(--wm-surface);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--wm-text);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--wm-border-light);
+  }
+
+  &--active {
+    background: #fef3c7;
+    border-color: #fbbf24;
+    color: #92400e;
+
+    &:hover {
+      background: #fde68a;
+    }
+  }
+}
+
+.throttle-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.throttle-label {
+  font-size: 0.8rem;
+  color: var(--wm-text-muted);
+  white-space: nowrap;
+}
+
+.throttle-select {
+  padding: 0.35rem 0.6rem;
+  border: 1.5px solid var(--wm-border);
+  border-radius: var(--wm-radius, 8px);
+  background: var(--wm-surface);
+  font-size: 0.8rem;
+  color: var(--wm-text);
+  cursor: pointer;
+}
+
+.pause-indicator {
+  font-size: 0.8rem;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
 
 .stat-pulse {
   width: 12px;

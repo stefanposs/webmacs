@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any, Protocol
 import structlog
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from webmacs_controller.services.api_client import APIClient
 
 logger = structlog.get_logger()
@@ -28,8 +30,8 @@ class TelemetryTransport(Protocol):
 class HttpTelemetry:
     """Send telemetry via HTTP POST to /datapoints/batch."""
 
-    def __init__(self, api_client: Any) -> None:
-        self._api_client: APIClient = api_client
+    def __init__(self, api_client: APIClient) -> None:
+        self._api_client = api_client
 
     async def connect(self) -> None:
         """No-op for HTTP — connection handled by httpx per request."""
@@ -48,10 +50,10 @@ class WebSocketTelemetry:
     Implements auto-reconnect with exponential back-off.
     """
 
-    def __init__(self, ws_url: str, auth_token_getter: Any = None) -> None:
+    def __init__(self, ws_url: str, auth_token_getter: Callable[[], str | None] | None = None) -> None:
         self._ws_url = ws_url
         self._get_token = auth_token_getter
-        self._ws: Any = None
+        self._ws: Any = None  # websockets.WebSocketClientProtocol at runtime
         self._reconnect_delay = 1.0
         self._max_reconnect_delay = 30.0
 

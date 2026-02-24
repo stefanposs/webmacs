@@ -238,8 +238,6 @@ class WebhookResponse(BaseModel):
     def _parse_events_json(cls, v: Any) -> list[str]:
         """Deserialize JSON text from DB column to list."""
         if isinstance(v, str):
-            import json
-
             try:
                 parsed: list[str] = json.loads(v)
                 return parsed
