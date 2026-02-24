@@ -86,17 +86,17 @@
         <option :value="100">100 / page</option>
         <option :value="200">200 / page</option>
       </select>
-      <button v-if="viewMode === 'table'" class="btn-export" @click="exportCsv" title="Export as CSV">
+      <button class="btn-export" @click="exportCsv" title="Export as CSV">
         <i class="pi pi-download" /> CSV
       </button>
     </div>
 
-    <!-- Loading -->
-    <div v-if="datapointStore.loading && viewMode === 'table'" class="loading"><i class="pi pi-spin pi-spinner" /> Loading datapoints...</div>
-
     <!-- Live Tail Mode -->
-    <div v-else-if="viewMode === 'live'">
-      <table v-if="filteredLiveDatapoints.length" class="data-table data-table--live" aria-label="Live datapoints">
+    <div v-if="viewMode === 'live'">
+      <div v-if="connectionMode === 'connecting' && filteredLiveDatapoints.length === 0" class="loading">
+        <i class="pi pi-spin pi-spinner" /> Connecting to live stream…
+      </div>
+      <table v-else-if="filteredLiveDatapoints.length" class="data-table data-table--live" aria-label="Live datapoints">
         <thead>
           <tr>
             <th>Event</th>
@@ -138,8 +138,9 @@
     </div>
 
     <!-- Table Mode (paginated) -->
-    <template v-else>
-      <table v-if="filteredTableDatapoints.length" class="data-table" aria-label="Datapoints table">
+    <div v-else>
+      <div v-if="datapointStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading datapoints...</div>
+      <table v-else-if="filteredTableDatapoints.length" class="data-table" aria-label="Datapoints table">
         <thead>
           <tr>
             <th>Public ID</th>
@@ -175,12 +176,12 @@
           Next <i class="pi pi-chevron-right" />
         </button>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useDatapointStore } from '@/stores/datapoints'
 import { usePluginStore } from '@/stores/plugins'
 import { useEventStore } from '@/stores/events'
@@ -206,6 +207,7 @@ const { latestDatapoints, connectionMode, isConnected, isPaused, togglePause, th
 // ─── Change tracking with CSS animation triggers ────────────────
 const previousValues = ref<Map<string, number>>(new Map())
 const changeTimestamps = ref<Map<string, { time: number; direction: 'up' | 'down' }>>(new Map())
+const highlightTimers = new Set<ReturnType<typeof setTimeout>>()
 
 watch(latestDatapoints, (newDps, oldDps) => {
   // 1. Build previous values map from oldDps
@@ -225,15 +227,25 @@ watch(latestDatapoints, (newDps, oldDps) => {
         time: now,
         direction: dp.value > prev ? 'up' : 'down',
       })
-      // Auto-remove highlight after animation completes
+      // Auto-remove highlight after animation completes (matches 1.5s CSS animation)
       const eventId = dp.event_public_id
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         changeTimestamps.value.delete(eventId)
-      }, 2000)
+        highlightTimers.delete(timer)
+      }, 1500)
+      highlightTimers.add(timer)
     }
   }
 
   previousValues.value = oldMap
+})
+
+onUnmounted(() => {
+  // Clean up all pending highlight timers
+  for (const timer of highlightTimers) {
+    clearTimeout(timer)
+  }
+  highlightTimers.clear()
 })
 
 function getChangeClass(eventPublicId: string): string {
@@ -242,8 +254,17 @@ function getChangeClass(eventPublicId: string): string {
   return change.direction === 'up' ? 'row-flash--up' : 'row-flash--down'
 }
 
+// ─── O(1) lookup map for live datapoints ────────────────────────
+const liveDatapointMap = computed(() => {
+  const map = new Map<string, Datapoint>()
+  for (const dp of latestDatapoints.value) {
+    map.set(dp.event_public_id, dp)
+  }
+  return map
+})
+
 function getValueDelta(eventPublicId: string): number | null {
-  const current = latestDatapoints.value.find(d => d.event_public_id === eventPublicId)
+  const current = liveDatapointMap.value.get(eventPublicId)
   const prev = previousValues.value.get(eventPublicId)
   if (!current || prev === undefined) return null
   return current.value - prev
@@ -386,12 +407,23 @@ function exportCsv() {
   URL.revokeObjectURL(url)
 }
 
+// ─── Fetch table data when switching to table mode ──────────────
+watch(viewMode, (mode) => {
+  if (mode === 'table') {
+    datapointStore.fetchDatapoints(page.value, pageSize.value)
+  }
+})
+
 onMounted(async () => {
-  await Promise.all([
-    datapointStore.fetchDatapoints(page.value, pageSize.value),
+  const fetches: Promise<void>[] = [
     pluginStore.fetchInstances(),
     eventStore.fetchEvents(),
-  ])
+  ]
+  // Only fetch paginated data if starting in table mode
+  if (viewMode.value === 'table') {
+    fetches.push(datapointStore.fetchDatapoints(page.value, pageSize.value))
+  }
+  await Promise.all(fetches)
 })
 </script>
 
@@ -629,22 +661,20 @@ onMounted(async () => {
 }
 
 .row-flash--up {
-  background-color: rgba(16, 185, 129, 0.12) !important;
-  animation: flash-up 1.5s ease-out;
+  animation: flash-up 1.5s ease-out forwards;
 }
 
 .row-flash--down {
-  background-color: rgba(239, 68, 68, 0.12) !important;
-  animation: flash-down 1.5s ease-out;
+  animation: flash-down 1.5s ease-out forwards;
 }
 
 @keyframes flash-up {
-  0% { background-color: rgba(16, 185, 129, 0.25); }
+  0% { background-color: rgba(16, 185, 129, 0.3); }
   100% { background-color: transparent; }
 }
 
 @keyframes flash-down {
-  0% { background-color: rgba(239, 68, 68, 0.25); }
+  0% { background-color: rgba(239, 68, 68, 0.3); }
   100% { background-color: transparent; }
 }
 
