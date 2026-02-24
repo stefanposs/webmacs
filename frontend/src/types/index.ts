@@ -70,6 +70,7 @@ export interface LogEntry {
   status_type: StatusType | null
   created_on: string | null
   user_public_id: string
+  username?: string | null
 }
 
 export interface PaginatedResponse<T> {

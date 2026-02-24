@@ -60,7 +60,7 @@
           <td class="mono">{{ formatRelativeTime(log.created_on) }}</td>
           <td><span class="badge" :class="`badge--${log.logging_type}`">{{ log.logging_type }}</span></td>
           <td>{{ log.status_type ?? '—' }}</td>
-          <td class="mono">{{ shortId(log.user_public_id) }}</td>
+          <td class="mono">{{ displayUser(log.username, log.user_public_id) }}</td>
           <td>{{ log.content }}</td>
         </tr>
       </tbody>
@@ -99,6 +99,11 @@ const toDateInput = ref(logStore.filters.to_date)
 function shortId(value: string | null | undefined): string {
   if (!value) return '—'
   return value.slice(0, 8)
+}
+
+function displayUser(username: string | null | undefined, userPublicId: string | null | undefined): string {
+  if (username && username.trim().length > 0) return username
+  return shortId(userPublicId)
 }
 
 function toIsoOrEmpty(value: string): string {

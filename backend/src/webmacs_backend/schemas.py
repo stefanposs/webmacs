@@ -185,6 +185,7 @@ class LogEntryResponse(BaseModel):
     status_type: StatusType | None = None
     created_on: datetime.datetime | None = None
     user_public_id: str
+    username: str | None = None
 
     model_config = {"from_attributes": True}
 

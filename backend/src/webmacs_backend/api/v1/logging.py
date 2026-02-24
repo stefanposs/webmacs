@@ -11,11 +11,12 @@ from collections.abc import Generator
 from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import Select, select
+from sqlalchemy.orm import selectinload
 
 from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.enums import LoggingType
 from webmacs_backend.models import LogEntry
-from webmacs_backend.repository import get_or_404, paginate, update_from_schema
+from webmacs_backend.repository import paginate, update_from_schema
 from webmacs_backend.schemas import LogEntryCreate, LogEntryResponse, LogEntryUpdate, PaginatedResponse, StatusResponse
 
 router = APIRouter()
@@ -28,7 +29,7 @@ def _build_log_query(
     from_date: datetime.datetime | None,
     to_date: datetime.datetime | None,
 ) -> Select[tuple[LogEntry]]:
-    query = select(LogEntry)
+    query = select(LogEntry).options(selectinload(LogEntry.user))
 
     if logging_type is not None:
         query = query.where(LogEntry.logging_type == logging_type)
@@ -145,7 +146,12 @@ async def create_log_entry(data: LogEntryCreate, db: DbSession, current_user: Op
 
 @router.get("/{public_id}", response_model=LogEntryResponse)
 async def get_log_entry(public_id: str, db: DbSession, current_user: ViewerUser) -> LogEntryResponse:
-    entry = await get_or_404(db, LogEntry, public_id, entity_name="LogEntry")
+    result = await db.execute(
+        select(LogEntry).options(selectinload(LogEntry.user)).where(LogEntry.public_id == public_id)
+    )
+    entry = result.scalar_one_or_none()
+    if entry is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="LogEntry not found.")
     return LogEntryResponse.model_validate(entry)
 
 
