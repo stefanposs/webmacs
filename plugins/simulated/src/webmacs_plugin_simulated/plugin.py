@@ -7,7 +7,7 @@ configurable signal profiles for demo and testing purposes.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from webmacs_plugins_core.base import DevicePlugin
 from webmacs_plugins_core.channels import ChannelDescriptor, ChannelDirection, SimulationSpec
@@ -24,7 +24,7 @@ class SimulatedPlugin(DevicePlugin):
     It serves as both a demo tool and a reference implementation for plugin authors.
     """
 
-    meta = PluginMeta(
+    meta: ClassVar[PluginMeta] = PluginMeta(
         id="simulated",
         name="Simulated Device",
         version="0.2.0",

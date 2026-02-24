@@ -82,20 +82,6 @@ async def get_current_user(
     return user
 
 
-def _require_role(*allowed: UserRole):
-    """Factory that returns a dependency requiring at least *min_role*."""
-
-    async def _guard(current_user: Annotated[User, Depends(get_current_user)]) -> User:
-        if current_user.role not in allowed and not any(current_user.role.has_at_least(r) for r in allowed):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Requires one of: {', '.join(r.value for r in allowed)}",
-            )
-        return current_user
-
-    return _guard
-
-
 async def get_admin_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
