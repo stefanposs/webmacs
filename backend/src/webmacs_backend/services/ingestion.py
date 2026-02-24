@@ -136,10 +136,31 @@ async def ingest_datapoints(
     if not datapoints:
         return IngestionResult(accepted=0, rejected=0)
 
+    # Basic validation & sanitization: ensure finite floats and non-empty event ids
+    import math
+
+    valid: list[IncomingDatapoint] = []
+    invalid_count = 0
+    for dp in datapoints:
+        try:
+            v = float(dp.value)
+        except Exception:
+            invalid_count += 1
+            logger.debug("ingest_invalid_value", value=dp.value, event=dp.event_public_id)
+            continue
+        if not math.isfinite(v) or not dp.event_public_id:
+            invalid_count += 1
+            logger.debug("ingest_invalid_value_or_event", value=v, event=dp.event_public_id)
+            continue
+        valid.append(IncomingDatapoint(value=v, event_public_id=dp.event_public_id))
+
+    if not valid:
+        return IngestionResult(accepted=0, rejected=len(datapoints))
+
     # 1. Filter by active plugin linkage
-    requested_eids = list({dp.event_public_id for dp in datapoints})
+    requested_eids = list({dp.event_public_id for dp in valid})
     active_eids = await active_plugin_event_ids(db, requested_eids)
-    accepted = [dp for dp in datapoints if dp.event_public_id in active_eids]
+    accepted = [dp for dp in valid if dp.event_public_id in active_eids]
 
     if not accepted:
         return IngestionResult(accepted=0, rejected=len(datapoints))
@@ -157,7 +178,12 @@ async def ingest_datapoints(
         }
         for dp in accepted
     ]
-    await db.execute(insert(Datapoint), rows)
+    try:
+        await db.execute(insert(Datapoint), rows)
+    except Exception:
+        # Persistent storage failure — log and return zero accepted to let caller decide
+        logger.exception("datapoint_insert_failed", count=len(rows))
+        return IngestionResult(accepted=0, rejected=len(datapoints))
 
     # 3. Webhooks (fire-and-forget)
     for dp in accepted:
