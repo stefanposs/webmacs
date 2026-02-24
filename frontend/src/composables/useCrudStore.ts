@@ -12,6 +12,7 @@
 
 import { ref, type Ref } from 'vue'
 import api from '@/services/api'
+import { useAuditLog } from '@/composables/useAuditLog'
 import { useNotification } from '@/composables/useNotification'
 import type { PaginatedResponse } from '@/types'
 
@@ -86,6 +87,7 @@ export function useCrudStore<T>(
   } = options
 
   const notify = useNotification()
+  const { logAction } = useAuditLog()
 
   // ── Reactive state ──────────────────────────────────────────────────────
   const items = ref<T[]>([]) as Ref<T[]>
@@ -121,6 +123,7 @@ export function useCrudStore<T>(
   async function create(payload: Partial<T> | Record<string, unknown>): Promise<void> {
     try {
       await api.post(endpoint, payload)
+      await logAction(`${name}.create`, { endpoint, payload })
       notify.success(`${capitalize(name)} created`)
       await fetch(1, defaultPageSize, false)
     } catch (e) {
@@ -136,6 +139,7 @@ export function useCrudStore<T>(
   ): Promise<void> {
     try {
       await api.put(`${endpoint}/${id}`, payload)
+      await logAction(`${name}.update`, { endpoint, id, payload })
       notify.success(`${capitalize(name)} updated`)
       await fetch(1, defaultPageSize, false)
     } catch (e) {
@@ -154,6 +158,7 @@ export function useCrudStore<T>(
 
     try {
       await api.delete(`${endpoint}/${id}`)
+      await logAction(`${name}.delete`, { endpoint, id })
       total.value = Math.max(0, total.value - 1)
       notify.success(`${capitalize(name)} deleted`)
     } catch {

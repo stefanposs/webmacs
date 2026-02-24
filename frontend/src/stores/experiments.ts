@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { useAuditLog } from '@/composables/useAuditLog'
 import { useNotification } from '@/composables/useNotification'
 import { useCrudStore } from '@/composables/useCrudStore'
 import type { Experiment } from '@/types'
@@ -9,11 +10,13 @@ export const useExperimentStore = defineStore('experiments', () => {
     useCrudStore<Experiment>({ endpoint: '/experiments', name: 'experiment' })
 
   const notify = useNotification()
+  const { logAction } = useAuditLog()
 
   /** Domain-specific action — stops a running experiment. */
   async function stopExperiment(publicId: string): Promise<void> {
     try {
       await api.put(`/experiments/${publicId}/stop`)
+      await logAction('experiment.stop', { public_id: publicId })
       notify.success('Experiment stopped')
       await fetch()
     } catch (e) {

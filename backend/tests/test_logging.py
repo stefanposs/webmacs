@@ -6,9 +6,7 @@ pytestmark = pytest.mark.anyio
 
 BASE = "/api/v1/logging"
 
-
 # ─── Create ──────────────────────────────────────────────────────────────────
-
 
 async def test_create_log_entry(client, auth_headers, admin_user):
     """POST /logging creates a new log entry with default type=info."""
@@ -20,7 +18,6 @@ async def test_create_log_entry(client, auth_headers, admin_user):
     assert r.status_code == 201
     assert r.json()["status"] == "success"
 
-
 async def test_create_log_entry_with_type(client, auth_headers, admin_user):
     """POST /logging respects logging_type field."""
     r = await client.post(
@@ -29,7 +26,6 @@ async def test_create_log_entry_with_type(client, auth_headers, admin_user):
         headers=auth_headers,
     )
     assert r.status_code == 201
-
 
 async def test_create_log_entry_error_type(client, auth_headers, admin_user):
     """POST /logging accepts error type."""
@@ -40,7 +36,6 @@ async def test_create_log_entry_error_type(client, auth_headers, admin_user):
     )
     assert r.status_code == 201
 
-
 async def test_create_log_entry_empty_content(client, auth_headers, admin_user):
     """POST /logging rejects empty content."""
     r = await client.post(
@@ -49,7 +44,6 @@ async def test_create_log_entry_empty_content(client, auth_headers, admin_user):
         headers=auth_headers,
     )
     assert r.status_code == 422
-
 
 async def test_create_log_entry_invalid_type(client, auth_headers, admin_user):
     """POST /logging rejects invalid logging_type."""
@@ -60,9 +54,7 @@ async def test_create_log_entry_invalid_type(client, auth_headers, admin_user):
     )
     assert r.status_code == 422
 
-
 # ─── List ────────────────────────────────────────────────────────────────────
-
 
 async def test_list_log_entries(client, auth_headers, admin_user):
     """GET /logging returns paginated list."""
@@ -74,7 +66,6 @@ async def test_list_log_entries(client, auth_headers, admin_user):
     data = r.json()
     assert data["total"] == 2
     assert len(data["data"]) == 2
-
 
 async def test_list_log_entries_pagination(client, auth_headers, admin_user):
     """GET /logging pagination works correctly."""
@@ -90,9 +81,69 @@ async def test_list_log_entries_pagination(client, auth_headers, admin_user):
     data2 = r2.json()
     assert len(data2["data"]) == 1
 
+async def test_list_log_entries_filter_by_logging_type(client, auth_headers, admin_user):
+    """GET /logging supports filtering by logging_type."""
+    await client.post(BASE, json={"content": "Info item", "logging_type": "info"}, headers=auth_headers)
+    await client.post(BASE, json={"content": "Warn item", "logging_type": "warning"}, headers=auth_headers)
+    await client.post(BASE, json={"content": "Error item", "logging_type": "error"}, headers=auth_headers)
+
+    r = await client.get(f"{BASE}?logging_type=warning", headers=auth_headers)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["total"] == 1
+    assert len(data["data"]) == 1
+    assert data["data"][0]["logging_type"] == "warning"
+    assert data["data"][0]["content"] == "Warn item"
+
+async def test_list_log_entries_filter_by_search(client, auth_headers, admin_user):
+    """GET /logging supports full-text search in content."""
+    await client.post(BASE, json={"content": "Pump started successfully"}, headers=auth_headers)
+    await client.post(BASE, json={"content": "Valve opened"}, headers=auth_headers)
+    await client.post(BASE, json={"content": "Pump stopped"}, headers=auth_headers)
+
+    r = await client.get(f"{BASE}?search=Pump", headers=auth_headers)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["total"] == 2
+    contents = [entry["content"] for entry in data["data"]]
+    assert "Pump started successfully" in contents
+    assert "Pump stopped" in contents
+
+async def test_list_log_entries_filter_invalid_date_range(client, auth_headers, admin_user):
+    """GET /logging rejects from_date > to_date."""
+    r = await client.get(
+        f"{BASE}?from_date=2026-01-02T00:00:00Z&to_date=2026-01-01T00:00:00Z",
+        headers=auth_headers,
+    )
+    assert r.status_code == 422
+    assert "from_date must be <= to_date" in r.json()["detail"]
+
+async def test_export_log_entries_csv(client, auth_headers, admin_user):
+    """GET /logging/export/csv returns CSV with expected headers and rows."""
+    await client.post(BASE, json={"content": "CSV log 1", "logging_type": "warning"}, headers=auth_headers)
+    await client.post(BASE, json={"content": "CSV log 2", "logging_type": "error"}, headers=auth_headers)
+
+    r = await client.get(f"{BASE}/export/csv", headers=auth_headers)
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/csv")
+    assert "attachment; filename=" in r.headers["content-disposition"]
+
+    body = r.text
+    assert "created_on,public_id,logging_type,status_type,content,user_public_id" in body
+    assert "CSV log 1" in body
+    assert "CSV log 2" in body
+
+async def test_export_log_entries_csv_filter_by_type(client, auth_headers, admin_user):
+    """GET /logging/export/csv supports logging_type filter."""
+    await client.post(BASE, json={"content": "Only warning", "logging_type": "warning"}, headers=auth_headers)
+    await client.post(BASE, json={"content": "Only error", "logging_type": "error"}, headers=auth_headers)
+
+    r = await client.get(f"{BASE}/export/csv?logging_type=warning", headers=auth_headers)
+    assert r.status_code == 200
+    assert "Only warning" in r.text
+    assert "Only error" not in r.text
 
 # ─── Get ─────────────────────────────────────────────────────────────────────
-
 
 async def test_get_log_entry(client, auth_headers, admin_user):
     """GET /logging/{id} returns a single log entry."""
@@ -104,15 +155,12 @@ async def test_get_log_entry(client, auth_headers, admin_user):
     assert r.status_code == 200
     assert r.json()["content"] == "FindMe"
 
-
 async def test_get_log_entry_not_found(client, auth_headers, admin_user):
     """GET /logging/{id} returns 404 for missing entry."""
     r = await client.get(f"{BASE}/nonexistent", headers=auth_headers)
     assert r.status_code == 404
 
-
 # ─── Update ──────────────────────────────────────────────────────────────────
-
 
 async def test_update_log_entry_status(client, auth_headers, admin_user):
     """PUT /logging/{id} updates status_type."""
@@ -130,7 +178,6 @@ async def test_update_log_entry_status(client, auth_headers, admin_user):
     get_r = await client.get(f"{BASE}/{entry['public_id']}", headers=auth_headers)
     assert get_r.json()["status_type"] == "read"
 
-
 async def test_update_log_entry_content(client, auth_headers, admin_user):
     """PUT /logging/{id} updates content."""
     await client.post(BASE, json={"content": "Original"}, headers=auth_headers)
@@ -144,7 +191,6 @@ async def test_update_log_entry_content(client, auth_headers, admin_user):
     )
     assert r.status_code == 200
 
-
 async def test_update_log_entry_not_found(client, auth_headers, admin_user):
     """PUT /logging/{id} returns 404 for missing entry."""
     r = await client.put(
@@ -154,18 +200,14 @@ async def test_update_log_entry_not_found(client, auth_headers, admin_user):
     )
     assert r.status_code == 404
 
-
 # ─── Auth ────────────────────────────────────────────────────────────────────
-
 
 async def test_logging_requires_auth(client):
     """Logging endpoints require authentication."""
     r = await client.get(BASE)
     assert r.status_code == 401
 
-
 # ─── Ordering ────────────────────────────────────────────────────────────────
-
 
 async def test_list_log_entries_ordered_newest_first(client, auth_headers, admin_user):
     """GET /logging returns entries ordered by created_on DESC (newest first)."""
@@ -181,9 +223,7 @@ async def test_list_log_entries_ordered_newest_first(client, auth_headers, admin
     assert entries[0]["content"] == "Third"
     assert entries[2]["content"] == "First"
 
-
 # ─── Auto-logging on login ──────────────────────────────────────────────────
-
 
 async def test_login_creates_log_entry(client, admin_user):
     """POST /auth/login creates an audit log entry."""
@@ -201,9 +241,7 @@ async def test_login_creates_log_entry(client, admin_user):
     entries = logs_r.json()["data"]
     assert any("logged in" in e["content"] for e in entries)
 
-
 # ─── Auto-logging on experiment lifecycle ────────────────────────────────────
-
 
 async def test_experiment_create_creates_log_entry(client, auth_headers, admin_user):
     """POST /experiments creates a log entry."""
@@ -217,7 +255,6 @@ async def test_experiment_create_creates_log_entry(client, auth_headers, admin_u
     logs_r = await client.get(BASE, headers=auth_headers)
     entries = logs_r.json()["data"]
     assert any("AutoLogExperiment" in e["content"] and "started" in e["content"] for e in entries)
-
 
 async def test_experiment_stop_creates_log_entry(client, auth_headers, admin_user):
     """PUT /experiments/{id}/stop creates a log entry."""

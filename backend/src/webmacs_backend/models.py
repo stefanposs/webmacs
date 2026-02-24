@@ -169,6 +169,11 @@ class LogEntry(Base):
     # Relationships
     user: Mapped[User] = relationship(back_populates="log_entries")
 
+    @property
+    def username(self) -> str | None:
+        """Convenience property for API responses."""
+        return self.user.username if self.user else None
+
 
 class Webhook(Base):
     """Webhook subscription — delivers payloads to external URLs on events."""
