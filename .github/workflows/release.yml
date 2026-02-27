@@ -36,6 +36,32 @@ jobs:
         with:
           platforms: linux/arm64
 
+      # ── Docker Hub: login, build & push multi-arch manifests ─────────
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push multi-arch images to Docker Hub
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          declare -A REPOS=(
+            [backend]="stefanposs/webmacs_backend"
+            [frontend]="stefanposs/webmacs_frontend"
+            [controller]="stefanposs/webmacs_controller"
+          )
+          for svc in backend frontend controller; do
+            repo="${REPOS[$svc]}"
+            echo "▶ Building & pushing ${repo}:${VERSION} + :latest (linux/amd64,linux/arm64)..."
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --tag "${repo}:${VERSION}" \
+              --tag "${repo}:latest" \
+              --push \
+              -f "docker/${svc}.Dockerfile" .
+          done
+
       # Build each service per platform as Docker-format tar (buildx --load
       # does not support multi-platform; OCI export cannot be reliably
       # re-imported via docker load). We build amd64 + arm64 separately,
@@ -144,6 +170,15 @@ jobs:
             **`webmacs-update-${{ steps.version.outputs.version }}.tar.gz`** contains Docker images for backend, frontend, and controller (multi-arch: amd64 + arm64).
 
             ---
+
+            ### Docker Hub
+
+            Images are also available on Docker Hub:
+            ```bash
+            docker pull stefanposs/webmacs_backend:${{ steps.version.outputs.version }}
+            docker pull stefanposs/webmacs_frontend:${{ steps.version.outputs.version }}
+            docker pull stefanposs/webmacs_controller:${{ steps.version.outputs.version }}
+            ```
 
             ### First-time install
 
