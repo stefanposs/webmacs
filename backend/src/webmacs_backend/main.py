@@ -19,6 +19,7 @@ from webmacs_backend.api.v1 import auth, datapoints, events, experiments, users
 from webmacs_backend.api.v1 import dashboards as dashboards_api
 from webmacs_backend.api.v1 import health as health_api
 from webmacs_backend.api.v1 import logging as logging_api
+from webmacs_backend.api.v1 import monitoring as monitoring_api
 from webmacs_backend.api.v1 import ota as ota_api
 from webmacs_backend.api.v1 import plugins as plugins_api
 from webmacs_backend.api.v1 import rules as rules_api
@@ -217,6 +218,7 @@ def create_app() -> FastAPI:
     application.include_router(plugins_api.router, prefix=f"{api_prefix}/plugins", tags=["Plugins"])
     application.include_router(tokens_api.router, prefix=f"{api_prefix}/tokens", tags=["API Tokens"])
     application.include_router(sso_api.router, prefix=f"{api_prefix}/auth/sso", tags=["SSO"])
+    application.include_router(monitoring_api.router, prefix=f"{api_prefix}/monitoring", tags=["Monitoring"])
 
     # WebSocket endpoints
     application.include_router(ws_endpoints.router, prefix="/ws", tags=["WebSocket"])

@@ -23,6 +23,7 @@ from sqlalchemy import insert, select
 from webmacs_backend.enums import WebhookEventType
 from webmacs_backend.models import ChannelMapping, Datapoint, Experiment, PluginInstance
 from webmacs_backend.services import build_payload, dispatch_event
+from webmacs_backend.services.metrics import incr as metrics_incr
 from webmacs_backend.services.rule_evaluator import evaluate_rules_for_datapoint
 from webmacs_backend.ws.connection_manager import manager
 
@@ -45,6 +46,13 @@ _last_sensor_dispatch: dict[str, float] = {}
 # browser clients when sub-second polling is active.
 _BROADCAST_INTERVAL: float = 0.2
 _last_broadcast: dict[str, float] = {}
+
+# Ingest tuning and metrics
+_MAX_INGEST_BATCH = 1000
+_BACKPRESSURE_THRESHOLD = 800
+_BACKPRESSURE_SLEEP = 0.05
+
+# Metrics are collected in `webmacs_backend.services.metrics`
 
 
 @dataclass(frozen=True, slots=True)
@@ -136,6 +144,30 @@ async def ingest_datapoints(
     if not datapoints:
         return IngestionResult(accepted=0, rejected=0)
 
+    # If extremely large batch, process in chunks to avoid long-running DB ops
+    total_accepted = 0
+    total_rejected = 0
+    # If caller provided more than max, we'll chunk and apply light back-pressure
+    chunks = [datapoints[i : i + _MAX_INGEST_BATCH] for i in range(0, len(datapoints), _MAX_INGEST_BATCH)]
+    for idx, chunk in enumerate(chunks):
+        # Add small pause when processing many chunks to avoid overwhelming DB
+        if idx > 0 and len(chunk) >= _BACKPRESSURE_THRESHOLD:
+            await asyncio.sleep(_BACKPRESSURE_SLEEP)
+        res = await _ingest_chunk(db, chunk)
+        total_accepted += res.accepted
+        total_rejected += res.rejected
+
+    # Update metrics
+    metrics_incr("ingest_accepted_total", total_accepted)
+    metrics_incr("ingest_rejected_total", total_rejected)
+    return IngestionResult(accepted=total_accepted, rejected=total_rejected)
+
+
+async def _ingest_chunk(db: AsyncSession, datapoints: list[IncomingDatapoint]) -> IngestionResult:
+    """Process a single chunk of datapoints. Returns IngestionResult for the chunk."""
+    if not datapoints:
+        return IngestionResult(accepted=0, rejected=0)
+
     # Basic validation & sanitization: ensure finite floats and non-empty event ids
     import math
 
@@ -183,11 +215,13 @@ async def ingest_datapoints(
     except Exception:
         # Persistent storage failure — log and return zero accepted to let caller decide
         logger.exception("datapoint_insert_failed", count=len(rows))
+        metrics_incr("ingest_errors_total", 1)
         return IngestionResult(accepted=0, rejected=len(datapoints))
 
     # 3. Webhooks (fire-and-forget)
     for dp in accepted:
         _fire_webhook(dp.event_public_id, dp.value)
+        metrics_incr("webhook_dispatches", 1)
 
     # 4. Rules — evaluate only the *last* value per event to avoid redundant
     #    evaluations when a fast poller sends multiple readings for the same
@@ -232,5 +266,12 @@ async def ingest_datapoints(
                 ],
             },
         )
+        metrics_incr("ws_broadcasts", len(broadcast_dps))
+
+    # Update simple metrics for this chunk
+    metrics_incr("ingest_accepted_total", len(accepted))
+    metrics_incr("ingest_rejected_total", (len(datapoints) - len(accepted)))
+
+    return IngestionResult(accepted=len(accepted), rejected=len(datapoints) - len(accepted))
 
     return IngestionResult(accepted=len(accepted), rejected=len(datapoints) - len(accepted))

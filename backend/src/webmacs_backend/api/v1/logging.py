@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import Select, select
 from sqlalchemy.orm import selectinload
+from sqlalchemy import func
 
 from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.enums import LoggingType
@@ -20,6 +21,11 @@ from webmacs_backend.repository import paginate, update_from_schema
 from webmacs_backend.schemas import LogEntryCreate, LogEntryResponse, LogEntryUpdate, PaginatedResponse, StatusResponse
 
 router = APIRouter()
+
+# Prevent exporting extremely large log sets which could OOM the server or
+# hang small devices. Admins can use paginated API to fetch large ranges.
+_EXPORT_MAX_ROWS = 10000
+_CSV_CONTENT_MAX = 2000
 
 
 def _build_log_query(
@@ -88,6 +94,14 @@ async def export_log_entries_csv(
         from_date=from_date,
         to_date=to_date,
     )
+    # Check size before building CSV
+    count_q = select(func.count()).select_from(query.subquery())
+    total = (await db.execute(count_q)).scalar() or 0
+    if total > _EXPORT_MAX_ROWS:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Export would return too many rows ({total}). Refine filters or use paginated API.",
+        )
     result = await db.execute(query)
     rows = result.scalars().all()
 
@@ -115,7 +129,7 @@ async def export_log_entries_csv(
                     row.public_id,
                     row.logging_type.value if row.logging_type else "",
                     row.status_type.value if row.status_type else "",
-                    row.content,
+                    (row.content or "")[:_CSV_CONTENT_MAX],
                     row.user_public_id,
                 ]
             )

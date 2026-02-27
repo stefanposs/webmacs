@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query, status
+from sqlalchemy import func
 from sqlalchemy import select
 
 from webmacs_backend.dependencies import CurrentUser, DbSession
@@ -17,6 +18,7 @@ from webmacs_backend.schemas import (
 from webmacs_backend.security import generate_api_token
 
 router = APIRouter()
+_MAX_API_TOKENS_PER_USER = 20
 
 
 @router.get("", response_model=PaginatedResponse[ApiTokenResponse])
@@ -65,10 +67,19 @@ async def create_token(
     current_user: CurrentUser,
 ) -> ApiTokenCreatedResponse:
     """Create a new API token. The plaintext token is returned only once."""
+    # Limit number of API tokens per user to mitigate abuse.
+    count_q = select(func.count()).select_from(ApiToken).where(ApiToken.user_id == current_user.id)
+    current_count = (await db.execute(count_q)).scalar() or 0
+    if current_count >= _MAX_API_TOKENS_PER_USER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="API token limit reached for user.")
+
     plaintext, token_hash = generate_api_token()
 
+    # Basic sanitization for token name
+    name = (data.name or "").strip()[:255]
+
     token_obj = ApiToken(
-        name=data.name,
+        name=name,
         token_hash=token_hash,
         user_id=current_user.id,
         expires_at=data.expires_at,
@@ -99,6 +110,6 @@ async def delete_token(
 
     if not current_user.admin and token_obj.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot delete another user's token.")
-
     await db.delete(token_obj)
+    await db.flush()
     return StatusResponse(status="success", message="API token deleted.")

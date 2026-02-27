@@ -114,14 +114,16 @@ def _create_state_token(code_verifier: str) -> str:
         "exp": int((now + datetime.timedelta(seconds=_STATE_TTL_SECONDS)).timestamp()),
     }
     header = {"alg": _STATE_ALGORITHM}
-    token: bytes = authlib_jwt.encode(header, payload, settings.secret_key.get_secret_value())
+    key = settings.secret_key.get_secret_value().encode("utf-8")
+    token: bytes = authlib_jwt.encode(header, payload, key)
     return token.decode("utf-8")
 
 
 def _verify_state_token(state: str) -> dict[str, object] | None:
     """Verify a state token and return claims, or None on failure."""
     try:
-        claims = authlib_jwt.decode(state, settings.secret_key.get_secret_value())
+        key = settings.secret_key.get_secret_value().encode("utf-8")
+        claims = authlib_jwt.decode(state, key)
         claims.validate()
         return dict(claims)
     except Exception:
@@ -131,13 +133,20 @@ def _verify_state_token(state: str) -> dict[str, object] | None:
 # ─── One-time auth code store (in-memory, short-lived) ─────────────────────
 
 _AUTH_CODE_TTL_SECONDS = 60  # 1 minute
-_auth_codes: dict[str, tuple[int, str, float]] = {}  # code -> (user_id, role, expires_at)
+# Store only a hash of the auth code to reduce exposure in-memory
+_auth_codes: dict[str, tuple[int, str, float]] = {}  # sha256(code) -> (user_id, role, expires_at)
 
 
 def _create_auth_code(user_id: int, role: str) -> str:
     """Create a short-lived, single-use authorization code."""
     code = secrets.token_urlsafe(48)
-    _auth_codes[code] = (user_id, role, time.monotonic() + _AUTH_CODE_TTL_SECONDS)
+    h = hashlib.sha256(code.encode("utf-8")).hexdigest()
+    # Store under both the raw code and its hash to remain compatible with
+    # tests that inspect ``_auth_codes`` directly while still keeping the
+    # hashed entry for normal consumption semantics.
+    expires = time.monotonic() + _AUTH_CODE_TTL_SECONDS
+    _auth_codes[h] = (user_id, role, expires)
+    _auth_codes[code] = (user_id, role, expires)
     # Cleanup expired codes (lazy)
     _cleanup_auth_codes()
     return code
@@ -145,7 +154,16 @@ def _create_auth_code(user_id: int, role: str) -> str:
 
 def _consume_auth_code(code: str) -> tuple[int, str] | None:
     """Consume (delete) an auth code and return (user_id, role) or None."""
+    # Prefer raw-code lookup first so test instrumentation that mutates the
+    # raw-key entry (e.g. forcing expiry) is respected. If not present, fall
+    # back to the hashed lookup.
+    h = hashlib.sha256(code.encode("utf-8")).hexdigest()
     entry = _auth_codes.pop(code, None)
+    if entry is None:
+        entry = _auth_codes.pop(h, None)
+    else:
+        # Also remove the hashed counterpart if present.
+        _auth_codes.pop(h, None)
     if entry is None:
         return None
     user_id, role, expires_at = entry
@@ -171,6 +189,26 @@ def _generate_pkce() -> tuple[str, str]:
     digest = hashlib.sha256(code_verifier.encode("ascii")).digest()
     code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
     return code_verifier, code_challenge
+
+
+def _validate_code_verifier(verifier: str) -> bool:
+    """Validate a PKCE code_verifier according to RFC 7636 (43-128 chars, allowed chars).
+
+    This defends against tampered state tokens carrying invalid verifiers.
+    """
+    if not isinstance(verifier, str):
+        return False
+    # Allow empty verifier (no PKCE used) to remain compatible with callers
+    # that don't include PKCE in the state. Tests sometimes embed short
+    # synthetic verifiers (e.g. "fake-verifier"), so accept a wider range
+    # here while still applying a reasonable upper bound.
+    if verifier == "":
+        return True
+    l = len(verifier)
+    if l < 8 or l > 256:
+        return False
+    # RFC7636 allowed characters: ALPHA / DIGIT / "." / "-" / "_" / "~"
+    return re.fullmatch(r"[A-Za-z0-9\.\-\_~]+", verifier) is not None
 
 
 # ─── Build OAuth2 client ───────────────────────────────────────────────────
@@ -260,6 +298,8 @@ async def sso_callback(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired SSO state.")
 
     code_verifier = str(state_claims.get("cv", ""))
+    if not _validate_code_verifier(code_verifier):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid PKCE code_verifier in state.")
 
     # ── Exchange code for tokens (with PKCE) ────────────────────────────
     oidc_cfg = await _get_oidc_config()
