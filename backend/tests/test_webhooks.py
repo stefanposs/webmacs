@@ -145,7 +145,7 @@ async def test_build_payload():
 
 async def test_sign_payload():
     """HMAC-SHA256 signature includes timestamp for replay protection."""
-    from webmacs_backend.services import _sign_payload
+    from webmacs_backend.services.webhook_dispatcher import _sign_payload
 
     sig1 = _sign_payload('{"test": 1}', "secret", "1707600000")
     sig2 = _sign_payload('{"test": 1}', "secret", "1707600000")
@@ -155,7 +155,7 @@ async def test_sign_payload():
 
 async def test_sign_payload_different_secrets():
     """Different secrets produce different signatures."""
-    from webmacs_backend.services import _sign_payload
+    from webmacs_backend.services.webhook_dispatcher import _sign_payload
 
     sig1 = _sign_payload('{"test": 1}', "secret1", "1707600000")
     sig2 = _sign_payload('{"test": 1}', "secret2", "1707600000")
@@ -164,7 +164,7 @@ async def test_sign_payload_different_secrets():
 
 async def test_sign_payload_different_timestamps():
     """Different timestamps produce different signatures (replay protection)."""
-    from webmacs_backend.services import _sign_payload
+    from webmacs_backend.services.webhook_dispatcher import _sign_payload
 
     sig1 = _sign_payload('{"test": 1}', "secret", "1707600000")
     sig2 = _sign_payload('{"test": 1}', "secret", "1707600001")

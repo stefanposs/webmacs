@@ -8,9 +8,12 @@ import secrets
 from dataclasses import dataclass
 
 import bcrypt
-from jose import JWTError, jwt  # type: ignore[import-untyped]
+import jwt
+import structlog
 
 from webmacs_backend.config import settings
+
+logger = structlog.get_logger()
 
 # API token prefix — makes tokens easily identifiable (e.g. by secret scanners)
 API_TOKEN_PREFIX = "wm_"
@@ -47,19 +50,26 @@ def create_access_token(user_id: int, role: str = "viewer") -> str:
     now = datetime.datetime.now(datetime.UTC)
     expire = now + datetime.timedelta(minutes=settings.access_token_expire_minutes)
     payload = {"sub": str(user_id), "exp": expire, "iat": now, "role": role}
-    encoded: str = jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+    encoded: str = jwt.encode(payload, settings.secret_key.get_secret_value(), algorithm=settings.algorithm)
+    logger.debug("access_token_created", user_id=user_id, role=role, expires_at=expire.isoformat())
     return encoded
 
 
 def decode_access_token(token: str) -> TokenPayload:
     """Decode and validate a JWT token. Raises InvalidTokenError on failure."""
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-    except JWTError as e:
+        payload = jwt.decode(
+            token,
+            settings.secret_key.get_secret_value(),
+            algorithms=[settings.algorithm],
+        )
+    except jwt.PyJWTError as e:
+        logger.warning("jwt_decode_failed", error=str(e))
         raise InvalidTokenError("Invalid or expired token") from e
 
     user_id_str = payload.get("sub")
     if user_id_str is None:
+        logger.warning("jwt_missing_sub_claim")
         raise InvalidTokenError("Token missing 'sub' claim")
 
     return TokenPayload(

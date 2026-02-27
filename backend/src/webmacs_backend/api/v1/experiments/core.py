@@ -1,21 +1,15 @@
-"""Experiment endpoints."""
+"""Experiment CRUD endpoints (core)."""
 
 from __future__ import annotations
 
 import asyncio
-import csv
-import datetime
-import io
 import uuid
-from collections.abc import Generator
 
 from fastapi import APIRouter, Query, status
-from fastapi.responses import StreamingResponse
-from sqlalchemy import select
 
 from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.enums import WebhookEventType
-from webmacs_backend.models import Datapoint, Event, Experiment
+from webmacs_backend.models import Experiment
 from webmacs_backend.repository import delete_by_public_id, get_or_404, paginate, update_from_schema
 from webmacs_backend.schemas import (
     ExperimentCreate,
@@ -82,6 +76,8 @@ async def update_experiment(
 @router.put("/{public_id}/stop", response_model=StatusResponse)
 async def stop_experiment(public_id: str, db: DbSession, current_user: OperatorUser) -> StatusResponse:
     exp = await get_or_404(db, Experiment, public_id, entity_name="Experiment")
+    import datetime
+
     exp.stopped_on = datetime.datetime.now(datetime.UTC)
     await create_log(db, f"Experiment '{exp.name}' stopped.", current_user.public_id)
 
@@ -92,52 +88,6 @@ async def stop_experiment(public_id: str, db: DbSession, current_user: OperatorU
     task.add_done_callback(_background_tasks.discard)
 
     return StatusResponse(status="success", message="Experiment successfully stopped.")
-
-
-@router.get("/{public_id}/export/csv")
-async def export_experiment_csv(public_id: str, db: DbSession, current_user: ViewerUser) -> StreamingResponse:
-    """Export all datapoints of an experiment as CSV."""
-    exp = await get_or_404(db, Experiment, public_id, entity_name="Experiment")
-
-    result = await db.execute(
-        select(Datapoint, Event.name.label("event_name"), Event.unit)
-        .join(Event, Datapoint.event_public_id == Event.public_id)
-        .where(Datapoint.experiment_public_id == public_id)
-        .order_by(Datapoint.timestamp)
-    )
-    rows = result.all()
-
-    def generate() -> Generator[str]:
-        buf = io.StringIO()
-        writer = csv.writer(buf)
-        writer.writerow(["timestamp", "event_name", "event_public_id", "value", "unit", "datapoint_public_id"])
-        yield buf.getvalue()
-        buf.seek(0)
-        buf.truncate(0)
-
-        for dp, event_name, unit in rows:
-            writer.writerow(
-                [
-                    dp.timestamp.isoformat() if dp.timestamp else "",
-                    event_name,
-                    dp.event_public_id,
-                    dp.value,
-                    unit,
-                    dp.public_id,
-                ]
-            )
-            yield buf.getvalue()
-            buf.seek(0)
-            buf.truncate(0)
-
-    safe_name = exp.name.replace(" ", "_").replace("/", "-")
-    filename = f"experiment_{safe_name}_{public_id[:8]}.csv"
-
-    return StreamingResponse(
-        generate(),
-        media_type="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
 
 
 @router.delete("/{public_id}", response_model=StatusResponse)

@@ -1,13 +1,10 @@
-"""OTA firmware update endpoints."""
+"""Firmware update management endpoints (core)."""
 
 from __future__ import annotations
 
-import os
 import uuid
-from pathlib import Path
 
-import structlog
-from fastapi import APIRouter, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from webmacs_backend.dependencies import AdminUser, CurrentUser, DbSession
 from webmacs_backend.enums import UpdateStatus
@@ -30,9 +27,6 @@ from webmacs_backend.services.ota_service import (
 )
 
 router = APIRouter()
-logger = structlog.get_logger()
-
-UPDATE_DIR = Path(os.environ.get("WEBMACS_UPDATE_DIR", "/updates"))
 
 
 @router.get("", response_model=PaginatedResponse[FirmwareUpdateResponse])
@@ -52,7 +46,6 @@ async def create_firmware_update(
     db: DbSession,
     admin_user: AdminUser,
 ) -> StatusResponse:
-    """Register a new firmware version (admin only)."""
     from sqlalchemy import select
 
     result = await db.execute(select(FirmwareUpdate).where(FirmwareUpdate.version == data.version))
@@ -143,50 +136,3 @@ async def delete_firmware_update(
 ) -> StatusResponse:
     """Delete a firmware update record (admin only)."""
     return await delete_by_public_id(db, FirmwareUpdate, public_id, entity_name="FirmwareUpdate")
-
-
-@router.post("/upload", response_model=StatusResponse, status_code=status.HTTP_201_CREATED)
-async def upload_update_bundle(
-    file: UploadFile,
-    admin_user: AdminUser,
-) -> StatusResponse:
-    """Upload an update bundle (.tar.gz) for OTA deployment (admin only).
-
-    The bundle is saved to the update directory where the self-updater
-    service will detect and apply it automatically.
-    """
-    if not file.filename or not file.filename.endswith(".tar.gz"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be a .tar.gz update bundle.",
-        )
-
-    UPDATE_DIR.mkdir(parents=True, exist_ok=True)
-    dest = UPDATE_DIR / file.filename
-
-    if dest.exists():
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Bundle '{file.filename}' already exists.",
-        )
-
-    # Stream upload to disk (max 500 MB)
-    max_size = 500 * 1024 * 1024
-    total = 0
-    with dest.open("wb") as f:
-        while chunk := await file.read(64 * 1024):
-            total += len(chunk)
-            if total > max_size:
-                f.close()
-                dest.unlink(missing_ok=True)
-                raise HTTPException(
-                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                    detail="Bundle exceeds maximum allowed size (500 MB).",
-                )
-            f.write(chunk)
-
-    logger.info("update_bundle_uploaded", filename=file.filename, size_bytes=total)
-    return StatusResponse(
-        status="success",
-        message=f"Bundle '{file.filename}' uploaded ({total:,} bytes). Update will be applied automatically.",
-    )

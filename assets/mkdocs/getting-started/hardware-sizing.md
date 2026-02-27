@@ -6,8 +6,8 @@ number of sensors (input channels), desired poll frequency, and data retention r
 !!! info "How These Numbers Were Derived"
     All throughput and latency figures are extrapolated from load tests on a MacBook Pro
     (Apple M-series, single uvicorn worker, Docker Desktop). A hardware correction factor
-    of **3–5×** for Raspberry Pi 4, **2–3×** for RPi 5 / entry-level mini-PCs, and
-    **1.5×** for Intel NUC-class devices is applied.
+    of **4–6×** for Raspberry Pi 3 (1 GB), **3–5×** for Raspberry Pi 4, **2–3×** for
+    RPi 5 / entry-level mini-PCs, and **1.5×** for Intel NUC-class devices is applied.
 
 ---
 
@@ -15,6 +15,7 @@ number of sensors (input channels), desired poll frequency, and data retention r
 
 | Tier | Hardware Example | RAM | Max Sensors | Max Frequency | Throughput | Est. Batch P95 |
 |------|------------------|-----|-------------|---------------|------------|----------------|
+| **Micro** | Raspberry Pi 3B/3B+ | 1 GB | 10 | 1 Hz | 10 dp/s | < 200 ms |
 | **Nano** | Raspberry Pi 4 | 2 GB | 25 | 1 Hz | 25 dp/s | < 100 ms |
 | **Small** | Raspberry Pi 5 / mini-PC | 4 GB | 75 | 1 Hz | 75 dp/s | < 300 ms |
 | **Medium** | Intel NUC / mini server | 8–16 GB | 250 | 1–2 Hz | 250–500 dp/s | < 400 ms |
@@ -44,6 +45,47 @@ is optimised to run once per unique event (not per datapoint).
 ---
 
 ## Tier Details
+
+### Micro — Raspberry Pi 3 / Entry Level
+
+| Spec | Recommendation |
+|------|----------------|
+| **Hardware** | Raspberry Pi 3B or 3B+ |
+| **CPU** | ARM Cortex-A53, quad-core, 1.2–1.4 GHz |
+| **RAM** | 1 GB (750 MB minimum with 3 GB swap) |
+| **Storage** | 16 GB+ **USB SSD** strongly recommended |
+| **Max sensors** | ≤ 10 |
+| **Poll interval** | 1.0 s (1 Hz) — **do not go below** |
+| **Throughput** | ≤ 10 dp/s |
+| **Est. batch P95** | 100–200 ms |
+| **Storage / month** | ~5 GB |
+
+!!! warning "RPi 3 Limitations"
+    The Raspberry Pi 3 is the **minimum supported** hardware. At this tier:
+
+    - Only 1 GB RAM is available; the installer configures **3 GB swap** automatically.
+    - First cold-start takes **~3 minutes** while PostgreSQL initialises.
+    - Keep sensor count and poll frequency conservative; batch latency will be higher than the table values under sustained load.
+    - An **SD card alone is not sufficient** for production use — PostgreSQL sustained write I/O will wear it out and degrade performance.
+
+??? example "Docker memory limits for 1 GB RAM"
+    ```yaml
+    # docker-compose.prod.yml overrides for Micro (1 GB RPi 3)
+    db:        { deploy: { resources: { limits: { memory: 256M } } } }
+    backend:   { deploy: { resources: { limits: { memory: 128M } } } }
+    controller:{ deploy: { resources: { limits: { memory: 64M  } } } }
+    frontend:  { deploy: { resources: { limits: { memory: 32M  } } } }
+    ```
+
+**Tuning tips:**
+
+- Use a **USB 3.0 SSD** or fast microSD (A2-rated, ≥ 32 GB) to back the PostgreSQL volume.
+- Set `WEBMACS_POLL_INTERVAL=1.0` or higher. Do **not** poll below 1 s on RPi 3.
+- Limit active experiments to a small time window and export/delete historical data regularly.
+- Disable all unused plugins to reduce per-poll overhead.
+- The cgroup memory subsystem must be enabled — `install-rpi.sh` handles this automatically.
+
+---
 
 ### Nano — Home Automation / Hobby
 

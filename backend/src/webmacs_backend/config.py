@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import secrets
+
 import structlog
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
 logger = structlog.get_logger()
@@ -17,7 +20,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://webmacs:webmacs@localhost:5432/webmacs"
 
     # Security
-    secret_key: str = ""  # MUST be set in production
+    secret_key: SecretStr = SecretStr("")  # MUST be set in production
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440  # 24 hours
 
@@ -57,7 +60,7 @@ class Settings(BaseSettings):
     oidc_provider_name: str = "SSO"  # Display name on login button
     oidc_issuer_url: str = ""  # e.g. https://auth.example.com/realms/webmacs
     oidc_client_id: str = ""
-    oidc_client_secret: str = ""
+    oidc_client_secret: SecretStr = SecretStr("")
     oidc_scopes: str = "openid email profile"  # space-separated
     oidc_redirect_uri: str = ""  # e.g. http://localhost:8000/api/v1/auth/sso/callback
     oidc_default_role: str = "viewer"  # role assigned to auto-created SSO users
@@ -68,6 +71,16 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Ensure a sufficiently long secret key in non-production (tests/dev).
+# This avoids insecure HMAC length warnings from JWT libraries when tests
+# run without an explicit SECRET_KEY set in the environment.
+if settings.env.lower() != "production":
+    current = settings.secret_key.get_secret_value().strip()
+    if not current:
+        generated = secrets.token_urlsafe(64)
+        settings.secret_key = SecretStr(generated)
+        logger.debug("secret_key_generated_for_dev", length=len(generated))
 
 
 class WeakSecretKeyError(Exception):
@@ -83,7 +96,7 @@ def validate_secret_key() -> None:
     """
     is_production = settings.env.lower() == "production"
 
-    key = settings.secret_key.strip()
+    key = settings.secret_key.get_secret_value().strip()
 
     if not key:
         if is_production:
