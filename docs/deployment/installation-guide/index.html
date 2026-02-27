@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
     
     
       
@@ -1875,6 +1875,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#choosing-the-right-installer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the Right Installer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1887,10 +1898,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-a-automated-install-with-scriptsinstallsh-recommended" class="md-nav__link">
+  <a href="#option-a-revolution-pi-scriptsinstall-revpish-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option A — Automated Install with scripts/install.sh (Recommended)
+        Option A — Revolution Pi: scripts/install-revpi.sh (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-a-raspberry-pi-345-scriptsinstall-rpish" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A — Raspberry Pi 3/4/5: scripts/install-rpi.sh
       
     </span>
   </a>
@@ -2273,6 +2295,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#choosing-the-right-installer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the Right Installer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2285,10 +2318,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-a-automated-install-with-scriptsinstallsh-recommended" class="md-nav__link">
+  <a href="#option-a-revolution-pi-scriptsinstall-revpish-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option A — Automated Install with scripts/install.sh (Recommended)
+        Option A — Revolution Pi: scripts/install-revpi.sh (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-a-raspberry-pi-345-scriptsinstall-rpish" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A — Raspberry Pi 3/4/5: scripts/install-rpi.sh
       
     </span>
   </a>
@@ -2526,45 +2570,58 @@
 
 
 <h1 id="installation-guide">Installation Guide<a class="headerlink" href="#installation-guide" title="Permanent link">&para;</a></h1>
-<p>Step-by-step instructions for installing WebMACS on a Revolution Pi or any Debian/Ubuntu-based system.</p>
+<p>Step-by-step instructions for installing WebMACS on a Revolution Pi, Raspberry Pi, or any Debian/Ubuntu-based system.</p>
 <hr />
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>| Requirement         | Revolution Pi / RPi 4/5     | Raspberry Pi 3              |
+|---------------------|-----------------------------|-----------------------------||
+| <strong>OS</strong>              | Debian 11+ / Raspberry Pi OS Bookworm (64-bit recommended) | Raspberry Pi OS Bullseye/Bookworm |
+| <strong>RAM</strong>             | 2 GB+                       | 1 GB (750 MB minimum)       |
+| <strong>Storage</strong>         | 8 GB free                   | 16 GB+ SD card or USB SSD   |
+| <strong>Network</strong>         | Ethernet recommended        | Ethernet recommended        |</p>
+<p>Docker and Docker Compose are installed automatically by the installation script if not already present.</p>
+<hr />
+<h2 id="choosing-the-right-installer">Choosing the Right Installer<a class="headerlink" href="#choosing-the-right-installer" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Requirement</th>
-<th>Minimum</th>
+<th>Hardware</th>
+<th>Script</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Hardware</strong></td>
-<td>Kunbus Revolution Pi, Raspberry Pi 4, or x86_64 server</td>
+<td><strong>KUNBUS Revolution Pi</strong> (Connect, Connect 4, Connect S)</td>
+<td><code>install-revpi.sh</code></td>
+<td>Industrial-grade, no cgroup patching needed</td>
 </tr>
 <tr>
-<td><strong>OS</strong></td>
-<td>Debian 11+ / Ubuntu 22.04+ (64-bit recommended)</td>
+<td><strong>Raspberry Pi 4 / Pi 5</strong></td>
+<td><code>install-rpi.sh</code></td>
+<td>Configures cgroup + swap automatically</td>
 </tr>
 <tr>
-<td><strong>RAM</strong></td>
-<td>2 GB</td>
+<td><strong>Raspberry Pi 3</strong> (1 GB)</td>
+<td><code>install-rpi.sh</code></td>
+<td>Supported; 3 GB swap configured; startup takes ~3 min</td>
 </tr>
 <tr>
-<td><strong>Storage</strong></td>
-<td>8 GB free</td>
-</tr>
-<tr>
-<td><strong>Network</strong></td>
-<td>Ethernet (for sensor I/O and web access)</td>
+<td><strong>x86_64 server / mini-PC</strong></td>
+<td><code>install-revpi.sh</code></td>
+<td>Works on any Debian/Ubuntu</td>
 </tr>
 </tbody>
 </table>
-<p>Docker and Docker Compose are installed automatically by the installation script if not already present.</p>
+<div class="admonition tip">
+<p class="admonition-title">Not sure?</p>
+<p>If you’re running standard Raspberry Pi OS on consumer hardware, use <code>install-rpi.sh</code>.
+For Revolution Pi or server deployments, use <code>install-revpi.sh</code>.</p>
+</div>
 <hr />
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<h3 id="option-a-automated-install-with-scriptsinstallsh-recommended">Option A — Automated Install with <code>scripts/install.sh</code> (Recommended)<a class="headerlink" href="#option-a-automated-install-with-scriptsinstallsh-recommended" title="Permanent link">&para;</a></h3>
-<p>The easiest way to install WebMACS is the install script in the <code>scripts/</code> directory. It handles everything automatically — Docker, credentials, services, and auto-start.</p>
-<p>You will receive a <strong>WebMACS update bundle</strong> (<code>.tar.gz</code> file) from your system integrator or download it from <a href="https://github.com/stefanposs/webmacs/releases">GitHub Releases</a>.</p>
+<h3 id="option-a-revolution-pi-scriptsinstall-revpish-recommended">Option A — Revolution Pi: <code>scripts/install-revpi.sh</code> (Recommended)<a class="headerlink" href="#option-a-revolution-pi-scriptsinstall-revpish-recommended" title="Permanent link">&para;</a></h3>
+<p>For <strong>KUNBUS Revolution Pi</strong> and any Debian/Ubuntu server:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Copy the bundle to the device (from your workstation)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>scp<span class="w"> </span>webmacs-update-2.0.0.tar.gz<span class="w"> </span>pi@&lt;device-ip&gt;:/tmp/
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
@@ -2572,14 +2629,44 @@
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>ssh<span class="w"> </span>pi@&lt;device-ip&gt;
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Run the installer</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>sudo<span class="w"> </span>bash<span class="w"> </span>scripts/install.sh<span class="w"> </span>/tmp/webmacs-update-2.0.0.tar.gz
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>sudo<span class="w"> </span>bash<span class="w"> </span>scripts/install-revpi.sh<span class="w"> </span>/tmp/webmacs-update-2.0.0.tar.gz
 </code></pre></div>
-<p>The installer will:</p>
+<p>Or use the one-liner on a fresh device:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-sSL<span class="w"> </span>https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install-revpi.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>bash
+</code></pre></div>
+<h3 id="option-a-raspberry-pi-345-scriptsinstall-rpish">Option A — Raspberry Pi 3/4/5: <code>scripts/install-rpi.sh</code><a class="headerlink" href="#option-a-raspberry-pi-345-scriptsinstall-rpish" title="Permanent link">&para;</a></h3>
+<p>For <strong>consumer Raspberry Pi</strong> hardware. Adds cgroup memory configuration, swap management,
+and Docker daemon tuning on top of the base installer:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Copy the bundle to the Pi</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>scp<span class="w"> </span>webmacs-update-2.0.0.tar.gz<span class="w"> </span>pi@&lt;rpi-ip&gt;:/tmp/
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># SSH into the Pi</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>ssh<span class="w"> </span>pi@&lt;rpi-ip&gt;
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Run the RPi-specific installer</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>sudo<span class="w"> </span>bash<span class="w"> </span>scripts/install-rpi.sh<span class="w"> </span>/tmp/webmacs-update-2.0.0.tar.gz
+</code></pre></div>
+<p>One-liner:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-sSL<span class="w"> </span>https://raw.githubusercontent.com/stefanposs/webmacs/main/scripts/install-rpi.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>bash
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Reboot may be required</p>
+<p>On a fresh Raspberry Pi OS, the script patches <code>cmdline.txt</code> to enable cgroup memory.
+If patched, it will remind you to run <code>sudo reboot</code> before Docker works correctly.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Raspberry Pi 3 (1 GB RAM)</p>
+<p>Fully supported. The script automatically configures 3 GB swap to compensate for
+limited RAM. First startup takes approximately <strong>3 minutes</strong> while the database
+initialises. Subsequent starts are faster.</p>
+</div>
+<p>Both installers will:</p>
 <ol>
+<li>Detect hardware and verify compatibility</li>
 <li>Install Docker and Docker Compose (if missing)</li>
 <li>Create the <code>/opt/webmacs</code> directory structure</li>
 <li>Generate a secure <code>.env</code> with random passwords</li>
-<li>Load the Docker images from the bundle</li>
+<li>Load the Docker images from the bundle (SHA-256 verified)</li>
 <li>Start all services</li>
 <li>Create a systemd service for automatic start on boot</li>
 </ol>
@@ -2590,29 +2677,29 @@ It is also stored in <code>/opt/webmacs/.env</code>.</p>
 </div>
 <h3 id="option-b-manual-install">Option B — Manual Install<a class="headerlink" href="#option-b-manual-install" title="Permanent link">&para;</a></h3>
 <p>If you prefer to set up components individually:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Install Docker</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://get.docker.com<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>docker<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>docker
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># 2. Create directories</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/webmacs/<span class="o">{</span>updates,updates/applied,updates/backups,updates/failed<span class="o">}</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># 3. Copy the compose file and bundle</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>sudo<span class="w"> </span>cp<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>/opt/webmacs/
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>sudo<span class="w"> </span>cp<span class="w"> </span>webmacs-update-*.tar.gz<span class="w"> </span>/opt/webmacs/
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># 4. Extract and load images</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>sudo<span class="w"> </span>tar<span class="w"> </span>-xzf<span class="w"> </span>webmacs-update-*.tar.gz
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>sudo<span class="w"> </span>docker<span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>images.tar
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="c1"># 5. Create .env (see Environment Variables page for all options)</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>sudo<span class="w"> </span>cp<span class="w"> </span>.env.example<span class="w"> </span>/opt/webmacs/.env
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>sudo<span class="w"> </span>nano<span class="w"> </span>/opt/webmacs/.env
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="c1"># 6. Start</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>sudo<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>--env-file<span class="w"> </span>.env<span class="w"> </span>up<span class="w"> </span>-d
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 1. Install Docker</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://get.docker.com<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>docker<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>docker
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># 2. Create directories</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/webmacs/<span class="o">{</span>updates,updates/applied,updates/backups,updates/failed<span class="o">}</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># 3. Copy the compose file and bundle</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>sudo<span class="w"> </span>cp<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>/opt/webmacs/
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>sudo<span class="w"> </span>cp<span class="w"> </span>webmacs-update-*.tar.gz<span class="w"> </span>/opt/webmacs/
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="c1"># 4. Extract and load images</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>sudo<span class="w"> </span>tar<span class="w"> </span>-xzf<span class="w"> </span>webmacs-update-*.tar.gz
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>sudo<span class="w"> </span>docker<span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>images.tar
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># 5. Create .env (see Environment Variables page for all options)</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>sudo<span class="w"> </span>cp<span class="w"> </span>.env.example<span class="w"> </span>/opt/webmacs/.env
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>sudo<span class="w"> </span>nano<span class="w"> </span>/opt/webmacs/.env
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="c1"># 6. Start</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>sudo<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>--env-file<span class="w"> </span>.env<span class="w"> </span>up<span class="w"> </span>-d
 </code></pre></div>
 <hr />
 <h2 id="first-login">First Login<a class="headerlink" href="#first-login" title="Permanent link">&para;</a></h2>
@@ -2650,29 +2737,29 @@ assigned by DHCP.</p>
 <h3 id="via-usb-scp">Via USB / SCP<a class="headerlink" href="#via-usb-scp" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Copy the update bundle to the device:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>scp<span class="w"> </span>webmacs-update-2.1.0.tar.gz<span class="w"> </span>pi@&lt;device-ip&gt;:/opt/webmacs/updates/
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>scp<span class="w"> </span>webmacs-update-2.1.0.tar.gz<span class="w"> </span>pi@&lt;device-ip&gt;:/opt/webmacs/updates/
 </code></pre></div></li>
 <li>The built-in updater service will detect the bundle within 60 seconds</li>
 <li>It will automatically verify, apply, and restart the stack</li>
 </ol>
 <h3 id="via-command-line">Via Command Line<a class="headerlink" href="#via-command-line" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sudo<span class="w"> </span>tar<span class="w"> </span>-xzf<span class="w"> </span>updates/webmacs-update-2.1.0.tar.gz<span class="w"> </span>-C<span class="w"> </span>/tmp/webmacs-update
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>sudo<span class="w"> </span>docker<span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>/tmp/webmacs-update/images.tar
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>sudo<span class="w"> </span>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s/^WEBMACS_VERSION=.*/WEBMACS_VERSION=2.1.0/&quot;</span><span class="w"> </span>.env
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>sudo<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>--env-file<span class="w"> </span>.env<span class="w"> </span>up<span class="w"> </span>-d
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>sudo<span class="w"> </span>tar<span class="w"> </span>-xzf<span class="w"> </span>updates/webmacs-update-2.1.0.tar.gz<span class="w"> </span>-C<span class="w"> </span>/tmp/webmacs-update
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>sudo<span class="w"> </span>docker<span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>/tmp/webmacs-update/images.tar
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>sudo<span class="w"> </span>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s/^WEBMACS_VERSION=.*/WEBMACS_VERSION=2.1.0/&quot;</span><span class="w"> </span>.env
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>sudo<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>--env-file<span class="w"> </span>.env<span class="w"> </span>up<span class="w"> </span>-d
 </code></pre></div>
 <hr />
 <h2 id="backup-restore">Backup &amp; Restore<a class="headerlink" href="#backup-restore" title="Permanent link">&para;</a></h2>
 <h3 id="create-a-database-backup">Create a Database Backup<a class="headerlink" href="#create-a-database-backup" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>pg_dump<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>&gt;<span class="w"> </span>backup-<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sql
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>pg_dump<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>&gt;<span class="w"> </span>backup-<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sql
 </code></pre></div>
 <h3 id="restore-from-backup">Restore from Backup<a class="headerlink" href="#restore-from-backup" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>psql<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>&lt;<span class="w"> </span>backup-20250101.sql
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>psql<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>&lt;<span class="w"> </span>backup-20250101.sql
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2682,58 +2769,58 @@ assigned by DHCP.</p>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="services-wont-start">Services Won't Start<a class="headerlink" href="#services-wont-start" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Check service status</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>ps
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># View logs</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>backend
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># Restart everything</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>webmacs
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Check service status</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>ps
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># View logs</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>backend
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># Restart everything</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>webmacs
 </code></pre></div>
 <h3 id="cannot-access-web-ui">Cannot Access Web UI<a class="headerlink" href="#cannot-access-web-ui" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Check that the backend is healthy:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/health
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/health
 </code></pre></div></li>
 <li>Check that nginx/frontend is running:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>ps<span class="w"> </span>frontend
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>ps<span class="w"> </span>frontend
 </code></pre></div></li>
 <li>Verify no firewall is blocking port 80:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>sudo<span class="w"> </span>ufw<span class="w"> </span>allow<span class="w"> </span><span class="m">80</span>/tcp<span class="w">   </span><span class="c1"># if ufw is active</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>sudo<span class="w"> </span>ufw<span class="w"> </span>allow<span class="w"> </span><span class="m">80</span>/tcp<span class="w">   </span><span class="c1"># if ufw is active</span>
 </code></pre></div></li>
 </ol>
 <h3 id="out-of-disk-space">Out of Disk Space<a class="headerlink" href="#out-of-disk-space" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Check disk usage</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>df<span class="w"> </span>-h
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Remove old Docker images</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>docker<span class="w"> </span>image<span class="w"> </span>prune<span class="w"> </span>-a
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Remove old update bundles</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>rm<span class="w"> </span>/opt/webmacs/updates/applied/*.tar.gz
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Check disk usage</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>df<span class="w"> </span>-h
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Remove old Docker images</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>docker<span class="w"> </span>image<span class="w"> </span>prune<span class="w"> </span>-a
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Remove old update bundles</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>rm<span class="w"> </span>/opt/webmacs/updates/applied/*.tar.gz
 </code></pre></div>
 <h3 id="forgot-admin-password">Forgot Admin Password<a class="headerlink" href="#forgot-admin-password" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>cat<span class="w"> </span>.env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>ADMIN_PASSWORD
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>cat<span class="w"> </span>.env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>ADMIN_PASSWORD
 </code></pre></div>
 <p>If the password was changed via the UI and is no longer in <code>.env</code>, reset it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="s2">from webmacs_backend.security import get_password_hash</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="s2">print(get_password_hash(&#39;NewPassword123!&#39;))</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-I<span class="o">{}</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span>psql<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;UPDATE users SET hashed_password=&#39;{}&#39; WHERE username=&#39;admin&#39;;&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="s2">from webmacs_backend.security import get_password_hash</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="s2">print(get_password_hash(&#39;NewPassword123!&#39;))</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-I<span class="o">{}</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">  </span>psql<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;UPDATE users SET hashed_password=&#39;{}&#39; WHERE username=&#39;admin&#39;;&quot;</span>
 </code></pre></div>
 <hr />
 <h2 id="uninstalling">Uninstalling<a class="headerlink" href="#uninstalling" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>sudo<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>down<span class="w"> </span>-v
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>disable<span class="w"> </span>webmacs
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>sudo<span class="w"> </span>rm<span class="w"> </span>/etc/systemd/system/webmacs.service
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/opt/webmacs
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>sudo<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>down<span class="w"> </span>-v
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>disable<span class="w"> </span>webmacs
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>sudo<span class="w"> </span>rm<span class="w"> </span>/etc/systemd/system/webmacs.service
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/opt/webmacs
 </code></pre></div>
 <div class="admonition danger">
 <p class="admonition-title">Danger</p>
@@ -2741,26 +2828,26 @@ assigned by DHCP.</p>
 </div>
 <hr />
 <h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>┌──────────────────────────────────────────────────┐
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>│  Revolution Pi / Host                            │
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>│                                                  │
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>│   ┌──────────┐  ┌──────────┐  ┌──────────────┐  │
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>│   │ Frontend │  │ Backend  │  │  Controller  │  │
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>│   │ (nginx)  │  │ (FastAPI)│  │ (sensors)    │  │
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>│   │ :80      │  │ :8000    │  │              │  │
-<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>│   └────┬─────┘  └────┬─────┘  └──────┬───────┘  │
-<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>│        │              │               │          │
-<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>│        └──────┬───────┘               │          │
-<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>│               │                       │          │
-<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>│         ┌─────┴─────┐                 │          │
-<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>│         │ PostgreSQL│◀────────────────┘          │
-<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>│         │ :5432     │                            │
-<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>│         └───────────┘                            │
-<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>│                                                  │
-<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>│   ┌──────────┐                                   │
-<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>│   │ Updater  │  (monitors /opt/webmacs/updates/) │
-<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>│   └──────────┘                                   │
-<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>└──────────────────────────────────────────────────┘
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>┌──────────────────────────────────────────────────┐
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>│  Revolution Pi / Host                            │
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>│                                                  │
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>│   ┌──────────┐  ┌──────────┐  ┌──────────────┐  │
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>│   │ Frontend │  │ Backend  │  │  Controller  │  │
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>│   │ (nginx)  │  │ (FastAPI)│  │ (sensors)    │  │
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>│   │ :80      │  │ :8000    │  │              │  │
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>│   └────┬─────┘  └────┬─────┘  └──────┬───────┘  │
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>│        │              │               │          │
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>│        └──────┬───────┘               │          │
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>│               │                       │          │
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>│         ┌─────┴─────┐                 │          │
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>│         │ PostgreSQL│◀────────────────┘          │
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>│         │ :5432     │                            │
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>│         └───────────┘                            │
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>│                                                  │
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a>│   ┌──────────┐                                   │
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>│   │ Updater  │  (monitors /opt/webmacs/updates/) │
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a>│   └──────────┘                                   │
+<a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a>└──────────────────────────────────────────────────┘
 </code></pre></div>
 <p>All services run as Docker containers managed by Docker Compose. The systemd unit ensures they start automatically after a reboot.</p>
 
