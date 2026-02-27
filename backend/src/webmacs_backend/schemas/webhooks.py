@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 import json
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-from webmacs_backend.enums import WebhookDeliveryStatus, WebhookEventType
+from webmacs_backend.enums import WebhookDeliveryStatus, WebhookEventType  # noqa: TC001
 
 
 class WebhookCreate(BaseModel):

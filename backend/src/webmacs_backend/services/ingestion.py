@@ -119,7 +119,7 @@ def _fire_webhook(event_public_id: str, value: float) -> None:
 # ─── Public API ──────────────────────────────────────────────────────────────
 
 
-async def ingest_datapoints(
+async def ingest_datapoints(  # noqa: PLR0912
     db: AsyncSession,
     datapoints: list[IncomingDatapoint],
 ) -> IngestionResult:

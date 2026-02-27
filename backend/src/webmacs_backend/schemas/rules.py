@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 
 from pydantic import BaseModel, Field, model_validator
 

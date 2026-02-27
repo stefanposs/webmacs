@@ -113,10 +113,7 @@ async def upload_plugin_package(
         dest.unlink(missing_ok=True)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                f"Plugin package '{info.name}' is already installed. "
-                "Remove it first to upload a new version."
-            ),
+            detail=(f"Plugin package '{info.name}' is already installed. Remove it first to upload a new version."),
         )
 
     # Install the wheel (run in thread to avoid blocking the async event loop)
@@ -254,8 +251,5 @@ async def uninstall_plugin_package(
     logger.info("plugin_package_uninstalled", package=pkg.package_name)
     return StatusResponse(
         status="success",
-        message=(
-            f"Plugin package '{pkg.package_name}' uninstalled. "
-            "Restart the controller to apply."
-        ),
+        message=(f"Plugin package '{pkg.package_name}' uninstalled. Restart the controller to apply."),
     )

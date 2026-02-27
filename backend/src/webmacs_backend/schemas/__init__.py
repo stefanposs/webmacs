@@ -87,68 +87,68 @@ from webmacs_backend.schemas.webhooks import (
 )
 
 __all__ = [
+    # tokens
+    "ApiTokenCreate",
+    "ApiTokenCreatedResponse",
+    "ApiTokenResponse",
+    "ChannelMappingCreate",
+    "ChannelMappingResponse",
+    "ChannelMappingUpdate",
+    "DashboardCreate",
+    "DashboardResponse",
+    "DashboardUpdate",
+    # dashboards
+    "DashboardWidgetCreate",
+    "DashboardWidgetResponse",
+    "DashboardWidgetUpdate",
+    "DatapointBatchCreate",
+    # datapoints
+    "DatapointCreate",
+    "DatapointResponse",
+    "DatapointSeriesRequest",
+    # events & experiments
+    "EventCreate",
+    "EventResponse",
+    "EventUpdate",
+    "ExperimentCreate",
+    "ExperimentResponse",
+    "ExperimentUpdate",
+    "FirmwareApplyRequest",
+    # ota
+    "FirmwareUpdateCreate",
+    "FirmwareUpdateResponse",
+    "HealthResponse",
+    # logging
+    "LogEntryCreate",
+    "LogEntryResponse",
+    "LogEntryUpdate",
     # auth
     "LoginRequest",
     "LoginResponse",
-    "TokenData",
-    "SsoConfigResponse",
-    "SsoAuthorizeResponse",
-    # users
-    "UserCreate",
-    "UserUpdate",
-    "UserResponse",
-    # events & experiments
-    "EventCreate",
-    "EventUpdate",
-    "EventResponse",
-    "ExperimentCreate",
-    "ExperimentUpdate",
-    "ExperimentResponse",
-    # datapoints
-    "DatapointCreate",
-    "DatapointBatchCreate",
-    "DatapointResponse",
-    "DatapointSeriesRequest",
-    # logging
-    "LogEntryCreate",
-    "LogEntryUpdate",
-    "LogEntryResponse",
     # common
     "PaginatedResponse",
-    "StatusResponse",
-    "HealthResponse",
-    # webhooks
-    "WebhookCreate",
-    "WebhookUpdate",
-    "WebhookResponse",
-    "WebhookDeliveryResponse",
-    # rules
-    "RuleCreate",
-    "RuleUpdate",
-    "RuleResponse",
-    # ota
-    "FirmwareUpdateCreate",
-    "FirmwareApplyRequest",
-    "FirmwareUpdateResponse",
-    "UpdateCheckResponse",
-    # dashboards
-    "DashboardWidgetCreate",
-    "DashboardWidgetUpdate",
-    "DashboardWidgetResponse",
-    "DashboardCreate",
-    "DashboardUpdate",
-    "DashboardResponse",
+    "PluginInstanceCreate",
+    "PluginInstanceResponse",
+    "PluginInstanceUpdate",
     # plugins
     "PluginMetaResponse",
-    "PluginInstanceCreate",
-    "PluginInstanceUpdate",
-    "PluginInstanceResponse",
-    "ChannelMappingCreate",
-    "ChannelMappingUpdate",
-    "ChannelMappingResponse",
     "PluginPackageResponse",
-    # tokens
-    "ApiTokenCreate",
-    "ApiTokenResponse",
-    "ApiTokenCreatedResponse",
+    # rules
+    "RuleCreate",
+    "RuleResponse",
+    "RuleUpdate",
+    "SsoAuthorizeResponse",
+    "SsoConfigResponse",
+    "StatusResponse",
+    "TokenData",
+    "UpdateCheckResponse",
+    # users
+    "UserCreate",
+    "UserResponse",
+    "UserUpdate",
+    # webhooks
+    "WebhookCreate",
+    "WebhookDeliveryResponse",
+    "WebhookResponse",
+    "WebhookUpdate",
 ]
