@@ -100,12 +100,12 @@ jobs:
 
           # ── Include production files ──
           cp docker-compose.prod.yml "${WORK_DIR}/"
-          cp scripts/install.sh      "${WORK_DIR}/"
+          cp scripts/install-rpi.sh  "${WORK_DIR}/"
 
           # ── Create bundle ──
           tar -czf "webmacs-update-${VERSION}.tar.gz" \
             -C "${WORK_DIR}" \
-            manifest.json images.tar docker-compose.prod.yml install.sh
+            manifest.json images.tar docker-compose.prod.yml install-rpi.sh
 
           SIZE=$(du -sh "webmacs-update-${VERSION}.tar.gz" | cut -f1)
           echo "✅ Bundle: webmacs-update-${VERSION}.tar.gz (${SIZE})"
@@ -150,11 +150,11 @@ jobs:
             ```bash
             VERSION=${{ steps.version.outputs.version }}
             wget https://github.com/${{ github.repository }}/releases/download/v${VERSION}/webmacs-update-${VERSION}.tar.gz
-            tar -xzf webmacs-update-${VERSION}.tar.gz install.sh
-            sudo bash install.sh webmacs-update-${VERSION}.tar.gz
+            tar -xzf webmacs-update-${VERSION}.tar.gz install-rpi.sh
+            sudo bash install-rpi.sh webmacs-update-${VERSION}.tar.gz
             ```
 
-            > See [`scripts/install.sh`](https://github.com/${{ github.repository }}/blob/main/scripts/install.sh) for details — installs Docker, creates `/opt/webmacs`, generates credentials, starts all services, and creates a systemd auto-start service.
+            > See [`scripts/install-rpi.sh`](https://github.com/${{ github.repository }}/blob/main/scripts/install-rpi.sh) for details — installs Docker, creates `/opt/webmacs`, generates credentials, starts all services, and creates a systemd auto-start service.
 
             ### Update existing installation
 
