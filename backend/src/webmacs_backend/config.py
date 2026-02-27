@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import secrets
+
 import structlog
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
-import secrets
 
 logger = structlog.get_logger()
 

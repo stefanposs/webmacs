@@ -4,13 +4,13 @@ This module provides simple counters that are safe for the single-process
 async worker used in tests and small deployments. Metrics are exposed as a
 snapshot dictionary for scraping or health checks.
 """
+
 from __future__ import annotations
 
 import threading
-from typing import Dict
 
 _lock = threading.Lock()
-_METRICS: Dict[str, int] = {
+_METRICS: dict[str, int] = {
     "ingest_accepted_total": 0,
     "ingest_rejected_total": 0,
     "ingest_errors_total": 0,
@@ -25,7 +25,7 @@ def incr(name: str, amount: int = 1) -> None:
         _METRICS[name] = _METRICS.get(name, 0) + int(amount)
 
 
-def snapshot() -> Dict[str, int]:
+def snapshot() -> dict[str, int]:
     """Return a shallow copy of current metrics."""
     with _lock:
         return dict(_METRICS)

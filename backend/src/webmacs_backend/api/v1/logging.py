@@ -10,9 +10,8 @@ from collections.abc import Generator
 
 from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import selectinload
-from sqlalchemy import func
 
 from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.enums import LoggingType

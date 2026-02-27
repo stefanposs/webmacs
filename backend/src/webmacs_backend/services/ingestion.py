@@ -163,12 +163,11 @@ async def ingest_datapoints(
     return IngestionResult(accepted=total_accepted, rejected=total_rejected)
 
 
-async def _ingest_chunk(db: AsyncSession, datapoints: list[IncomingDatapoint]) -> IngestionResult:
-    """Process a single chunk of datapoints. Returns IngestionResult for the chunk."""
-    if not datapoints:
-        return IngestionResult(accepted=0, rejected=0)
+def _validate_datapoints(datapoints: list[IncomingDatapoint]) -> tuple[list[IncomingDatapoint], int]:
+    """Validate and sanitise incoming datapoints.
 
-    # Basic validation & sanitization: ensure finite floats and non-empty event ids
+    Returns a tuple of (valid_datapoints, invalid_count).
+    """
     import math
 
     valid: list[IncomingDatapoint] = []
@@ -185,6 +184,16 @@ async def _ingest_chunk(db: AsyncSession, datapoints: list[IncomingDatapoint]) -
             logger.debug("ingest_invalid_value_or_event", value=v, event=dp.event_public_id)
             continue
         valid.append(IncomingDatapoint(value=v, event_public_id=dp.event_public_id))
+    return valid, invalid_count
+
+
+async def _ingest_chunk(db: AsyncSession, datapoints: list[IncomingDatapoint]) -> IngestionResult:
+    """Process a single chunk of datapoints. Returns IngestionResult for the chunk."""
+    if not datapoints:
+        return IngestionResult(accepted=0, rejected=0)
+
+    # Basic validation & sanitization
+    valid, _invalid_count = _validate_datapoints(datapoints)
 
     if not valid:
         return IngestionResult(accepted=0, rejected=len(datapoints))

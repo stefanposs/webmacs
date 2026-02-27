@@ -5,7 +5,6 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, HTTPException, status
-from fastapi import Query
 from sqlalchemy import select
 
 from webmacs_backend.dependencies import DbSession, OperatorUser

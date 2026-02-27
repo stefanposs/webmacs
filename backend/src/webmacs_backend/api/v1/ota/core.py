@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import uuid
 
-from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query, status
 
 from webmacs_backend.dependencies import AdminUser, CurrentUser, DbSession

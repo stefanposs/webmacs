@@ -204,8 +204,8 @@ def _validate_code_verifier(verifier: str) -> bool:
     # here while still applying a reasonable upper bound.
     if verifier == "":
         return True
-    l = len(verifier)
-    if l < 8 or l > 256:
+    length = len(verifier)
+    if length < 8 or length > 256:
         return False
     # RFC7636 allowed characters: ALPHA / DIGIT / "." / "-" / "_" / "~"
     return re.fullmatch(r"[A-Za-z0-9\.\-\_~]+", verifier) is not None

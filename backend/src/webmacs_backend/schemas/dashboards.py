@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 
 from pydantic import BaseModel, Field
 
-from webmacs_backend.enums import WidgetType
+from webmacs_backend.enums import WidgetType  # noqa: TC001
 
 
 class DashboardWidgetCreate(BaseModel):

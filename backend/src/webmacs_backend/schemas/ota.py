@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 
 from pydantic import BaseModel, Field, computed_field
 
-from webmacs_backend.enums import UpdateStatus
+from webmacs_backend.enums import UpdateStatus  # noqa: TC001
 
 
 class FirmwareUpdateCreate(BaseModel):

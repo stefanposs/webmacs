@@ -6,9 +6,9 @@ import asyncio
 import uuid
 
 from fastapi import APIRouter, Query, status
-from sqlalchemy import select
 
 from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
+from webmacs_backend.enums import WebhookEventType
 from webmacs_backend.models import Experiment
 from webmacs_backend.repository import delete_by_public_id, get_or_404, paginate, update_from_schema
 from webmacs_backend.schemas import (
@@ -20,7 +20,6 @@ from webmacs_backend.schemas import (
 )
 from webmacs_backend.services import build_payload, dispatch_event
 from webmacs_backend.services.log_service import create_log
-from webmacs_backend.enums import WebhookEventType
 
 router = APIRouter()
 

@@ -1,4 +1,5 @@
 """Monitoring endpoints (lightweight metrics)."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter

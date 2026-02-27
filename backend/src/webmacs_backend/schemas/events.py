@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 
 from pydantic import BaseModel, Field
 
-from webmacs_backend.enums import EventType
+from webmacs_backend.enums import EventType  # noqa: TC001
 
 
 class EventCreate(BaseModel):

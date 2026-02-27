@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import func
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from webmacs_backend.dependencies import CurrentUser, DbSession
 from webmacs_backend.models import ApiToken

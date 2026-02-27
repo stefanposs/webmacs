@@ -11,7 +11,13 @@ from sqlalchemy.orm import selectinload
 from webmacs_backend.dependencies import DbSession, OperatorUser, ViewerUser
 from webmacs_backend.models import Dashboard
 from webmacs_backend.repository import delete_by_public_id, get_or_404, paginate
-from webmacs_backend.schemas import DashboardCreate, DashboardResponse, DashboardUpdate, PaginatedResponse, StatusResponse
+from webmacs_backend.schemas import (
+    DashboardCreate,
+    DashboardResponse,
+    DashboardUpdate,
+    PaginatedResponse,
+    StatusResponse,
+)
 
 router = APIRouter()
 

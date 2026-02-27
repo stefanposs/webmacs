@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from typing import TYPE_CHECKING
-import json
 
 from webmacs_backend.enums import LoggingType
 from webmacs_backend.models import LogEntry
@@ -17,7 +17,7 @@ _LOG_CONTENT_MAX = 500
 
 
 async def create_log(
-    db: "AsyncSession",
+    db: AsyncSession,
     content: str,
     user_public_id: str,
     logging_type: LoggingType = LoggingType.info,
@@ -36,7 +36,7 @@ async def create_log(
         try:
             meta_snip = json.dumps(metadata, separators=(",", ":"))
         except Exception:
-            meta_snip = "{\"meta\":\"<unserializable>\"}"
+            meta_snip = '{"meta":"<unserializable>"}'
 
     full = content or ""
     if meta_snip:

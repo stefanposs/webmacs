@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TC003
 import json
 
 from pydantic import BaseModel, Field, field_validator
 
-from webmacs_backend.enums import ChannelDirection, PluginSource, PluginStatus
+from webmacs_backend.enums import ChannelDirection, PluginSource, PluginStatus  # noqa: TC001
 
 
 class PluginMetaResponse(BaseModel):

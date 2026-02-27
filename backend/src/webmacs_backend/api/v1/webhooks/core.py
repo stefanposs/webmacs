@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 
 from webmacs_backend.dependencies import AdminUser, DbSession
 from webmacs_backend.models import Webhook
-from webmacs_backend.repository import ConflictError, delete_by_public_id, get_or_404, paginate
+from webmacs_backend.repository import ConflictError, delete_by_public_id, get_or_404
 from webmacs_backend.schemas import (
     PaginatedResponse,
     StatusResponse,
