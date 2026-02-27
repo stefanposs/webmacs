@@ -12,17 +12,13 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  DOCKERHUB_USER: stefanposs
-  IMAGES: webmacs-backend webmacs-frontend webmacs-controller
-
 jobs:
   # ── 1. Run full CI first ─────────────────────────────────────────────
   ci:
     uses: ./.github/workflows/ci.yml
 
-  # ── 2. Build multi-arch images, push to Docker Hub & create OTA bundle
-  build-and-push:
+  # ── 2. Build multi-arch images & create OTA bundle ───────────────────
+  build-bundle:
     runs-on: ubuntu-latest
     needs: ci
     steps:
@@ -40,28 +36,38 @@ jobs:
         with:
           platforms: linux/arm64
 
+      # ── Docker Hub: login, build & push multi-arch manifests ─────────
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ env.DOCKERHUB_USER }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Build & push multi-arch manifests to Docker Hub
       - name: Build & push multi-arch images to Docker Hub
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          for svc in backend frontend controller; do
-            echo "▶ Building & pushing ${DOCKERHUB_USER}/webmacs-${svc}..."
-            docker buildx build \
-              --platform linux/amd64,linux/arm64 \
-              --tag "${DOCKERHUB_USER}/webmacs-${svc}:${VERSION}" \
-              --tag "${DOCKERHUB_USER}/webmacs-${svc}:latest" \
-              --push \
-              -f "docker/${svc}.Dockerfile" .
-          done
+            for svc in backend frontend controller; do
+              if [ "${svc}" = "backend" ]; then
+                repo="stefanposs/webmacs-backend"
+              elif [ "${svc}" = "frontend" ]; then
+                repo="stefanposs/webmacs-frontend"
+              else
+                repo="stefanposs/webmacs-controller"
+              fi
+              echo "▶ Building & pushing ${repo}:${VERSION} + :latest (linux/amd64,linux/arm64)..."
+              docker buildx build \
+                --platform linux/amd64,linux/arm64 \
+                --tag "${repo}:${VERSION}" \
+                --tag "${repo}:latest" \
+                --push \
+                -f "docker/${svc}.Dockerfile" .
+            done
 
-      # Build single-arch images for the OTA bundle (docker save needs local images)
-      - name: Build local images for OTA bundle
+      # Build each service per platform as Docker-format tar (buildx --load
+      # does not support multi-platform; OCI export cannot be reliably
+      # re-imported via docker load). We build amd64 + arm64 separately,
+      # load both, then save all arch-tagged images into one bundle tar.
+      - name: Build & load multi-arch images
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           for svc in backend frontend controller; do
@@ -73,15 +79,20 @@ jobs:
                 --output "type=docker,dest=${svc}-${arch}.tar" \
                 -f "docker/${svc}.Dockerfile" .
               docker load -i "${svc}-${arch}.tar"
-              rm -f "${svc}-${arch}.tar"
             done
+            # Convenience alias pointing to amd64 (used by docker save below)
+            docker tag "webmacs-${svc}:${VERSION}-amd64" "webmacs-${svc}:${VERSION}"
+            docker tag "webmacs-${svc}:${VERSION}-amd64" "webmacs-${svc}:latest"
           done
 
-      - name: Create OTA bundle
+      # Uses the same bundle structure as scripts/build-update-bundle.sh
+      # but with the multi-arch images built above.
+      - name: Create OTA bundle (same format as scripts/build-update-bundle.sh)
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           WORK_DIR=$(mktemp -d)
 
+          # ── Export images (both amd64 and arm64 variants) ──
           echo "▶ Exporting images to tar..."
           docker save \
             "webmacs-backend:${VERSION}-amd64" \
@@ -92,9 +103,11 @@ jobs:
             "webmacs-controller:${VERSION}-arm64" \
             -o "${WORK_DIR}/images.tar"
 
+          # ── Checksum ──
           IMAGES_SHA256=$(sha256sum "${WORK_DIR}/images.tar" | cut -d' ' -f1)
           echo "  SHA-256: ${IMAGES_SHA256}"
 
+          # ── Manifest (matches scripts/build-update-bundle.sh format) ──
           cat > "${WORK_DIR}/manifest.json" <<EOF
           {
               "version": "${VERSION}",
@@ -112,12 +125,14 @@ jobs:
           }
           EOF
 
+          # ── Include production files ──
           cp docker-compose.prod.yml "${WORK_DIR}/"
-          cp scripts/install-rpi.sh  "${WORK_DIR}/"
+          cp scripts/install.sh      "${WORK_DIR}/"
 
+          # ── Create bundle ──
           tar -czf "webmacs-update-${VERSION}.tar.gz" \
             -C "${WORK_DIR}" \
-            manifest.json images.tar docker-compose.prod.yml install-rpi.sh
+            manifest.json images.tar docker-compose.prod.yml install.sh
 
           SIZE=$(du -sh "webmacs-update-${VERSION}.tar.gz" | cut -f1)
           echo "✅ Bundle: webmacs-update-${VERSION}.tar.gz (${SIZE})"
@@ -131,7 +146,7 @@ jobs:
   # ── 3. Create GitHub Release ─────────────────────────────────────────
   release:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: build-bundle
     steps:
       - uses: actions/checkout@v4
 
@@ -151,33 +166,50 @@ jobs:
           generate_release_notes: true
           files: webmacs-update-*.tar.gz
           body: |
-            ## Installation
+            ## OTA Update Bundle
 
-            ### Option 1 — Docker Hub (recommended)
+            **`webmacs-update-${{ steps.version.outputs.version }}.tar.gz`** contains Docker images for backend, frontend, and controller (multi-arch: amd64 + arm64).
 
+            ---
+
+            ### Docker Hub
+
+            Images are also available on Docker Hub:
             ```bash
-            curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install-rpi.sh | sudo bash
+            docker pull stefanposs/webmacs-backend:${{ steps.version.outputs.version }}
+            docker pull stefanposs/webmacs-frontend:${{ steps.version.outputs.version }}
+            docker pull stefanposs/webmacs-controller:${{ steps.version.outputs.version }}
             ```
 
-            Images are pulled automatically from Docker Hub:
-            - `stefanposs/webmacs-backend:${{ steps.version.outputs.version }}`
-            - `stefanposs/webmacs-frontend:${{ steps.version.outputs.version }}`
-            - `stefanposs/webmacs-controller:${{ steps.version.outputs.version }}`
-
-            ### Option 2 — Offline OTA Bundle
-
-            **`webmacs-update-${{ steps.version.outputs.version }}.tar.gz`** contains Docker images (multi-arch: amd64 + arm64) for air-gapped installations.
+            ### First-time install
 
             ```bash
-            wget https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/webmacs-update-${{ steps.version.outputs.version }}.tar.gz
-            sudo bash install-rpi.sh webmacs-update-${{ steps.version.outputs.version }}.tar.gz
+            VERSION=${{ steps.version.outputs.version }}
+            wget https://github.com/${{ github.repository }}/releases/download/v${VERSION}/webmacs-update-${VERSION}.tar.gz
+            tar -xzf webmacs-update-${VERSION}.tar.gz install.sh
+            sudo bash install.sh webmacs-update-${VERSION}.tar.gz
             ```
+
+            > See [`scripts/install.sh`](https://github.com/${{ github.repository }}/blob/main/scripts/install.sh) for details — installs Docker, creates `/opt/webmacs`, generates credentials, starts all services, and creates a systemd auto-start service.
 
             ### Update existing installation
 
-            **Web UI:** WebMACS → **OTA Updates** → **Upload Bundle**
+            **Option 1 — Web UI:**
+            1. Download the `.tar.gz` file above
+            2. Open WebMACS → **OTA Updates** → **Upload Bundle**
+            3. The self-updater daemon verifies, backs up the DB, loads images, and restarts (~3-8 min)
 
-            **SCP / USB:**
+            **Option 2 — SCP / USB:**
             ```bash
             scp webmacs-update-${{ steps.version.outputs.version }}.tar.gz pi@<device-ip>:/opt/webmacs/updates/
             ```
+            The updater daemon detects and applies it within 30 seconds.
+
+            ### Build locally (single-arch)
+
+            ```bash
+            ./scripts/build-update-bundle.sh ${{ steps.version.outputs.version }}
+            # → dist/webmacs-update-${{ steps.version.outputs.version }}.tar.gz
+            ```
+
+            > See [`scripts/build-update-bundle.sh`](https://github.com/${{ github.repository }}/blob/main/scripts/build-update-bundle.sh) — builds for your host architecture only. Use this GitHub Release for multi-arch bundles.
