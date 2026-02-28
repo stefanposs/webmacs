@@ -69,6 +69,11 @@ from webmacs_backend.schemas.rules import (
     RuleResponse,
     RuleUpdate,
 )
+from webmacs_backend.schemas.system import (
+    ServiceVersion,
+    UpdateTriggerRequest,
+    VersionsResponse,
+)
 from webmacs_backend.schemas.tokens import (
     ApiTokenCreate,
     ApiTokenCreatedResponse,
@@ -137,15 +142,19 @@ __all__ = [
     "RuleCreate",
     "RuleResponse",
     "RuleUpdate",
+    # system
+    "ServiceVersion",
     "SsoAuthorizeResponse",
     "SsoConfigResponse",
     "StatusResponse",
     "TokenData",
     "UpdateCheckResponse",
+    "UpdateTriggerRequest",
     # users
     "UserCreate",
     "UserResponse",
     "UserUpdate",
+    "VersionsResponse",
     # webhooks
     "WebhookCreate",
     "WebhookDeliveryResponse",

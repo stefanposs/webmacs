@@ -1,8 +1,8 @@
 <template>
   <AppToast />
   <div class="layout-wrapper">
-    <AppSidebar v-if="authStore.isAuthenticated" />
-    <div :class="['layout-main', { 'layout-main--full': !authStore.isAuthenticated }]">
+    <AppSidebar v-if="authStore.isAuthenticated && uiStore.sidebarOpen" />
+    <div :class="['layout-main', { 'layout-main--full': !authStore.isAuthenticated || !uiStore.sidebarOpen }]">
       <AppTopbar v-if="authStore.isAuthenticated" />
       <main class="layout-content">
         <router-view v-slot="{ Component }">
@@ -17,11 +17,13 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 import AppSidebar from '@/components/AppSidebar.vue'
 import AppTopbar from '@/components/AppTopbar.vue'
 import AppToast from '@/components/AppToast.vue'
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 </script>
 
 <style lang="scss">

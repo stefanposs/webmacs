@@ -1,5 +1,5 @@
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" :class="{ 'sidebar--hidden-mobile': !uiStore.sidebarOpen }">
     <div class="sidebar-header">
       <div class="sidebar-logo">
         <i class="pi pi-microchip" />
@@ -92,9 +92,11 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const uiStore = useUiStore()
 
 const initials = computed(() => {
   const name = authStore.user?.username ?? '?'
@@ -137,6 +139,13 @@ async function handleLogout() {
   flex-direction: column;
   z-index: 100;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Hide sidebar on small screens when closed */
+@media (max-width: 899px) {
+  .sidebar { transform: translateX(0); transition: transform 0.2s ease; }
+  .sidebar--hidden-mobile { transform: translateX(-110%); }
+  .layout-main { margin-left: 0 !important; }
 }
 
 .sidebar-header {

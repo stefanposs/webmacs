@@ -24,6 +24,7 @@ from webmacs_backend.api.v1 import ota as ota_api
 from webmacs_backend.api.v1 import plugins as plugins_api
 from webmacs_backend.api.v1 import rules as rules_api
 from webmacs_backend.api.v1 import sso as sso_api
+from webmacs_backend.api.v1 import system as system_api
 from webmacs_backend.api.v1 import tokens as tokens_api
 from webmacs_backend.api.v1 import webhooks as webhooks_api
 from webmacs_backend.api.v1.health import reset_start_time
@@ -216,6 +217,7 @@ def create_app() -> FastAPI:
     application.include_router(ota_api.router, prefix=f"{api_prefix}/ota", tags=["OTA Updates"])
     application.include_router(dashboards_api.router, prefix=f"{api_prefix}/dashboards", tags=["Dashboards"])
     application.include_router(plugins_api.router, prefix=f"{api_prefix}/plugins", tags=["Plugins"])
+    application.include_router(system_api.router, prefix=f"{api_prefix}/system", tags=["System"])
     application.include_router(tokens_api.router, prefix=f"{api_prefix}/tokens", tags=["API Tokens"])
     application.include_router(sso_api.router, prefix=f"{api_prefix}/auth/sso", tags=["SSO"])
     application.include_router(monitoring_api.router, prefix=f"{api_prefix}/monitoring", tags=["Monitoring"])
