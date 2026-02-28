@@ -28,19 +28,43 @@ class Base(DeclarativeBase):
 
 
 async def init_db() -> None:
-    """Create all tables.
+    """Ensure all tables exist and Alembic migrations are applied.
 
-    In production, tables should already be managed by Alembic migrations.
-    create_all() is a no-op for tables that already exist, so this is safe
-    but not authoritative — always run ``alembic upgrade head`` first.
+    1. ``create_all()`` is always run first — it is idempotent and a no-op
+       for tables that already exist.  This guarantees that the base schema
+       (users, events, experiments, …) is present before any Alembic
+       migration that references those tables via foreign keys.
+    2. In production the Alembic migration head is applied automatically
+       so that incremental migrations (plugin tables, RBAC, etc.) are
+       executed on first start without manual intervention.
     """
-    if settings.env.lower() == "production":
-        import structlog
+    import structlog
 
-        structlog.get_logger().info("skipping_create_all_in_production", hint="Use 'alembic upgrade head'")
-        return
+    log = structlog.get_logger()
+
+    # Step 1 — ensure base tables exist (idempotent)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    log.info("database_tables_ensured")
+
+    # Step 2 — run Alembic migrations (production only)
+    if settings.env.lower() == "production":
+        import subprocess  # noqa: S404
+
+        log.info("running_alembic_migrations")
+        result = subprocess.run(  # noqa: S603, S607
+            ["alembic", "upgrade", "head"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            log.info("alembic_migrations_applied", stdout=result.stdout.strip())
+        else:
+            log.warning(
+                "alembic_migrations_failed",
+                returncode=result.returncode,
+                stderr=result.stderr.strip(),
+            )
 
 
 async def get_db() -> AsyncGenerator[AsyncSession]:
