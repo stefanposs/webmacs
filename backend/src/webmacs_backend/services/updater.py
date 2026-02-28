@@ -42,6 +42,8 @@ BACKUP_DIR = UPDATE_DIR / "backups"
 FAILED_DIR = UPDATE_DIR / "failed"
 COMPOSE_FILE = Path("/opt/webmacs/docker-compose.prod.yml")
 POLL_INTERVAL = int(os.environ.get("WEBMACS_UPDATER_POLL", "30"))
+# When false (default) abort update if DB backup fails. Set to '1' to allow proceeding without a backup.
+ALLOW_NO_BACKUP = bool(int(os.environ.get("WEBMACS_UPDATER_ALLOW_NO_BACKUP", "0")))
 
 
 def sha256_file(path: Path) -> str:
@@ -117,6 +119,22 @@ def create_db_backup() -> Path | None:
         stderr = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else None
         logger.error("db_backup_failed", error=str(exc), stderr=(stderr or "").strip())
         return None
+
+
+def pull_images(images: list[str]) -> bool:
+    """Pull a list of Docker images. Returns True if all pulls succeeded."""
+    all_ok = True
+    for img in images:
+        if not img:
+            continue
+        try:
+            logger.info("docker_pull_start", image=img)
+            _run(["docker", "pull", img], timeout=600)
+            logger.info("docker_pull_success", image=img)
+        except Exception as exc:
+            logger.error("docker_pull_failed", image=img, error=str(exc))
+            all_ok = False
+    return all_ok
 
 
 ENV_FILE = Path("/opt/webmacs/.env")
@@ -254,10 +272,13 @@ def apply_bundle(bundle_path: Path) -> bool:  # noqa: PLR0911
 
         logger.info("checksum_verified", sha256=actual_hash[:16] + "...")
 
-        # 4. Create database backup
+        # 4. Create database backup — abort unless explicitly allowed
         backup = create_db_backup()
         if backup is None:
-            logger.warning("skipping_db_backup")
+            if not ALLOW_NO_BACKUP:
+                logger.error("db_backup_required_but_failed", allow_no_backup=ALLOW_NO_BACKUP)
+                return False
+            logger.warning("proceeding_without_db_backup", allow_no_backup=ALLOW_NO_BACKUP)
 
         # 5. Load new Docker images
         if not load_images(images_tar):

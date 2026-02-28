@@ -74,6 +74,11 @@ from webmacs_backend.schemas.tokens import (
     ApiTokenCreatedResponse,
     ApiTokenResponse,
 )
+from webmacs_backend.schemas.system import (
+    ServiceVersion,
+    VersionsResponse,
+    UpdateTriggerRequest,
+)
 from webmacs_backend.schemas.users import (
     UserCreate,
     UserResponse,
@@ -152,3 +157,7 @@ __all__ = [
     "WebhookResponse",
     "WebhookUpdate",
 ]
+    # system
+    "ServiceVersion",
+    "VersionsResponse",
+    "UpdateTriggerRequest",

@@ -45,9 +45,18 @@
           <span class="badge badge--stopped">Not checked</span>
         </template>
       </div>
-      <button class="btn-secondary" :disabled="checking" @click="handleCheck">
-        <i class="pi pi-refresh" :class="{ 'pi-spin': checking }" /> Check for Updates
-      </button>
+      <div style="display:flex; gap:0.5rem; align-items:center">
+        <button class="btn-secondary" :disabled="checking" @click="handleCheck">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': checking }" /> Check for Updates
+        </button>
+        <button
+          v-if="otaStore.checkResult?.github_latest_version && isGithubNewer"
+          class="btn-primary"
+          @click="handleOneClickUpdate"
+        >
+          <i class="pi pi-cloud-download" /> One-Click Update
+        </button>
+      </div>
     </div>
 
     <!-- GitHub Release Info -->
@@ -207,6 +216,7 @@ import { useNotification } from '@/composables/useNotification'
 import { useFormatters } from '@/composables/useFormatters'
 import api from '@/services/api'
 import type { FirmwareUpdate, UpdateStatus } from '@/types'
+import { useAuthStore } from '@/stores/auth'
 
 const otaStore = useOtaStore()
 const { success, error } = useNotification()
@@ -242,6 +252,8 @@ const form = reactive({
   version: '',
   changelog: '',
 })
+
+const authStore = useAuthStore()
 
 function triggerUpload() {
   fileInput.value?.click()
@@ -369,6 +381,27 @@ onMounted(async () => {
     // silently ignore — user can manually retry via button
   }
 })
+
+async function handleOneClickUpdate() {
+  // Only admins may trigger system updates
+  if (!authStore.isAdmin) {
+    error('Unauthorized', 'Only administrators can perform system updates.')
+    return
+  }
+
+  const latest = otaStore.checkResult?.github_latest_version
+  if (!latest) {
+    error('No release', 'No GitHub release version found to trigger.')
+    return
+  }
+
+  try {
+    await api.post('/system/trigger', { version: latest })
+    success('Update started', `Triggered pull and restart for version ${latest}.`)
+  } catch (err: unknown) {
+    error('Update trigger failed', (err as Error).message)
+  }
+}
 </script>
 
 <style lang="scss" scoped>

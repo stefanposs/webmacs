@@ -1,7 +1,10 @@
 <template>
   <header class="topbar">
     <div class="topbar-left">
-      <h1 class="topbar-title">{{ currentRoute }}</h1>
+        <button class="topbar-hamburger" @click="toggleSidebar" aria-label="Toggle sidebar">
+          <i class="pi pi-bars" />
+        </button>
+        <h1 class="topbar-title">{{ currentRoute }}</h1>
     </div>
     <div class="topbar-right">
       <span class="topbar-env" :class="`topbar-env--${env}`">{{ env }}</span>
@@ -13,6 +16,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useUiStore } from '@/stores/ui'
 
 const route = useRoute()
 const currentRoute = computed(() => {
@@ -23,6 +27,11 @@ const env = import.meta.env.MODE
 
 const clock = ref('')
 let clockTimer: ReturnType<typeof setInterval> | null = null
+const uiStore = useUiStore()
+
+function toggleSidebar() {
+  uiStore.toggleSidebar()
+}
 
 function updateClock() {
   clock.value = new Date().toLocaleTimeString()
@@ -53,6 +62,21 @@ onUnmounted(() => { if (clockTimer) clearInterval(clockTimer) })
   font-weight: 700;
   color: var(--wm-text);
   letter-spacing: -0.02em;
+}
+
+.topbar-hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--wm-text);
+  font-size: 1.1rem;
+}
+
+@media (min-width: 900px) {
+  .topbar-hamburger { display: none; }
 }
 
 .topbar-right {
