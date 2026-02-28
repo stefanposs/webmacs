@@ -6,7 +6,7 @@ cd /app
 python - <<'PYEOF'
 import asyncio, sys, os
 
-# Ensure the app package is importable (fallback for editable / src-layout installs)
+# Ensure the app package is importable (fallback for src-layout installs)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__) or ".", "src"))
 
 from webmacs_backend.models import Base
@@ -14,11 +14,32 @@ from webmacs_backend.database import engine
 
 async def _create():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    await engine.dispose()
+        # Check if this is a fresh DB (no alembic_version table yet)
+        result = await conn.run_sync(
+            lambda sync_conn: sync_conn.dialect.has_table(sync_conn, "alembic_version")
+        )
+        fresh_db = not result
 
-asyncio.run(_create())
-print("  ✓ Base tables ensured")
+        # create_all is idempotent for tables, but PG ENUM types may
+        # raise DuplicateObject on repeated runs, so only create on
+        # a truly fresh database.
+        if fresh_db:
+            await conn.run_sync(Base.metadata.create_all)
+            print("  ✓ Base tables created (fresh database)")
+        else:
+            print("  ✓ Database already initialised — skipping create_all")
+
+    await engine.dispose()
+    return fresh_db
+
+fresh = asyncio.run(_create())
+
+# If we just created all tables, stamp alembic to head so it does not
+# try to re-create tables/enums that create_all() already made.
+if fresh:
+    import subprocess
+    subprocess.run(["alembic", "stamp", "head"], check=True)
+    print("  ✓ Alembic stamped to head")
 PYEOF
 
 echo "▶ Running database migrations..."
