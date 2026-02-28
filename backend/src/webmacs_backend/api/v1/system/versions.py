@@ -8,17 +8,16 @@ compose stack using the `restart_services` helper from the updater service.
 from __future__ import annotations
 
 import asyncio
-import re
 import subprocess
-from typing import Iterable
+from collections.abc import Iterable
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from webmacs_backend import __version__
 from webmacs_backend.dependencies import AdminUser
-from webmacs_backend.schemas.system import UpdateTriggerRequest, VersionsResponse, ServiceVersion
 from webmacs_backend.schemas import StatusResponse
+from webmacs_backend.schemas.system import ServiceVersion, UpdateTriggerRequest, VersionsResponse
 from webmacs_backend.services.updater import restart_services
 
 logger = structlog.get_logger()
@@ -41,7 +40,7 @@ def _pull_images(images: Iterable[str]) -> None:
             continue
         try:
             logger.info("docker_pull_start", image=img)
-            subprocess.run(["docker", "pull", img], check=True, capture_output=True, text=True)  # noqa: S603
+            subprocess.run(["docker", "pull", img], check=True, capture_output=True, text=True)  # noqa: S603, S607
             logger.info("docker_pull_success", image=img)
         except subprocess.CalledProcessError as exc:
             logger.error("docker_pull_failed", image=img, stderr=(exc.stderr or "").strip())
@@ -84,7 +83,11 @@ async def get_versions() -> VersionsResponse:
 
 
 @router.post("/trigger", response_model=StatusResponse)
-async def trigger_update(request: UpdateTriggerRequest, background_tasks: BackgroundTasks, admin_user: AdminUser) -> StatusResponse:
+async def trigger_update(
+    request: UpdateTriggerRequest,
+    background_tasks: BackgroundTasks,
+    admin_user: AdminUser,
+) -> StatusResponse:
     """Trigger a direct Docker pull + restart in background (admin only).
 
     The request accepts image references for the three services and/or a `version`.

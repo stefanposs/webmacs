@@ -20,11 +20,11 @@ from webmacs_backend.api.v1 import dashboards as dashboards_api
 from webmacs_backend.api.v1 import health as health_api
 from webmacs_backend.api.v1 import logging as logging_api
 from webmacs_backend.api.v1 import monitoring as monitoring_api
-from webmacs_backend.api.v1 import system as system_api
 from webmacs_backend.api.v1 import ota as ota_api
 from webmacs_backend.api.v1 import plugins as plugins_api
 from webmacs_backend.api.v1 import rules as rules_api
 from webmacs_backend.api.v1 import sso as sso_api
+from webmacs_backend.api.v1 import system as system_api
 from webmacs_backend.api.v1 import tokens as tokens_api
 from webmacs_backend.api.v1 import webhooks as webhooks_api
 from webmacs_backend.api.v1.health import reset_start_time
