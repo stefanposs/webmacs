@@ -130,6 +130,46 @@ cd /opt/webmacs
 sudo docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
+### Option C — Docker Hub Pull (No Bundle Required)
+
+If the device has internet access, you can pull images directly from Docker Hub — no bundle needed:
+
+```bash
+# 1. Install Docker
+curl -fsSL https://get.docker.com | sh
+sudo systemctl enable docker && sudo systemctl start docker
+
+# 2. Create directory
+sudo mkdir -p /opt/webmacs
+cd /opt/webmacs
+
+# 3. Download the compose file
+sudo curl -fsSL \
+  https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml \
+  -o docker-compose.prod.yml
+
+# 4. Generate .env with secure credentials
+sudo bash -c 'cat > .env' <<EOF
+DB_PASSWORD=$(openssl rand -hex 16)
+SECRET_KEY=$(openssl rand -hex 32)
+ADMIN_PASSWORD=$(openssl rand -base64 12)
+ADMIN_EMAIL=admin@webmacs.local
+ADMIN_USERNAME=admin
+WEBMACS_VERSION=latest
+EOF
+
+# 5. Show the generated admin password (save it!)
+echo "Admin password: $(sudo grep ADMIN_PASSWORD /opt/webmacs/.env | cut -d= -f2)"
+
+# 6. Pull images and start
+sudo docker compose -f docker-compose.prod.yml --env-file .env pull
+sudo docker compose -f docker-compose.prod.yml --env-file .env up -d
+```
+
+!!! tip "First pull takes a while"
+    On a Raspberry Pi, the first `docker compose pull` can take 5–10 minutes
+    depending on your internet connection. Subsequent pulls only download changed layers.
+
 ---
 
 ## First Login
@@ -269,10 +309,10 @@ If the password was changed via the UI and is no longer in `.env`, reset it:
 ```bash
 docker compose -f docker-compose.prod.yml exec backend \
   python -c "
-from webmacs_backend.security import get_password_hash
-print(get_password_hash('NewPassword123!'))
+from webmacs_backend.security import hash_password
+print(hash_password('NewPassword123!'))
 " | xargs -I{} docker compose -f docker-compose.prod.yml exec -T db \
-  psql -U webmacs webmacs -c "UPDATE users SET hashed_password='{}' WHERE username='admin';"
+  psql -U webmacs webmacs -c "UPDATE users SET password_hash='{}' WHERE username='admin';"
 ```
 
 ---

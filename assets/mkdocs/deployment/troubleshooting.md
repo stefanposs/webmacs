@@ -237,6 +237,51 @@ WHERE relname = 'datapoints';
 
 ## Docker Issues
 
+### 502 Bad Gateway on Login
+
+If you see `502 Bad Gateway` when trying to log in, the backend is not ready yet.
+
+```bash
+# Check if backend is still starting
+cd /opt/webmacs
+sudo docker compose -f docker-compose.prod.yml --env-file .env ps
+
+# View startup logs
+sudo docker compose -f docker-compose.prod.yml --env-file .env logs backend --tail 30
+```
+
+On a Raspberry Pi, the backend can take **1–3 minutes** to start on the first boot
+(database table creation, migrations, admin seeding). Wait and retry.
+
+### 422 Unprocessable Content on Login
+
+If you see `422 Unprocessable Content` when logging in:
+
+- Make sure you’re using the correct admin email (default: `admin@webmacs.local`)
+- Check that the email field is not empty
+- Check your WebMACS version — older versions had strict email format validation that rejected `.local` domains. Update to the latest image:
+
+```bash
+cd /opt/webmacs
+sudo docker compose -f docker-compose.prod.yml --env-file .env pull backend
+sudo docker compose -f docker-compose.prod.yml --env-file .env up -d backend
+```
+
+### Backend Marked as Unhealthy
+
+On slower hardware (Raspberry Pi), the backend may be marked `unhealthy` during startup
+even though it’s still loading. The default `start_period` gives the app time to start
+before health checks begin counting failures.
+
+If you see `(unhealthy)` but the logs show `Uvicorn running on http://0.0.0.0:8000`,
+just wait — the status will change to `(healthy)` after the next successful health check.
+
+If it stays unhealthy, check the logs for errors:
+
+```bash
+sudo docker compose -f docker-compose.prod.yml --env-file .env logs backend 2>&1 | tail 50
+```
+
 ### Container Won't Start
 
 ```bash
