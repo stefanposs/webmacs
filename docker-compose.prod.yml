@@ -26,7 +26,7 @@ services:
           memory: 512M
 
   backend:
-    image: webmacs-backend:${WEBMACS_VERSION:-latest}
+    image: stefanposs/webmacs-backend:${WEBMACS_VERSION:-latest}
     restart: always
     environment:
       DATABASE_URL: postgresql+asyncpg://webmacs:${DB_PASSWORD}@db:5432/webmacs
@@ -44,16 +44,16 @@ services:
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
 
   frontend:
-    image: webmacs-frontend:${WEBMACS_VERSION:-latest}
+    image: stefanposs/webmacs-frontend:${WEBMACS_VERSION:-latest}
     restart: always
     ports:
       - "80:80"
@@ -65,7 +65,7 @@ services:
           memory: 64M
 
   controller:
-    image: webmacs-controller:${WEBMACS_VERSION:-latest}
+    image: stefanposs/webmacs-controller:${WEBMACS_VERSION:-latest}
     restart: always
     environment:
       WEBMACS_ENV: production
@@ -91,7 +91,7 @@ services:
 
   # ── Self-Updater (watches for update bundles) ──────────────────────────
   updater:
-    image: webmacs-backend:${WEBMACS_VERSION:-latest}
+    image: stefanposs/webmacs-backend:${WEBMACS_VERSION:-latest}
     restart: always
     entrypoint: ["python", "-m", "webmacs_backend.services.updater"]
     environment:

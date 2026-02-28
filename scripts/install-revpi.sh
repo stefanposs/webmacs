@@ -193,9 +193,29 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
     sed -i "s/^WEBMACS_VERSION=.*/WEBMACS_VERSION=${VERSION}/" "$ENV_FILE"
 
 elif [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
-    ok "Using existing images"
+    info "Pulling latest images from Docker Hub..."
+    cd "${INSTALL_DIR}"
+    if docker compose -f docker-compose.prod.yml --env-file .env pull; then
+        ok "Images pulled from Docker Hub"
+    else
+        warn "docker compose pull failed — using existing local images"
+    fi
 else
-    err "No update bundle provided and no existing installation found.\n   Usage: sudo $0 <path-to-webmacs-update-bundle.tar.gz>"
+    info "No bundle provided — downloading compose file and pulling images from Docker Hub..."
+
+    GITHUB_RAW_URL="${GITHUB_RAW_URL:-https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml}"
+    mkdir -p "${INSTALL_DIR}"
+    if curl -fsSL "$GITHUB_RAW_URL" -o "${INSTALL_DIR}/docker-compose.prod.yml"; then
+        ok "Downloaded docker-compose.prod.yml"
+        info "Pulling images from Docker Hub (may take a while on first install)..."
+        cd "${INSTALL_DIR}"
+        if ! docker compose -f docker-compose.prod.yml --env-file .env pull; then
+            err "Failed to pull images from Docker Hub. Check your internet connection."
+        fi
+        ok "Images pulled from Docker Hub"
+    else
+        err "Failed to download docker-compose.prod.yml.\nUsage: sudo $0 <path-to-webmacs-update-bundle.tar.gz>"
+    fi
 fi
 
 # Ensure compose file exists
@@ -209,8 +229,8 @@ cd "${INSTALL_DIR}"
 docker compose -f docker-compose.prod.yml --env-file .env up -d
 
 # Wait for backend health
-info "Waiting for backend to become healthy..."
-RETRIES=30
+info "Waiting for backend to become healthy (may take 2–3 min on first start)..."
+RETRIES=60
 for i in $(seq 1 $RETRIES); do
     if docker compose -f docker-compose.prod.yml exec -T backend \
         python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" 2>/dev/null; then
@@ -218,9 +238,10 @@ for i in $(seq 1 $RETRIES); do
         break
     fi
     if [[ $i -eq $RETRIES ]]; then
-        warn "Backend not yet healthy — check logs with: docker compose -f docker-compose.prod.yml logs backend"
+        warn "Backend not yet healthy after $((RETRIES * 3)) s — check logs:"
+        warn "  cd ${INSTALL_DIR} && docker compose -f docker-compose.prod.yml logs backend"
     fi
-    sleep 2
+    sleep 3
 done
 
 # ── 7. Create systemd service ───────────────────────────────────────────
@@ -231,7 +252,8 @@ if [[ ! -f "$SYSTEMD_FILE" ]]; then
 [Unit]
 Description=WebMACS - Web-based Monitoring and Control System
 Documentation=https://github.com/stefanposs/webmacs
-After=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
 Requires=docker.service
 
 [Service]
@@ -240,7 +262,7 @@ RemainAfterExit=yes
 WorkingDirectory=${INSTALL_DIR}
 ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env up -d
 ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml down
-TimeoutStartSec=120
+TimeoutStartSec=300
 
 [Install]
 WantedBy=multi-user.target

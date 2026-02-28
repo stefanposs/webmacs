@@ -6,12 +6,24 @@ This guide walks you through your first WebMACS session — from login to seeing
 
 ## 1. Start the Stack
 
-```bash
-cd webmacs
-docker compose up -d
-```
+=== "Production (Raspberry Pi / RevPi)"
 
-Open **http://localhost** in your browser.
+    If you used the install script, WebMACS is already running.
+    Open **http://<device-ip>** in your browser.
+
+    ```bash
+    # Check the IP address on the device
+    hostname -I
+    ```
+
+=== "Development (local)"
+
+    ```bash
+    cd webmacs
+    docker compose up -d
+    ```
+
+    Open **http://localhost** in your browser.
 
 ---
 
@@ -19,13 +31,29 @@ Open **http://localhost** in your browser.
 
 The backend automatically seeds an initial admin user on first startup:
 
-| Field | Default |
-|---|---|
-| Email | `admin@webmacs.io` |
-| Password | `admin123` |
+=== "Production (install script)"
+
+    The install script generates a **random admin password** and displays it once during installation.
+    You can also find it in the `.env` file:
+
+    ```bash
+    sudo grep ADMIN_PASSWORD /opt/webmacs/.env
+    ```
+
+    | Field | Value |
+    |---|---|
+    | Email | `admin@webmacs.local` |
+    | Password | *(shown during install / in `.env`)* |
+
+=== "Development"
+
+    | Field | Default |
+    |---|---|
+    | Email | `admin@webmacs.io` |
+    | Password | `admin123` |
 
 !!! warning "Change the default password"
-    Set `INITIAL_ADMIN_PASSWORD` in your `.env` file before deploying to any shared environment.
+    In production, change the admin password after your first login under **Settings → Profile**.
 
 ---
 

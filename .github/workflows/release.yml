@@ -48,11 +48,11 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
             for svc in backend frontend controller; do
               if [ "${svc}" = "backend" ]; then
-                repo="stefanposs/webmacs_backend"
+                repo="stefanposs/webmacs-backend"
               elif [ "${svc}" = "frontend" ]; then
-                repo="stefanposs/webmacs_frontend"
+                repo="stefanposs/webmacs-frontend"
               else
-                repo="stefanposs/webmacs_controller"
+                repo="stefanposs/webmacs-controller"
               fi
               echo "▶ Building & pushing ${repo}:${VERSION} + :latest (linux/amd64,linux/arm64)..."
               docker buildx build \
@@ -176,9 +176,9 @@ jobs:
 
             Images are also available on Docker Hub:
             ```bash
-            docker pull stefanposs/webmacs_backend:${{ steps.version.outputs.version }}
-            docker pull stefanposs/webmacs_frontend:${{ steps.version.outputs.version }}
-            docker pull stefanposs/webmacs_controller:${{ steps.version.outputs.version }}
+            docker pull stefanposs/webmacs-backend:${{ steps.version.outputs.version }}
+            docker pull stefanposs/webmacs-frontend:${{ steps.version.outputs.version }}
+            docker pull stefanposs/webmacs-controller:${{ steps.version.outputs.version }}
             ```
 
             ### First-time install

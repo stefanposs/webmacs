@@ -24,7 +24,14 @@
 set -euo pipefail
 
 INSTALL_DIR="/opt/webmacs"
-BUNDLE_PATH="${1:-}"
+# Argument parsing: support optional --offline flag or a bundle path
+OFFLINE=false
+BUNDLE_PATH=""
+if [[ "${1:-}" == "--offline" ]]; then
+    OFFLINE=true
+else
+    BUNDLE_PATH="${1:-}"
+fi
 REBOOT_REQUIRED=false
 
 # Colors
@@ -385,26 +392,35 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
 
     sed -i "s/^WEBMACS_VERSION=.*/WEBMACS_VERSION=${VERSION}/" "$ENV_FILE"
 
+elif [[ "$OFFLINE" == "true" ]]; then
+    if [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
+        info "Offline mode: using existing ${INSTALL_DIR}/docker-compose.prod.yml (no network actions)"
+    else
+        err "Offline mode selected but ${INSTALL_DIR}/docker-compose.prod.yml not found. Provide a bundle or run without --offline."
+    fi
 elif [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
-    ok "Using existing compose at ${INSTALL_DIR}/docker-compose.prod.yml"
+    info "Pulling latest images from Docker Hub..."
+    cd "${INSTALL_DIR}"
+    if docker compose -f docker-compose.prod.yml --env-file .env pull; then
+        ok "Images pulled from Docker Hub"
+    else
+        warn "docker compose pull failed — using existing local images"
+    fi
 else
-    info "No update bundle provided and no existing installation found. Attempting to download compose from GitHub..."
+    info "No bundle provided — downloading compose file and pulling images from Docker Hub..."
 
-    # Fallback: try to download docker-compose.prod.yml from the repository's main branch
     GITHUB_RAW_URL="${GITHUB_RAW_URL:-https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml}"
     mkdir -p "${INSTALL_DIR}"
     if curl -fsSL "$GITHUB_RAW_URL" -o "${INSTALL_DIR}/docker-compose.prod.yml"; then
-        ok "Downloaded docker-compose.prod.yml from ${GITHUB_RAW_URL}"
-        info "Pulling images from registry (may take a while)..."
+        ok "Downloaded docker-compose.prod.yml"
+        info "Pulling images from Docker Hub (may take a while on first install)..."
         cd "${INSTALL_DIR}"
-        # Ensure .env exists (created above). Pull images referenced by the compose file.
         if ! docker compose -f docker-compose.prod.yml --env-file .env pull; then
-            warn "docker compose pull failed — images may need to be pulled manually or bundle provided"
-        else
-            ok "Images pulled from registry"
+            err "Failed to pull images from Docker Hub. Check your internet connection."
         fi
+        ok "Images pulled from Docker Hub"
     else
-        err "No update bundle provided and no existing installation found.\nUsage: sudo $0 <path-to-webmacs-update-bundle.tar.gz>"
+        err "Failed to download docker-compose.prod.yml.\nUsage: sudo $0 <path-to-webmacs-update-bundle.tar.gz>"
     fi
 fi
 

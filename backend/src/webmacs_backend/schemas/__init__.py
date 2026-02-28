@@ -87,6 +87,7 @@ from webmacs_backend.schemas.webhooks import (
 )
 
 __all__ = [
+    # tokens
     "ApiTokenCreate",
     "ApiTokenCreatedResponse",
     "ApiTokenResponse",
@@ -96,13 +97,16 @@ __all__ = [
     "DashboardCreate",
     "DashboardResponse",
     "DashboardUpdate",
+    # dashboards
     "DashboardWidgetCreate",
     "DashboardWidgetResponse",
     "DashboardWidgetUpdate",
     "DatapointBatchCreate",
+    # datapoints
     "DatapointCreate",
     "DatapointResponse",
     "DatapointSeriesRequest",
+    # events & experiments
     "EventCreate",
     "EventResponse",
     "EventUpdate",
@@ -110,20 +114,26 @@ __all__ = [
     "ExperimentResponse",
     "ExperimentUpdate",
     "FirmwareApplyRequest",
+    # ota
     "FirmwareUpdateCreate",
     "FirmwareUpdateResponse",
     "HealthResponse",
+    # logging
     "LogEntryCreate",
     "LogEntryResponse",
     "LogEntryUpdate",
+    # auth
     "LoginRequest",
     "LoginResponse",
+    # common
     "PaginatedResponse",
     "PluginInstanceCreate",
     "PluginInstanceResponse",
     "PluginInstanceUpdate",
+    # plugins
     "PluginMetaResponse",
     "PluginPackageResponse",
+    # rules
     "RuleCreate",
     "RuleResponse",
     "RuleUpdate",
@@ -132,9 +142,11 @@ __all__ = [
     "StatusResponse",
     "TokenData",
     "UpdateCheckResponse",
+    # users
     "UserCreate",
     "UserResponse",
     "UserUpdate",
+    # webhooks
     "WebhookCreate",
     "WebhookDeliveryResponse",
     "WebhookResponse",

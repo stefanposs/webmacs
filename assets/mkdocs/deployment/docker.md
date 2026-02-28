@@ -2,7 +2,7 @@
 
 !!! note "Development vs. Production"
     The `docker-compose.yml` in the project root is designed for **local development**.
-    For production deployment on a RevPi or server, use `scripts/install.sh` which sets up
+    For production deployment on a RevPi or server, use `scripts/install-rpi.sh` (or `scripts/install-revpi.sh` for Revolution Pi) which sets up
     `docker-compose.prod.yml` with proper credentials, systemd auto-start, and the OTA updater.
     See the [Installation Guide](installation-guide.md) for details.
 
@@ -170,7 +170,7 @@ scp webmacs-update-2.0.0.tar.gz pi@<device-ip>:/tmp/
 ssh pi@<device-ip>
 
 # 3. Run the one-line installer
-sudo bash /tmp/install.sh /tmp/webmacs-update-2.0.0.tar.gz
+sudo bash /tmp/install-rpi.sh /tmp/webmacs-update-2.0.0.tar.gz
 ```
 
 The installer handles everything automatically:

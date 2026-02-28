@@ -30,6 +30,10 @@ COPY backend/alembic.ini ./alembic.ini
 COPY backend/alembic/ ./alembic/
 RUN uv pip install --system --no-cache .
 
+COPY docker/entrypoint-backend.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 8000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["uvicorn", "webmacs_backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

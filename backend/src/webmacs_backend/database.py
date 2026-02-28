@@ -28,17 +28,15 @@ class Base(DeclarativeBase):
 
 
 async def init_db() -> None:
-    """Create all tables.
+    """Ensure all tables exist (idempotent).
 
-    In production, tables should already be managed by Alembic migrations.
-    create_all() is a no-op for tables that already exist, so this is safe
-    but not authoritative — always run ``alembic upgrade head`` first.
+    ``create_all()`` is a no-op for tables that already exist, so it is
+    always safe to call.  In Docker-based production deployments the
+    entrypoint script runs ``create_all`` followed by
+    ``alembic upgrade head`` *before* the application starts, so this
+    call is an inexpensive safety-net that guarantees the base schema
+    (users, events, experiments …) is present regardless of runtime mode.
     """
-    if settings.env.lower() == "production":
-        import structlog
-
-        structlog.get_logger().info("skipping_create_all_in_production", hint="Use 'alembic upgrade head'")
-        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
