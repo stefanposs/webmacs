@@ -24,7 +24,14 @@
 set -euo pipefail
 
 INSTALL_DIR="/opt/webmacs"
-BUNDLE_PATH="${1:-}"
+# Argument parsing: support optional --offline flag or a bundle path
+OFFLINE=false
+BUNDLE_PATH=""
+if [[ "${1:-}" == "--offline" ]]; then
+    OFFLINE=true
+else
+    BUNDLE_PATH="${1:-}"
+fi
 REBOOT_REQUIRED=false
 
 # Colors
@@ -385,6 +392,12 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
 
     sed -i "s/^WEBMACS_VERSION=.*/WEBMACS_VERSION=${VERSION}/" "$ENV_FILE"
 
+elif [[ "$OFFLINE" == "true" ]]; then
+    if [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
+        info "Offline mode: using existing ${INSTALL_DIR}/docker-compose.prod.yml (no network actions)"
+    else
+        err "Offline mode selected but ${INSTALL_DIR}/docker-compose.prod.yml not found. Provide a bundle or run without --offline."
+    fi
 elif [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
     info "Pulling latest images from Docker Hub..."
     cd "${INSTALL_DIR}"
