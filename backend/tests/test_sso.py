@@ -442,7 +442,13 @@ class TestStateToken:
         from webmacs_backend.api.v1.sso import _create_state_token, _verify_state_token
 
         token = _create_state_token("verifier")
-        tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
+        # Flip a character in the middle of the signature (not the last char,
+        # whose lower bits may be insignificant in base64url encoding).
+        parts = token.rsplit(".", 1)
+        sig = parts[1]
+        mid = len(sig) // 2
+        flipped = "Z" if sig[mid] != "Z" else "a"
+        tampered = parts[0] + "." + sig[:mid] + flipped + sig[mid + 1 :]
         assert _verify_state_token(tampered) is None
 
 

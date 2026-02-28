@@ -1,21 +1,20 @@
-"""Webhook CRUD endpoints."""
+"""Webhook CRUD endpoints (core)."""
 
 from __future__ import annotations
 
 import json
 import uuid
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, status
 from sqlalchemy import func, select
 
 from webmacs_backend.dependencies import AdminUser, DbSession
-from webmacs_backend.models import Webhook, WebhookDelivery
-from webmacs_backend.repository import ConflictError, delete_by_public_id, get_or_404, paginate
+from webmacs_backend.models import Webhook
+from webmacs_backend.repository import ConflictError, delete_by_public_id, get_or_404
 from webmacs_backend.schemas import (
     PaginatedResponse,
     StatusResponse,
     WebhookCreate,
-    WebhookDeliveryResponse,
     WebhookResponse,
     WebhookUpdate,
 )
@@ -39,8 +38,8 @@ def _webhook_to_response(wh: Webhook) -> WebhookResponse:
 async def list_webhooks(
     db: DbSession,
     admin_user: AdminUser,
-    page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page: int = 1,
+    page_size: int = 25,
 ) -> PaginatedResponse[WebhookResponse]:
     """List all webhooks (admin only)."""
     query = select(Webhook)
@@ -110,33 +109,3 @@ async def update_webhook(
 async def delete_webhook(public_id: str, db: DbSession, admin_user: AdminUser) -> StatusResponse:
     """Delete a webhook (admin only)."""
     return await delete_by_public_id(db, Webhook, public_id, entity_name="Webhook")
-
-
-# ─── Delivery Log ────────────────────────────────────────────────────────────
-
-
-@router.get("/{public_id}/deliveries", response_model=PaginatedResponse[WebhookDeliveryResponse])
-async def list_deliveries(
-    public_id: str,
-    db: DbSession,
-    admin_user: AdminUser,
-    page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
-    status_filter: str | None = Query(default=None, alias="status"),
-) -> PaginatedResponse[WebhookDeliveryResponse]:
-    """List delivery attempts for a webhook."""
-    wh = await get_or_404(db, Webhook, public_id, entity_name="Webhook")
-
-    query = select(WebhookDelivery).where(WebhookDelivery.webhook_id == wh.id)
-    if status_filter:
-        query = query.where(WebhookDelivery.status == status_filter)
-    query = query.order_by(WebhookDelivery.created_on.desc())
-
-    return await paginate(
-        db,
-        WebhookDelivery,
-        WebhookDeliveryResponse,
-        page=page,
-        page_size=page_size,
-        base_query=query,
-    )

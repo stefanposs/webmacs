@@ -29,6 +29,11 @@ logger = structlog.get_logger()
 
 router = APIRouter()
 
+# Limits to prevent abuse / accidental heavy queries on small devices
+_MAX_BATCH_SIZE = 500
+_MAX_SERIES_POINTS = 500
+_MAX_SERIES_MINUTES = 60 * 24  # one day
+
 
 @router.get("", response_model=PaginatedResponse[DatapointResponse])
 async def list_datapoints(
@@ -73,6 +78,12 @@ async def create_datapoints_batch(
     db: DbSession,
     current_user: OperatorUser,
 ) -> StatusResponse:
+    if len(data.datapoints) > _MAX_BATCH_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Batch too large (max {_MAX_BATCH_SIZE} datapoints).",
+        )
+
     incoming = [IncomingDatapoint(value=dp.value, event_public_id=dp.event_public_id) for dp in data.datapoints]
     result = await ingest_datapoints(db, incoming)
     return StatusResponse(status="success", message=f"{result.accepted} datapoints successfully created.")
@@ -85,7 +96,10 @@ async def get_datapoint_series(
     current_user: ViewerUser,
 ) -> dict[str, list[DatapointResponse]]:
     """Return recent datapoints grouped by event_public_id (for dashboard charts)."""
-    cutoff = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=data.minutes)
+    # Clamp input ranges to avoid expensive queries on embedded hardware
+    minutes = max(1, min(int(data.minutes), _MAX_SERIES_MINUTES))
+    max_points = max(1, min(int(data.max_points), _MAX_SERIES_POINTS))
+    cutoff = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=minutes)
     result = await db.execute(
         select(Datapoint)
         .where(Datapoint.event_public_id.in_(data.event_public_ids), Datapoint.timestamp >= cutoff)
@@ -97,9 +111,9 @@ async def get_datapoint_series(
             series[dp.event_public_id].append(DatapointResponse.model_validate(dp))
     # Downsample to max_points for mini-computer performance
     for eid, points in series.items():
-        if len(points) > data.max_points:
-            step = len(points) / data.max_points
-            sampled = [points[int(i * step)] for i in range(data.max_points - 1)]
+        if len(points) > max_points:
+            step = len(points) / max_points
+            sampled = [points[int(i * step)] for i in range(max_points - 1)]
             sampled.append(points[-1])
             series[eid] = sampled
     return series

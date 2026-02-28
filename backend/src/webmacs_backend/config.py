@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import secrets
+
 import structlog
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
@@ -69,6 +71,16 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Ensure a sufficiently long secret key in non-production (tests/dev).
+# This avoids insecure HMAC length warnings from JWT libraries when tests
+# run without an explicit SECRET_KEY set in the environment.
+if settings.env.lower() != "production":
+    current = settings.secret_key.get_secret_value().strip()
+    if not current:
+        generated = secrets.token_urlsafe(64)
+        settings.secret_key = SecretStr(generated)
+        logger.debug("secret_key_generated_for_dev", length=len(generated))
 
 
 class WeakSecretKeyError(Exception):
