@@ -42,8 +42,8 @@ BACKUP_DIR = UPDATE_DIR / "backups"
 FAILED_DIR = UPDATE_DIR / "failed"
 COMPOSE_FILE = Path("/opt/webmacs/docker-compose.prod.yml")
 POLL_INTERVAL = int(os.environ.get("WEBMACS_UPDATER_POLL", "30"))
-# When false (default) abort update if DB backup fails. Set to '1' to allow proceeding without a backup.
-ALLOW_NO_BACKUP = bool(int(os.environ.get("WEBMACS_UPDATER_ALLOW_NO_BACKUP", "0")))
+# When false (default) abort update if DB backup fails. Set to '1'/'true'/'yes' to allow proceeding.
+ALLOW_NO_BACKUP = os.environ.get("WEBMACS_UPDATER_ALLOW_NO_BACKUP", "0").strip().lower() in ("1", "true", "yes")
 
 
 def sha256_file(path: Path) -> str:

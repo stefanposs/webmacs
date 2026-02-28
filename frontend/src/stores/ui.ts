@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useUiStore = defineStore('ui', {
   state: () => ({
-    sidebarOpen: true as boolean,
+    sidebarOpen: true,
   }),
   actions: {
     toggleSidebar() {

@@ -2,8 +2,8 @@
   <AppToast />
   <div class="layout-wrapper">
     <AppSidebar v-if="authStore.isAuthenticated && uiStore.sidebarOpen" />
-      <div :class="['layout-main', { 'layout-main--full': !authStore.isAuthenticated || !uiStore.sidebarOpen }]">
-        <AppTopbar v-if="authStore.isAuthenticated" />
+    <div :class="['layout-main', { 'layout-main--full': !authStore.isAuthenticated || !uiStore.sidebarOpen }]">
+      <AppTopbar v-if="authStore.isAuthenticated" />
       <main class="layout-content">
         <router-view v-slot="{ Component }">
           <transition name="page" mode="out-in">

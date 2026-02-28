@@ -4,10 +4,10 @@ set -e
 echo "▶ Ensuring base database tables exist..."
 cd /app
 python - <<'PYEOF'
-import asyncio, sys, os
+import asyncio, sys
 
 # Ensure the app package is importable (fallback for src-layout installs)
-sys.path.insert(0, os.path.join(os.path.dirname(__file__) or ".", "src"))
+sys.path.insert(0, "/app/src")
 
 from webmacs_backend.models import Base
 from webmacs_backend.database import engine
