@@ -2251,13 +2251,53 @@
 <p>This guide walks you through your first WebMACS session — from login to seeing live sensor data on a dashboard.</p>
 <hr />
 <h2 id="1-start-the-stack">1. Start the Stack<a class="headerlink" href="#1-start-the-stack" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>webmacs
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Production (Raspberry Pi / RevPi)</label><label for="__tabbed_1_2">Development (local)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>If you used the install script, WebMACS is already running.
+Open <strong>http://<device-ip></strong> in your browser.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Check the IP address on the device</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>hostname<span class="w"> </span>-I
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>webmacs
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 </code></pre></div>
 <p>Open <strong>http://localhost</strong> in your browser.</p>
+</div>
+</div>
+</div>
 <hr />
 <h2 id="2-log-in">2. Log In<a class="headerlink" href="#2-log-in" title="Permanent link">&para;</a></h2>
 <p>The backend automatically seeds an initial admin user on first startup:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Production (install script)</label><label for="__tabbed_2_2">Development</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>The install script generates a <strong>random admin password</strong> and displays it once during installation.
+You can also find it in the <code>.env</code> file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sudo<span class="w"> </span>grep<span class="w"> </span>ADMIN_PASSWORD<span class="w"> </span>/opt/webmacs/.env
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Email</td>
+<td><code>admin@webmacs.local</code></td>
+</tr>
+<tr>
+<td>Password</td>
+<td><em>(shown during install / in <code>.env</code>)</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
 <table>
 <thead>
 <tr>
@@ -2276,9 +2316,12 @@
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Change the default password</p>
-<p>Set <code>INITIAL_ADMIN_PASSWORD</code> in your <code>.env</code> file before deploying to any shared environment.</p>
+<p>In production, change the admin password after your first login under <strong>Settings → Profile</strong>.</p>
 </div>
 <hr />
 <h2 id="3-set-up-a-plugin-data-source">3. Set Up a Plugin (Data Source)<a class="headerlink" href="#3-set-up-a-plugin-data-source" title="Permanent link">&para;</a></h2>

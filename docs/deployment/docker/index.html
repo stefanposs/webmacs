@@ -2417,7 +2417,7 @@
 <div class="admonition note">
 <p class="admonition-title">Development vs. Production</p>
 <p>The <code>docker-compose.yml</code> in the project root is designed for <strong>local development</strong>.
-For production deployment on a RevPi or server, use <code>scripts/install.sh</code> which sets up
+For production deployment on a RevPi or server, use <code>scripts/install-rpi.sh</code> (or <code>scripts/install-revpi.sh</code> for Revolution Pi) which sets up
 <code>docker-compose.prod.yml</code> with proper credentials, systemd auto-start, and the OTA updater.
 See the <a href="../installation-guide/">Installation Guide</a> for details.</p>
 </div>
@@ -2568,7 +2568,7 @@ See the <a href="../installation-guide/">Installation Guide</a> for details.</p>
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>ssh<span class="w"> </span>pi@&lt;device-ip&gt;
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># 3. Run the one-line installer</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>sudo<span class="w"> </span>bash<span class="w"> </span>/tmp/install.sh<span class="w"> </span>/tmp/webmacs-update-2.0.0.tar.gz
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>sudo<span class="w"> </span>bash<span class="w"> </span>/tmp/install-rpi.sh<span class="w"> </span>/tmp/webmacs-update-2.0.0.tar.gz
 </code></pre></div>
 <p>The installer handles everything automatically:</p>
 <table>
