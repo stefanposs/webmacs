@@ -64,6 +64,22 @@ Browser ──── HTTPS (443) ────▶ Nginx ──── HTTP (8000) 
 - WebSocket connections automatically use **WSS** (encrypted)
 - Internal Docker networking stays plain HTTP (no overhead)
 
+### Deployment Files
+
+The SSL setup uses files deployed to `/opt/webmacs/`:
+
+| File | Purpose |
+|------|---------|
+| `docker-compose.prod.yml` | Orchestrates all services; mounts `nginx.conf` and certs into the frontend container |
+| `nginx.conf` | Nginx reverse proxy config with SSL termination (bind-mounted at runtime) |
+| `certs/cert.pem` | TLS certificate |
+| `certs/key.pem` | TLS private key |
+
+!!! info "Why a bind-mounted nginx.conf?"
+    The `nginx.conf` is mounted from the host filesystem rather than baked into the Docker image.
+    This means HTTPS works regardless of which image version is running — no need to rebuild
+    or pull new images after enabling SSL.
+
 ### Certificate Setup
 
 Certificates must be placed in `/opt/webmacs/certs/`:
@@ -130,10 +146,18 @@ CORS_ORIGINS=["https://webmacs.yourcompany.com"]
 If you're upgrading an existing HTTP-only installation:
 
 ```bash
-# 1. Create certs directory
-sudo mkdir -p /opt/webmacs/certs
+cd /opt/webmacs
 
-# 2. Generate self-signed cert (or copy your own)
+# 1. Download updated compose file and nginx config
+sudo curl -fsSL \
+  https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml \
+  -o docker-compose.prod.yml
+sudo curl -fsSL \
+  https://raw.githubusercontent.com/stefanposs/webmacs/main/docker/nginx.conf \
+  -o nginx.conf
+
+# 2. Create certs directory and generate self-signed cert
+sudo mkdir -p /opt/webmacs/certs
 sudo openssl req -x509 -newkey rsa:4096 -nodes \
     -keyout /opt/webmacs/certs/key.pem \
     -out /opt/webmacs/certs/cert.pem \
@@ -141,11 +165,15 @@ sudo openssl req -x509 -newkey rsa:4096 -nodes \
     -subj "/CN=webmacs.local/O=WebMACS/OU=Self-Signed"
 sudo chmod 600 /opt/webmacs/certs/key.pem
 
-# 3. Update docker-compose.prod.yml (new version has SSL built in)
-# 4. Update CORS_ORIGINS from http:// to https://
-# 5. Restart
-cd /opt/webmacs && docker compose -f docker-compose.prod.yml up -d
+# 3. Update CORS_ORIGINS from http:// to https:// in .env (if set)
+# 4. Restart
+sudo docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
+
+!!! info "How it works"
+    The `nginx.conf` file is bind-mounted into the frontend container at runtime.
+    This means SSL works regardless of which Docker image version you're running —
+    no need to rebuild or pull new images.
 
 ---
 

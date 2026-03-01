@@ -92,9 +92,11 @@ Both installers will:
 2. Install Docker and Docker Compose (if missing)
 3. Create the `/opt/webmacs` directory structure
 4. Generate a secure `.env` with random passwords
-5. Load the Docker images from the bundle (SHA-256 verified)
-6. Start all services
-7. Create a systemd service for automatic start on boot
+5. Generate a self-signed TLS certificate (if none found)
+6. Deploy `nginx.conf` for HTTPS termination
+7. Load the Docker images from the bundle (SHA-256 verified)
+8. Start all services (HTTPS on port 443)
+9. Create a systemd service for automatic start on boot
 
 !!! warning "Save Your Credentials"
     The admin password is displayed **only once** during installation.
@@ -121,10 +123,11 @@ curl -fsSL https://get.docker.com | sh
 sudo systemctl enable docker && sudo systemctl start docker
 
 # 2. Create directories
-sudo mkdir -p /opt/webmacs/{updates,updates/applied,updates/backups,updates/failed}
+sudo mkdir -p /opt/webmacs/{updates,updates/applied,updates/backups,updates/failed,certs}
 
-# 3. Copy the compose file and bundle
+# 3. Copy the compose file, nginx config, and bundle
 sudo cp docker-compose.prod.yml /opt/webmacs/
+sudo cp nginx.conf /opt/webmacs/
 sudo cp webmacs-update-*.tar.gz /opt/webmacs/
 
 # 4. Extract and load images
@@ -136,7 +139,13 @@ sudo docker load -i images.tar
 sudo cp .env.example /opt/webmacs/.env
 sudo nano /opt/webmacs/.env
 
-# 6. Start
+# 6. Generate self-signed TLS certificate
+sudo openssl req -x509 -newkey rsa:4096 -nodes \
+    -keyout /opt/webmacs/certs/key.pem \
+    -out /opt/webmacs/certs/cert.pem \
+    -days 3650 -subj "/CN=webmacs.local/O=WebMACS/OU=Self-Signed"
+
+# 7. Start
 cd /opt/webmacs
 sudo docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
@@ -154,12 +163,22 @@ sudo systemctl enable docker && sudo systemctl start docker
 sudo mkdir -p /opt/webmacs
 cd /opt/webmacs
 
-# 3. Download the compose file
+# 3. Download the compose file and nginx config
 sudo curl -fsSL \
   https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml \
   -o docker-compose.prod.yml
+sudo curl -fsSL \
+  https://raw.githubusercontent.com/stefanposs/webmacs/main/docker/nginx.conf \
+  -o nginx.conf
 
-# 4. Generate .env with secure credentials
+# 4. Create certs directory and generate self-signed TLS certificate
+sudo mkdir -p /opt/webmacs/certs
+sudo openssl req -x509 -newkey rsa:4096 -nodes \
+    -keyout /opt/webmacs/certs/key.pem \
+    -out /opt/webmacs/certs/cert.pem \
+    -days 3650 -subj "/CN=webmacs.local/O=WebMACS/OU=Self-Signed"
+
+# 5. Generate .env with secure credentials
 sudo bash -c 'cat > .env' <<EOF
 DB_PASSWORD=$(openssl rand -hex 16)
 SECRET_KEY=$(openssl rand -hex 32)
@@ -169,10 +188,10 @@ ADMIN_USERNAME=admin
 WEBMACS_VERSION=latest
 EOF
 
-# 5. Show the generated admin password (save it!)
+# 6. Show the generated admin password (save it!)
 echo "Admin password: $(sudo grep ADMIN_PASSWORD /opt/webmacs/.env | cut -d= -f2)"
 
-# 6. Pull images and start
+# 7. Pull images and start
 sudo docker compose -f docker-compose.prod.yml --env-file .env pull
 sudo docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
