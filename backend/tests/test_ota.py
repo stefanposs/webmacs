@@ -209,7 +209,7 @@ async def test_check_for_updates_with_pending(
     response = await client.get("/api/v1/ota/check", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
-    assert data["current_version"] == "2.4.2"
+    assert data["current_version"] == "2.5.0"
     assert data["latest_version"] == "3.0.0"
     assert data["update_available"] is True
 

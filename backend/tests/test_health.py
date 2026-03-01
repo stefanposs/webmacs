@@ -11,7 +11,7 @@ async def test_health_returns_200(client):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] in ("ok", "degraded")
-    assert data["version"] == "2.4.2"
+    assert data["version"] == "2.5.0"
     assert data["database"] == "ok"
     assert "uptime_seconds" in data
 
