@@ -412,6 +412,9 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
     if [[ -f "$WORK_DIR/docker-compose.prod.yml" ]]; then
         cp "$WORK_DIR/docker-compose.prod.yml" "${INSTALL_DIR}/docker-compose.prod.yml"
     fi
+    if [[ -f "$WORK_DIR/nginx.conf" ]]; then
+        cp "$WORK_DIR/nginx.conf" "${INSTALL_DIR}/nginx.conf"
+    fi
 
     sed -i "s/^WEBMACS_VERSION=.*/WEBMACS_VERSION=${VERSION}/" "$ENV_FILE"
 
@@ -432,10 +435,11 @@ elif [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
 else
     info "No bundle provided — downloading compose file and pulling images from Docker Hub..."
 
-    GITHUB_RAW_URL="${GITHUB_RAW_URL:-https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml}"
+    GITHUB_BASE="${GITHUB_BASE:-https://raw.githubusercontent.com/stefanposs/webmacs/main}"
     mkdir -p "${INSTALL_DIR}"
-    if curl -fsSL "$GITHUB_RAW_URL" -o "${INSTALL_DIR}/docker-compose.prod.yml"; then
-        ok "Downloaded docker-compose.prod.yml"
+    if curl -fsSL "${GITHUB_BASE}/docker-compose.prod.yml" -o "${INSTALL_DIR}/docker-compose.prod.yml" && \
+       curl -fsSL "${GITHUB_BASE}/docker/nginx.conf" -o "${INSTALL_DIR}/nginx.conf"; then
+        ok "Downloaded docker-compose.prod.yml + nginx.conf"
         info "Pulling images from Docker Hub (may take a while on first install)..."
         cd "${INSTALL_DIR}"
         if ! docker compose -f docker-compose.prod.yml --env-file .env pull; then
