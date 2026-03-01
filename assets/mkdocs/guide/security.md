@@ -264,7 +264,8 @@ Use this checklist before going to production:
 - [ ] Set `ENV=production`
 - [ ] Change default admin password
 - [ ] Configure `CORS_ORIGINS` to your frontend domain
-- [ ] Enable HTTPS via nginx (see [Production Guide](../deployment/production.md))
+- [ ] Enable HTTPS via nginx — built-in with self-signed cert (see [Production Guide](../deployment/production.md#https--tls))
+- [ ] Replace self-signed certificate with your own for production
 - [ ] Set webhook secrets for all registered webhooks
 - [ ] Review plugin sources before installation
 - [ ] Configure firewall to restrict port access

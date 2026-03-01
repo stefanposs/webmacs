@@ -136,7 +136,8 @@ TELEMETRY_MODE=http
 WEBMACS_AUTO_SEED=true
 EOF
 
-    chmod 600 "$ENV_FILE"
+    chmod 640 "$ENV_FILE"
+    chgrp docker "$ENV_FILE" 2>/dev/null || true
     ok ".env created at ${ENV_FILE}"
     echo ""
     warn "SAVE THESE CREDENTIALS (shown only once):"
@@ -200,9 +201,12 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
     docker load -i "$WORK_DIR/images.tar"
     ok "Images loaded"
 
-    # Copy compose file from bundle
+    # Copy compose file and nginx config from bundle
     if [[ -f "$WORK_DIR/docker-compose.prod.yml" ]]; then
         cp "$WORK_DIR/docker-compose.prod.yml" "${INSTALL_DIR}/docker-compose.prod.yml"
+    fi
+    if [[ -f "$WORK_DIR/nginx.conf" ]]; then
+        cp "$WORK_DIR/nginx.conf" "${INSTALL_DIR}/nginx.conf"
     fi
 
     # Update version in .env
@@ -219,9 +223,10 @@ elif [[ -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
 else
     info "No bundle — downloading compose file and pulling images..."
 
-    COMPOSE_URL="https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml"
-    if curl -fsSL "$COMPOSE_URL" -o "${INSTALL_DIR}/docker-compose.prod.yml"; then
-        ok "Downloaded docker-compose.prod.yml"
+    GITHUB_BASE="https://raw.githubusercontent.com/stefanposs/webmacs/main"
+    if curl -fsSL "${GITHUB_BASE}/docker-compose.prod.yml" -o "${INSTALL_DIR}/docker-compose.prod.yml" && \
+       curl -fsSL "${GITHUB_BASE}/docker/nginx.conf" -o "${INSTALL_DIR}/nginx.conf"; then
+        ok "Downloaded docker-compose.prod.yml + nginx.conf"
         cd "${INSTALL_DIR}"
         if ! docker compose -f docker-compose.prod.yml --env-file .env pull; then
             err "Failed to pull images. Check your internet connection."

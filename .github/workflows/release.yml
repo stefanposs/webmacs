@@ -128,11 +128,12 @@ jobs:
           # ── Include production files ──
           cp docker-compose.prod.yml "${WORK_DIR}/"
           cp scripts/install.sh      "${WORK_DIR}/"
+          cp docker/nginx.conf       "${WORK_DIR}/"
 
           # ── Create bundle ──
           tar -czf "webmacs-update-${VERSION}.tar.gz" \
             -C "${WORK_DIR}" \
-            manifest.json images.tar docker-compose.prod.yml install.sh
+            manifest.json images.tar docker-compose.prod.yml install.sh nginx.conf
 
           SIZE=$(du -sh "webmacs-update-${VERSION}.tar.gz" | cut -f1)
           echo "✅ Bundle: webmacs-update-${VERSION}.tar.gz (${SIZE})"
