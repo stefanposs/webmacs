@@ -301,7 +301,7 @@ fi
 # ── 7. Create directory structure ───────────────────────────────────────────
 step "Creating directory structure"
 
-mkdir -p "${INSTALL_DIR}"/{updates,updates/applied,updates/backups,updates/failed,plugins}
+mkdir -p "${INSTALL_DIR}"/{updates,updates/applied,updates/backups,updates/failed,plugins,certs}
 ok "Directories created at ${INSTALL_DIR}"
 
 # ── 8. Generate .env file ───────────────────────────────────────────────────
@@ -353,7 +353,29 @@ else
     ok ".env already exists — keeping existing configuration"
 fi
 
-# ── 9. Load images from bundle or pull ──────────────────────────────────────
+# ── 9. Generate TLS certificate (self-signed if none provided) ──────────────
+step "Setting up TLS"
+
+CERT_DIR="${INSTALL_DIR}/certs"
+if [[ ! -f "${CERT_DIR}/cert.pem" || ! -f "${CERT_DIR}/key.pem" ]]; then
+    info "No TLS certificate found — generating self-signed certificate..."
+    openssl req -x509 -newkey rsa:4096 -nodes \
+        -keyout "${CERT_DIR}/key.pem" \
+        -out "${CERT_DIR}/cert.pem" \
+        -days 3650 \
+        -subj "/CN=webmacs.local/O=WebMACS/OU=Self-Signed" \
+        2>/dev/null
+    chmod 600 "${CERT_DIR}/key.pem"
+    chmod 644 "${CERT_DIR}/cert.pem"
+    ok "Self-signed TLS certificate created (valid for 10 years)"
+    warn "Replace with your own certificate for production:"
+    warn "  ${CERT_DIR}/cert.pem  (certificate)"
+    warn "  ${CERT_DIR}/key.pem   (private key)"
+else
+    ok "TLS certificate found in ${CERT_DIR}/"
+fi
+
+# ── 10. Load images from bundle or pull ────────────────────────────────────
 step "Loading Docker images"
 
 if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
@@ -428,7 +450,7 @@ if [[ ! -f "${INSTALL_DIR}/docker-compose.prod.yml" ]]; then
     err "docker-compose.prod.yml not found in ${INSTALL_DIR}/"
 fi
 
-# ── 10. Start WebMACS ───────────────────────────────────────────────────────
+# ── 11. Start WebMACS ───────────────────────────────────────────────────────
 step "Starting WebMACS"
 
 if [[ "$REBOOT_REQUIRED" == true ]]; then
@@ -456,7 +478,7 @@ else
     done
 fi
 
-# ── 11. Systemd service ─────────────────────────────────────────────────────
+# ── 12. Systemd service ─────────────────────────────────────────────────────
 step "Configuring auto-start"
 
 SYSTEMD_FILE="/etc/systemd/system/webmacs.service"
@@ -488,7 +510,7 @@ else
     ok "systemd service already exists"
 fi
 
-# ── 12. Done ────────────────────────────────────────────────────────────────
+# ── 13. Done ────────────────────────────────────────────────────────────────
 IP_ADDR=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "localhost")
 
 echo ""
@@ -497,7 +519,7 @@ echo ""
 echo "   ✓ WebMACS installed successfully!"
 echo ""
 echo "   Open in browser:"
-echo "      http://${IP_ADDR}"
+echo "      https://${IP_ADDR}"
 echo ""
 echo "   Credentials stored in: ${ENV_FILE}"
 echo ""

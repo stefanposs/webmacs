@@ -105,7 +105,7 @@ fi
 
 # ── 3. Create directory structure ────────────────────────────────────────
 info "Creating directory structure at ${INSTALL_DIR}..."
-mkdir -p "${INSTALL_DIR}"/{updates,updates/applied,updates/backups,updates/failed,plugins}
+mkdir -p "${INSTALL_DIR}"/{updates,updates/applied,updates/backups,updates/failed,plugins,certs}
 ok "Directories created"
 
 # ── 4. Generate .env file ───────────────────────────────────────────────
@@ -152,7 +152,28 @@ else
     ok ".env already exists — keeping existing configuration"
 fi
 
-# ── 5. Extract and load update bundle ────────────────────────────────────
+# ── 5. Generate TLS certificate (self-signed if none provided) ──────────────
+CERT_DIR="${INSTALL_DIR}/certs"
+if [[ ! -f "${CERT_DIR}/cert.pem" || ! -f "${CERT_DIR}/key.pem" ]]; then
+    info "No TLS certificate found — generating self-signed certificate..."
+    openssl req -x509 -newkey rsa:4096 -nodes \
+        -keyout "${CERT_DIR}/key.pem" \
+        -out "${CERT_DIR}/cert.pem" \
+        -days 3650 \
+        -subj "/CN=webmacs.local/O=WebMACS/OU=Self-Signed" \
+        2>/dev/null
+    chmod 600 "${CERT_DIR}/key.pem"
+    chmod 644 "${CERT_DIR}/cert.pem"
+    ok "Self-signed TLS certificate created (valid for 10 years)"
+    warn "Replace with your own certificate for production:"
+    warn "  ${CERT_DIR}/cert.pem  (certificate)"
+    warn "  ${CERT_DIR}/key.pem   (private key)"
+    echo ""
+else
+    ok "TLS certificate found in ${CERT_DIR}/"
+fi
+
+# ── 6. Extract and load update bundle ──────────────────────────────────────
 if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
     info "Loading images from update bundle: ${BUNDLE_PATH}..."
 
@@ -284,7 +305,7 @@ echo ""
 echo "   ✅ WebMACS installed successfully!"
 echo ""
 echo "   Open in browser:"
-echo "      http://${IP_ADDR}"
+echo "      https://${IP_ADDR}"
 echo ""
 echo "   Admin credentials are in: ${ENV_FILE}"
 echo ""
