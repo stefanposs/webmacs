@@ -100,6 +100,17 @@ Both installers will:
     The admin password is displayed **only once** during installation.
     It is also stored in `/opt/webmacs/.env`.
 
+!!! tip "Running Docker Commands Without sudo"
+    The `.env` file is owned by `root:docker` (mode `640`). To run `docker compose`
+    commands without `sudo`, add your user to the `docker` group:
+
+    ```bash
+    sudo usermod -aG docker $USER
+    # Log out and back in for the change to take effect
+    ```
+
+    Alternatively, prefix all `docker compose` commands with `sudo`.
+
 ### Option B — Manual Install
 
 If you prefer to set up components individually:

@@ -136,7 +136,8 @@ TELEMETRY_MODE=http
 WEBMACS_AUTO_SEED=true
 EOF
 
-    chmod 600 "$ENV_FILE"
+    chmod 640 "$ENV_FILE"
+    chgrp docker "$ENV_FILE" 2>/dev/null || true
     ok ".env created at ${ENV_FILE}"
     echo ""
     warn "SAVE THESE CREDENTIALS (shown only once):"
