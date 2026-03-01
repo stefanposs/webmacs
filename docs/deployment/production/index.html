@@ -1954,10 +1954,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-reverse-proxy-recommended" class="md-nav__link">
+  <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Reverse Proxy (Recommended)
+        How It Works
       
     </span>
   </a>
@@ -1965,10 +1965,82 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-nginx-with-certbot" class="md-nav__link">
+  <a href="#deployment-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: Nginx with Certbot
+        Deployment Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Certificate Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Certificate Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-self-signed-generated-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Self-Signed (Generated Automatically)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-bring-your-own-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Bring Your Own Certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-lets-encrypt-public-facing-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 3: Let's Encrypt (Public-Facing Servers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cors-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CORS Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upgrading-existing-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrading Existing Installations
       
     </span>
   </a>
@@ -2235,10 +2307,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-reverse-proxy-recommended" class="md-nav__link">
+  <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Reverse Proxy (Recommended)
+        How It Works
       
     </span>
   </a>
@@ -2246,10 +2318,82 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-nginx-with-certbot" class="md-nav__link">
+  <a href="#deployment-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: Nginx with Certbot
+        Deployment Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Certificate Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Certificate Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-self-signed-generated-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Self-Signed (Generated Automatically)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-bring-your-own-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Bring Your Own Certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-lets-encrypt-public-facing-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 3: Let's Encrypt (Public-Facing Servers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cors-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CORS Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upgrading-existing-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrading Existing Installations
       
     </span>
   </a>
@@ -2443,29 +2587,155 @@
 </code></pre></div>
 <hr />
 <h2 id="https-tls">HTTPS / TLS<a class="headerlink" href="#https-tls" title="Permanent link">&para;</a></h2>
-<h3 id="option-1-reverse-proxy-recommended">Option 1: Reverse Proxy (Recommended)<a class="headerlink" href="#option-1-reverse-proxy-recommended" title="Permanent link">&para;</a></h3>
-<p>Place a TLS-terminating reverse proxy (Traefik, Caddy, cloud LB) in front of the Nginx container.</p>
-<h3 id="option-2-nginx-with-certbot">Option 2: Nginx with Certbot<a class="headerlink" href="#option-2-nginx-with-certbot" title="Permanent link">&para;</a></h3>
-<p>Add SSL configuration to <code>docker/nginx.conf</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">server</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="kn">listen</span><span class="w"> </span><span class="mi">443</span><span class="w"> </span><span class="s">ssl</span><span class="p">;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="kn">ssl_certificate</span><span class="w"> </span><span class="s">/etc/letsencrypt/live/webmacs.example.com/fullchain.pem</span><span class="p">;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="kn">ssl_certificate_key</span><span class="w"> </span><span class="s">/etc/letsencrypt/live/webmacs.example.com/privkey.pem</span><span class="p">;</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="c1"># ... existing location blocks</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
+<p>WebMACS ships with <strong>built-in SSL/TLS termination</strong> at the Nginx reverse proxy.
+All traffic on port 80 is automatically redirected to HTTPS (443).</p>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Browser ──── HTTPS (443) ────▶ Nginx ──── HTTP (8000) ────▶ Backend
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>         ◀── 301 redirect ──── :80                         (internal)
 </code></pre></div>
+<ul>
+<li><strong>TLS 1.2 / TLS 1.3</strong> only — older protocols are disabled</li>
+<li><strong>HSTS</strong> header (<code>max-age=63072000</code>) prevents downgrade attacks</li>
+<li><strong>HTTP/2</strong> enabled for faster page loads</li>
+<li>WebSocket connections automatically use <strong>WSS</strong> (encrypted)</li>
+<li>Internal Docker networking stays plain HTTP (no overhead)</li>
+</ul>
+<h3 id="deployment-files">Deployment Files<a class="headerlink" href="#deployment-files" title="Permanent link">&para;</a></h3>
+<p>The SSL setup uses files deployed to <code>/opt/webmacs/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docker-compose.prod.yml</code></td>
+<td>Orchestrates all services; mounts <code>nginx.conf</code> and certs into the frontend container</td>
+</tr>
+<tr>
+<td><code>nginx.conf</code></td>
+<td>Nginx reverse proxy config with SSL termination (bind-mounted at runtime)</td>
+</tr>
+<tr>
+<td><code>certs/cert.pem</code></td>
+<td>TLS certificate</td>
+</tr>
+<tr>
+<td><code>certs/key.pem</code></td>
+<td>TLS private key</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Why a bind-mounted nginx.conf?</p>
+<p>The <code>nginx.conf</code> is mounted from the host filesystem rather than baked into the Docker image.
+This means HTTPS works regardless of which image version is running — no need to rebuild
+or pull new images after enabling SSL.</p>
+</div>
+<h3 id="certificate-setup">Certificate Setup<a class="headerlink" href="#certificate-setup" title="Permanent link">&para;</a></h3>
+<p>Certificates must be placed in <code>/opt/webmacs/certs/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cert.pem</code></td>
+<td>TLS certificate (or full chain)</td>
+</tr>
+<tr>
+<td><code>key.pem</code></td>
+<td>Private key</td>
+</tr>
+</tbody>
+</table>
+<h4 id="option-1-self-signed-generated-automatically">Option 1: Self-Signed (Generated Automatically)<a class="headerlink" href="#option-1-self-signed-generated-automatically" title="Permanent link">&para;</a></h4>
+<p>The install scripts (<code>install.sh</code>, <code>install-revpi.sh</code>, <code>install-rpi.sh</code>) auto-generate a
+self-signed certificate if none is found. Valid for 10 years.</p>
+<div class="admonition warning">
+<p class="admonition-title">Browser Warning</p>
+<p>Self-signed certificates trigger a browser warning. This is expected —
+click "Advanced → Proceed" to continue. For trusted access, use your own certificate.</p>
+</div>
+<h4 id="option-2-bring-your-own-certificate">Option 2: Bring Your Own Certificate<a class="headerlink" href="#option-2-bring-your-own-certificate" title="Permanent link">&para;</a></h4>
+<p>Replace the self-signed certificate with your own:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Copy your certificate files</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>sudo<span class="w"> </span>cp<span class="w"> </span>your-cert.pem<span class="w"> </span>/opt/webmacs/certs/cert.pem
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>sudo<span class="w"> </span>cp<span class="w"> </span>your-key.pem<span class="w">  </span>/opt/webmacs/certs/key.pem
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">644</span><span class="w"> </span>/opt/webmacs/certs/cert.pem
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>/opt/webmacs/certs/key.pem
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Restart to pick up the new certificate</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>webmacs
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Certificate Formats</p>
+<p>The certificate file should be PEM-encoded. If your CA provides a chain,
+concatenate it: <code>cat your-cert.pem intermediate.pem &gt; /opt/webmacs/certs/cert.pem</code></p>
+</div>
+<h4 id="option-3-lets-encrypt-public-facing-servers">Option 3: Let's Encrypt (Public-Facing Servers)<a class="headerlink" href="#option-3-lets-encrypt-public-facing-servers" title="Permanent link">&para;</a></h4>
+<p>For internet-facing deployments, use Certbot to obtain a free trusted certificate:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>certbot
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sudo<span class="w"> </span>certbot<span class="w"> </span>certonly<span class="w"> </span>--standalone<span class="w"> </span>-d<span class="w"> </span>webmacs.example.com
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Copy to WebMACS certs directory</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>sudo<span class="w"> </span>cp<span class="w"> </span>/etc/letsencrypt/live/webmacs.example.com/fullchain.pem<span class="w"> </span>/opt/webmacs/certs/cert.pem
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>sudo<span class="w"> </span>cp<span class="w"> </span>/etc/letsencrypt/live/webmacs.example.com/privkey.pem<span class="w">   </span>/opt/webmacs/certs/key.pem
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># Set up auto-renewal cron</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0 3 * * * certbot renew --quiet --deploy-hook &#39;cd /opt/webmacs &amp;&amp; docker compose -f docker-compose.prod.yml restart frontend&#39;&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>crontab<span class="w"> </span>-
+</code></pre></div>
+<h3 id="cors-configuration">CORS Configuration<a class="headerlink" href="#cors-configuration" title="Permanent link">&para;</a></h3>
+<p>Update <code>CORS_ORIGINS</code> in your <code>.env</code> or <code>docker-compose.prod.yml</code> to use <code>https://</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>CORS_ORIGINS=[&quot;https://webmacs.yourcompany.com&quot;]
+</code></pre></div>
+<h3 id="upgrading-existing-installations">Upgrading Existing Installations<a class="headerlink" href="#upgrading-existing-installations" title="Permanent link">&para;</a></h3>
+<p>If you're upgrading an existing HTTP-only installation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/webmacs
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># 1. Download updated compose file and nginx config</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>https://raw.githubusercontent.com/stefanposs/webmacs/main/docker-compose.prod.yml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>-o<span class="w"> </span>docker-compose.prod.yml
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span>https://raw.githubusercontent.com/stefanposs/webmacs/main/docker/nginx.conf<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span>-o<span class="w"> </span>nginx.conf
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1"># 2. Create certs directory and generate self-signed cert</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/webmacs/certs
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>sudo<span class="w"> </span>openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span>-nodes<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span>-keyout<span class="w"> </span>/opt/webmacs/certs/key.pem<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span>-out<span class="w"> </span>/opt/webmacs/certs/cert.pem<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span>-days<span class="w"> </span><span class="m">3650</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span>-subj<span class="w"> </span><span class="s2">&quot;/CN=webmacs.local/O=WebMACS/OU=Self-Signed&quot;</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>/opt/webmacs/certs/key.pem
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="c1"># 3. Update CORS_ORIGINS from http:// to https:// in .env (if set)</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="c1"># 4. Restart</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>sudo<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>--env-file<span class="w"> </span>.env<span class="w"> </span>up<span class="w"> </span>-d
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">How it works</p>
+<p>The <code>nginx.conf</code> file is bind-mounted into the frontend container at runtime.
+This means SSL works regardless of which Docker image version you're running —
+no need to rebuild or pull new images.</p>
+</div>
 <hr />
 <h2 id="database-backups">Database Backups<a class="headerlink" href="#database-backups" title="Permanent link">&para;</a></h2>
 <h3 id="automated-dump">Automated Dump<a class="headerlink" href="#automated-dump" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>db<span class="w"> </span>pg_dump<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sql
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>db<span class="w"> </span>pg_dump<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sql
 </code></pre></div>
 <h3 id="restore">Restore<a class="headerlink" href="#restore" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cat<span class="w"> </span>backup_20250115.sql<span class="w"> </span><span class="p">|</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>cat<span class="w"> </span>backup_20250115.sql<span class="w"> </span><span class="p">|</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>webmacs<span class="w"> </span>webmacs
 </code></pre></div>
 <h3 id="scheduled-backups">Scheduled Backups<a class="headerlink" href="#scheduled-backups" title="Permanent link">&para;</a></h3>
 <p>Add a cron job:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>0 2 * * * cd /path/to/webmacs &amp;&amp; docker compose exec -T db pg_dump -U webmacs webmacs | gzip &gt; /backups/webmacs_$(date +\%Y\%m\%d).sql.gz
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>0 2 * * * cd /path/to/webmacs &amp;&amp; docker compose exec -T db pg_dump -U webmacs webmacs | gzip &gt; /backups/webmacs_$(date +\%Y\%m\%d).sql.gz
 </code></pre></div>
 <hr />
 <h2 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h2>
@@ -2493,7 +2763,7 @@
 </table>
 <h3 id="sentry-integration">Sentry Integration<a class="headerlink" href="#sentry-integration" title="Permanent link">&para;</a></h3>
 <p>Set <code>SENTRY_DSN</code> to enable error tracking:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>SENTRY_DSN=https://abc123@sentry.io/12345
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>SENTRY_DSN=https://abc123@sentry.io/12345
 </code></pre></div>
 <h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
 <p>The backend uses <strong>structlog</strong> for structured JSON logging. In production, pipe logs to your log aggregator (ELK, Loki, CloudWatch).</p>
