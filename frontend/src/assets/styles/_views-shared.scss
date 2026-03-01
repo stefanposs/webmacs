@@ -56,7 +56,7 @@
     transition: background var(--wm-transition);
 
     &:last-child { border-bottom: none; }
-    &:hover { background: #f8fafc; }
+    &:hover { background: #f8fafc; box-shadow: inset 3px 0 0 var(--wm-primary); }
   }
 }
 
@@ -200,19 +200,100 @@
   font-size: 0.95rem;
 }
 
+/* Skeleton shimmer loader */
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--wm-radius);
+}
+
+.skeleton-card {
+  @extend .skeleton;
+  height: 140px;
+  border-radius: var(--wm-radius-lg);
+}
+
+.skeleton-row {
+  @extend .skeleton;
+  height: 44px;
+  margin-bottom: 2px;
+}
+
+.skeleton-stat {
+  @extend .skeleton;
+  height: 72px;
+  border-radius: var(--wm-radius-lg);
+}
+
+.skeleton-text {
+  @extend .skeleton;
+  height: 14px;
+  width: 70%;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-text--short {
+  @extend .skeleton-text;
+  width: 40%;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* Empty state */
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
-  color: var(--wm-text-muted);
+  color: var(--wm-text-secondary);
   padding: 3rem 2rem;
   font-size: 0.95rem;
+  background: var(--wm-surface);
+  border-radius: var(--wm-radius-lg);
+  border: 1px dashed var(--wm-border);
 
   i {
     display: block;
-    font-size: 2.5rem;
-    margin-bottom: 0.75rem;
-    opacity: 0.5;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--wm-text-muted);
+    opacity: 0.7;
+  }
+
+  .empty-state__title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--wm-text);
+    margin-bottom: 0.35rem;
+  }
+
+  .empty-state__desc {
+    color: var(--wm-text-muted);
+    font-size: 0.88rem;
+    max-width: 320px;
+    margin: 0 auto 1.25rem;
+    line-height: 1.6;
+  }
+
+  .empty-state__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    background: var(--wm-primary);
+    color: #fff;
+    border-radius: var(--wm-radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--wm-transition);
+
+    &:hover {
+      background: var(--wm-primary-dark);
+      transform: translateY(-1px);
+    }
   }
 }
 

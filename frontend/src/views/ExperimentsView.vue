@@ -74,11 +74,13 @@
 import { onMounted, ref, reactive } from 'vue'
 import { useExperimentStore } from '@/stores/experiments'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useFormatters } from '@/composables/useFormatters'
 import type { Experiment } from '@/types'
 
 const experimentStore = useExperimentStore()
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const { formatDate } = useFormatters()
 const showCreateDialog = ref(false)
 const form = reactive({ name: '' })
@@ -124,13 +126,19 @@ async function handleStop(exp: Experiment) {
 }
 
 async function handleDelete(exp: Experiment) {
-  if (confirm(`Delete experiment "${exp.name}"?`)) {
-    try {
-      await experimentStore.deleteExperiment(exp.public_id)
-      success('Experiment deleted', `"${exp.name}" was removed.`)
-    } catch (err: unknown) {
-      error('Failed to delete experiment', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Delete experiment',
+    message: `Delete experiment "${exp.name}"? This action cannot be undone.`,
+    confirmLabel: 'Delete',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  try {
+    await experimentStore.deleteExperiment(exp.public_id)
+    success('Experiment deleted', `"${exp.name}" was removed.`)
+  } catch (err: unknown) {
+    error('Failed to delete experiment', (err as Error).message)
   }
 }
 

@@ -160,10 +160,12 @@
 import { onMounted, ref, reactive, computed } from 'vue'
 import { usePluginStore } from '@/stores/plugins'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import type { PluginMeta, PluginInstance, PluginStatus } from '@/types'
 
 const pluginStore = usePluginStore()
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const showInstallDialog = ref(false)
 const availablePlugins = computed(() => pluginStore.availablePlugins)
 
@@ -208,13 +210,19 @@ async function handleInstall() {
 }
 
 async function confirmDelete(instance: PluginInstance) {
-  if (confirm(`Remove plugin "${instance.instance_name}" and all its channel mappings?`)) {
-    try {
-      await pluginStore.deleteInstance(instance.public_id)
-      success('Plugin removed', `"${instance.instance_name}" was deleted.`)
-    } catch (err: unknown) {
-      error('Failed to remove plugin', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Remove plugin',
+    message: `Remove plugin "${instance.instance_name}" and all its channel mappings? This action cannot be undone.`,
+    confirmLabel: 'Remove',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  try {
+    await pluginStore.deleteInstance(instance.public_id)
+    success('Plugin removed', `"${instance.instance_name}" was deleted.`)
+  } catch (err: unknown) {
+    error('Failed to remove plugin', (err as Error).message)
   }
 }
 
@@ -237,11 +245,14 @@ onMounted(async () => {
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-lg);
   overflow: hidden;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: all var(--wm-transition);
+  border-top: 3px solid transparent;
 
   &:hover {
-    border-color: var(--wm-primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--wm-border);
+    border-top-color: var(--wm-primary);
+    box-shadow: var(--wm-shadow-md);
+    transform: translateY(-2px);
   }
 
   &--disabled {

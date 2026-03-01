@@ -9,7 +9,8 @@ RUN npm run build
 
 # Production - serve with nginx
 FROM nginx:alpine AS production
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+ARG NGINX_CONF=docker/nginx.dev.conf
+COPY ${NGINX_CONF} /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80 443
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,5 +1,6 @@
 <template>
   <AppToast />
+  <ConfirmDialog />
   <div class="layout-wrapper">
     <AppSidebar v-if="authStore.isAuthenticated && uiStore.sidebarOpen" />
     <div :class="['layout-main', { 'layout-main--full': !authStore.isAuthenticated || !uiStore.sidebarOpen }]">
@@ -21,6 +22,7 @@ import { useUiStore } from '@/stores/ui'
 import AppSidebar from '@/components/AppSidebar.vue'
 import AppTopbar from '@/components/AppTopbar.vue'
 import AppToast from '@/components/AppToast.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const authStore = useAuthStore()
 const uiStore = useUiStore()

@@ -284,6 +284,7 @@ import { computed, onMounted, ref, reactive } from 'vue'
 import { useOtaStore } from '@/stores/ota'
 import { useSystemStore } from '@/stores/system'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useFormatters } from '@/composables/useFormatters'
 import api from '@/services/api'
 import type { FirmwareUpdate, UpdateStatus, ServiceStatus } from '@/types'
@@ -292,6 +293,7 @@ import { useAuthStore } from '@/stores/auth'
 const otaStore = useOtaStore()
 const systemStore = useSystemStore()
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const { formatDate } = useFormatters()
 const authStore = useAuthStore()
 
@@ -471,35 +473,53 @@ async function handleCreate() {
 }
 
 async function handleApply(update: FirmwareUpdate) {
-  if (confirm(`Apply update to version ${update.version}? This will start the update process.`)) {
-    try {
-      await otaStore.applyUpdate(update.public_id)
-      success('Update started', `Applying version ${update.version}.`)
-    } catch (err: unknown) {
-      error('Failed to apply update', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Apply update',
+    message: `Apply update to version ${update.version}? This will start the update process.`,
+    confirmLabel: 'Apply',
+    variant: 'warning',
+    icon: 'pi pi-upload',
+  })
+  if (!confirmed) return
+  try {
+    await otaStore.applyUpdate(update.public_id)
+    success('Update started', `Applying version ${update.version}.`)
+  } catch (err: unknown) {
+    error('Failed to apply update', (err as Error).message)
   }
 }
 
 async function handleRollback(update: FirmwareUpdate) {
-  if (confirm(`Rollback version ${update.version}? This will revert the system to the previous version.`)) {
-    try {
-      await otaStore.rollbackUpdate(update.public_id)
-      success('Rollback started', `Rolling back version ${update.version}.`)
-    } catch (err: unknown) {
-      error('Rollback failed', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Rollback version',
+    message: `Rollback version ${update.version}? This will revert the system to the previous version.`,
+    confirmLabel: 'Rollback',
+    variant: 'warning',
+    icon: 'pi pi-undo',
+  })
+  if (!confirmed) return
+  try {
+    await otaStore.rollbackUpdate(update.public_id)
+    success('Rollback started', `Rolling back version ${update.version}.`)
+  } catch (err: unknown) {
+    error('Rollback failed', (err as Error).message)
   }
 }
 
 async function confirmDelete(update: FirmwareUpdate) {
-  if (confirm(`Delete update "${update.version}"?`)) {
-    try {
-      await otaStore.deleteUpdate(update.public_id)
-      success('Update deleted', `Version ${update.version} was removed.`)
-    } catch (err: unknown) {
-      error('Failed to delete update', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Delete update',
+    message: `Delete update "${update.version}"? This action cannot be undone.`,
+    confirmLabel: 'Delete',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  try {
+    await otaStore.deleteUpdate(update.public_id)
+    success('Update deleted', `Version ${update.version} was removed.`)
+  } catch (err: unknown) {
+    error('Failed to delete update', (err as Error).message)
   }
 }
 

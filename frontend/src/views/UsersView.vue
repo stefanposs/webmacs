@@ -84,10 +84,12 @@
 import { onMounted, ref, reactive } from 'vue'
 import api from '@/services/api'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useFormatters } from '@/composables/useFormatters'
 import type { User, PaginatedResponse, UserRole } from '@/types'
 
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const { formatDate } = useFormatters()
 const users = ref<User[]>([])
 const loading = ref(false)
@@ -159,14 +161,20 @@ async function handleCreate() {
 }
 
 async function handleDelete(user: User) {
-  if (confirm(`Delete user "${user.username}"?`)) {
-    try {
-      await api.delete(`/users/${user.public_id}`)
-      users.value = users.value.filter((u) => u.public_id !== user.public_id)
-      success('User deleted', `"${user.username}" was removed.`)
-    } catch (err: unknown) {
-      error('Failed to delete user', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Delete user',
+    message: `Delete user "${user.username}"? This action cannot be undone.`,
+    confirmLabel: 'Delete',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  try {
+    await api.delete(`/users/${user.public_id}`)
+    users.value = users.value.filter((u) => u.public_id !== user.public_id)
+    success('User deleted', `"${user.username}" was removed.`)
+  } catch (err: unknown) {
+    error('Failed to delete user', (err as Error).message)
   }
 }
 

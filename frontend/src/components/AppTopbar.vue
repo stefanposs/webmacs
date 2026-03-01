@@ -50,8 +50,10 @@ onUnmounted(() => { if (clockTimer) clearInterval(clockTimer) })
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 2rem;
-  background: var(--wm-surface);
-  border-bottom: 1px solid var(--wm-border);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--wm-shadow-md);
   position: sticky;
   top: 0;
   z-index: 50;

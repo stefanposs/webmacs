@@ -126,11 +126,13 @@
 import { onMounted, ref, reactive } from 'vue'
 import { useEventStore } from '@/stores/events'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { EventType } from '@/types'
 import type { Event } from '@/types'
 
 const eventStore = useEventStore()
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const editingEvent = ref<Event | null>(null)
@@ -188,13 +190,19 @@ async function handleEdit() {
 }
 
 async function confirmDelete(event: Event) {
-  if (confirm(`Delete event "${event.name}"?`)) {
-    try {
-      await eventStore.deleteEvent(event.public_id)
-      success('Event deleted', `"${event.name}" was removed.`)
-    } catch (err: unknown) {
-      error('Failed to delete event', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Delete event',
+    message: `Delete event "${event.name}"? This action cannot be undone.`,
+    confirmLabel: 'Delete',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  try {
+    await eventStore.deleteEvent(event.public_id)
+    success('Event deleted', `"${event.name}" was removed.`)
+  } catch (err: unknown) {
+    error('Failed to delete event', (err as Error).message)
   }
 }
 
