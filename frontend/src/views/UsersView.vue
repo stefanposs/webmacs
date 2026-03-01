@@ -9,7 +9,8 @@
 
     <div v-if="loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading users...</div>
 
-    <table v-else-if="users.length" class="data-table">
+    <div v-else-if="users.length" class="table-responsive">
+      <table class="data-table">
       <thead>
         <tr>
           <th>Username</th>
@@ -33,6 +34,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-users" />

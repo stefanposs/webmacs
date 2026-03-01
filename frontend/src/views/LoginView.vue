@@ -124,6 +124,7 @@ async function handleLogin() {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
   width: 100%;
   max-width: 400px;
+  margin: 0 1rem;
   text-align: center;
 
   h1 {
@@ -132,6 +133,14 @@ async function handleLogin() {
     color: var(--wm-text);
     margin-bottom: 0.2rem;
     letter-spacing: -0.03em;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.5rem 1.25rem 1.5rem;
+    margin: 0 0.5rem;
+    border-radius: var(--wm-radius-lg, 12px);
   }
 }
 

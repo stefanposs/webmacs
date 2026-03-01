@@ -9,7 +9,8 @@
 
     <div v-if="experimentStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading experiments...</div>
 
-    <table v-else-if="experimentStore.experiments.length" class="data-table">
+    <div v-else-if="experimentStore.experiments.length" class="table-responsive">
+    <table class="data-table">
       <thead>
         <tr>
           <th>Name</th>
@@ -43,6 +44,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-play-circle" />

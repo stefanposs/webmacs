@@ -9,7 +9,8 @@
 
     <div v-if="webhookStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading webhooks...</div>
 
-    <table v-else-if="webhookStore.webhooks.length" class="data-table">
+    <div v-else-if="webhookStore.webhooks.length" class="table-responsive">
+      <table class="data-table">
       <thead>
         <tr>
           <th>URL</th>
@@ -47,6 +48,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-link" />

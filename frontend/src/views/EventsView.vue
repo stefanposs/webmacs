@@ -9,8 +9,9 @@
 
     <div v-if="eventStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading events...</div>
 
-    <table v-else-if="eventStore.events.length" class="data-table">
-      <thead>
+    <div v-else-if="eventStore.events.length" class="table-responsive">
+      <table class="data-table">
+        <thead>
         <tr>
           <th>Name</th>
           <th>Type</th>
@@ -38,6 +39,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-bolt" />

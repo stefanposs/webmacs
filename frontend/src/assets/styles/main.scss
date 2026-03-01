@@ -44,6 +44,11 @@
 
   /* Sidebar */
   --wm-sidebar-width: 260px;
+
+  /* Breakpoints (documentation only — CSS custom properties cannot be used in @media queries, use literal values) */
+  --wm-bp-mobile: 480px;
+  --wm-bp-tablet: 768px;
+  --wm-bp-desktop: 900px;
 }
 
 /* Reset & base */
@@ -86,4 +91,33 @@ a {
 .mb-2 { margin-bottom: 0.5rem; }
 .mb-4 { margin-bottom: 1rem; }
 
-/* Utility */
+/* ================================================================
+   Responsive — Mobile-first overrides
+   ================================================================ */
+
+/* Hide elements on mobile */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+}
+
+/* Table responsive wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--wm-radius-lg);
+}
+
+/* Touch-friendly tap targets (minimum 44px) */
+@media (max-width: 768px) {
+  /* Improve tap target for icon buttons */
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Utility ends */

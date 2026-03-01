@@ -588,11 +588,13 @@ onUnmounted(() => {
   border: 1px solid var(--wm-border, #334155);
   border-radius: 12px;
   padding: 1.5rem;
-  min-width: 380px;
+  width: 100%;
+  max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
+  margin: 0 0.75rem;
 }
-.modal--wide { min-width: 520px; max-width: 600px; }
+.modal--wide { max-width: 600px; }
 .modal h2 {
   color: var(--wm-text, #e2e8f0);
   margin-bottom: 1.25rem;

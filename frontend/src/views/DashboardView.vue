@@ -336,6 +336,7 @@ onMounted(async () => {
   border: 1px solid #fbbf24;
   border-radius: var(--wm-radius-lg, 12px);
   color: #92400e;
+  flex-wrap: wrap;
 }
 
 .plugin-hint__icon {
@@ -415,6 +416,13 @@ onMounted(async () => {
   gap: 1rem;
 }
 
+@media (max-width: 480px) {
+  .stats-bar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+}
+
 .stat-card {
   display: flex;
   align-items: center;
@@ -423,6 +431,13 @@ onMounted(async () => {
   padding: 1rem 1.25rem;
   border-radius: var(--wm-radius-lg);
   box-shadow: var(--wm-shadow-sm);
+}
+
+@media (max-width: 480px) {
+  .stat-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
 }
 
 .stat-icon {
@@ -550,7 +565,7 @@ onMounted(async () => {
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
   gap: 1rem;
 }
 
@@ -582,6 +597,12 @@ onMounted(async () => {
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   margin-bottom: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .sensor-value {
+    font-size: 1.75rem;
+  }
 }
 
 .sensor-range {
@@ -680,6 +701,13 @@ onMounted(async () => {
   padding: 1.5rem;
   box-shadow: var(--wm-shadow);
   height: 380px;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    height: 240px;
+    padding: 1rem;
+  }
 }
 
 /* Empty state */

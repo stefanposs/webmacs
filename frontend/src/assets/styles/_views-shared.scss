@@ -7,6 +7,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 
   h2 {
@@ -14,6 +16,14 @@
     font-weight: 700;
     color: var(--wm-text);
     letter-spacing: -0.02em;
+  }
+}
+
+@media (max-width: 768px) {
+  .view-header {
+    h2 {
+      font-size: 1.25rem;
+    }
   }
 }
 
@@ -55,6 +65,25 @@
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.8rem;
   color: var(--wm-text-secondary);
+}
+
+/* Mobile table adjustments */
+@media (max-width: 768px) {
+  .data-table {
+    th,
+    td {
+      padding: 0.55rem 0.6rem;
+      font-size: 0.82rem;
+    }
+
+    th {
+      font-size: 0.7rem;
+    }
+  }
+
+  .mono {
+    font-size: 0.72rem;
+  }
 }
 
 /* Badges */
@@ -150,10 +179,15 @@
   border: none;
   color: var(--wm-text-muted);
   cursor: pointer;
-  padding: 0.35rem;
+  padding: 0.5rem;
   border-radius: var(--wm-radius);
   font-size: 1rem;
   transition: all var(--wm-transition);
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover { color: var(--wm-danger); background: var(--wm-danger-bg); }
 }
@@ -208,12 +242,39 @@
   max-width: 480px;
   box-shadow: var(--wm-shadow-lg);
   animation: slideUp 0.2s ease;
+  max-height: 90vh;
+  overflow-y: auto;
 
   h3 {
     margin-bottom: 1.5rem;
     font-size: 1.2rem;
     font-weight: 700;
   }
+}
+
+@media (max-width: 768px) {
+  .dialog-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dialog {
+    padding: 1.25rem;
+    border-radius: var(--wm-radius-lg) var(--wm-radius-lg) 0 0;
+    max-width: 100%;
+    max-height: 85vh;
+    animation: slideUpMobile 0.25s ease;
+
+    h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+  }
+}
+
+@keyframes slideUpMobile {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp {
@@ -261,6 +322,19 @@
   margin-top: 1.75rem;
 }
 
+@media (max-width: 768px) {
+  .dialog-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+
+    button {
+      width: 100%;
+      justify-content: center;
+      min-height: 44px;
+    }
+  }
+}
+
 /* Pagination */
 .pagination {
   display: flex;
@@ -271,4 +345,15 @@
   padding: 0.75rem;
   color: var(--wm-text-secondary);
   font-size: 0.875rem;
+
+  .btn-secondary {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
 }

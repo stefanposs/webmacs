@@ -55,6 +55,13 @@ onUnmounted(() => { if (clockTimer) clearInterval(clockTimer) })
   position: sticky;
   top: 0;
   z-index: 50;
+  gap: 0.5rem;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 .topbar-title {
@@ -62,6 +69,9 @@ onUnmounted(() => { if (clockTimer) clearInterval(clockTimer) })
   font-weight: 700;
   color: var(--wm-text);
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-hamburger {
@@ -73,10 +83,30 @@ onUnmounted(() => { if (clockTimer) clearInterval(clockTimer) })
   border: none;
   color: var(--wm-text);
   font-size: 1.1rem;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  border-radius: var(--wm-radius);
+  transition: background 0.15s ease;
+
+  &:hover { background: var(--wm-border-light); }
 }
 
 @media (min-width: 900px) {
   .topbar-hamburger { display: none; }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .topbar-title {
+    font-size: 1rem;
+  }
+
+  .topbar-clock { display: none; }
+  .topbar-env { font-size: 0.6rem; }
 }
 
 .topbar-right {
