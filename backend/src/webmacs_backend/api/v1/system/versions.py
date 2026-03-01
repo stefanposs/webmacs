@@ -2,17 +2,27 @@
 
 Endpoints:
     GET  /versions         — installed + available version per service (Docker-detected)
-    POST /trigger          — pull latest images + restart (admin-only, background)
-    GET  /update-progress  — poll the current background update status
+    POST /trigger          — write a trigger file so the updater container performs pull+restart
+    GET  /update-progress  — poll the current update status from the shared status file
+
+Update IPC:
+    The backend container has the Docker socket mounted read-only (sufficient for version
+    detection but NOT for pull/restart). The ``updater`` container has read-write socket
+    access. To trigger an update the backend writes a JSON trigger file to the shared
+    ``updates`` Docker volume. The updater's polling loop detects it, performs
+    ``docker pull + docker compose up``, and writes progress to a sibling status file.
+    The backend's ``GET /update-progress`` endpoint reads that status file.
 """
 
 from __future__ import annotations
 
-import asyncio
+import json
+import os
 from datetime import UTC, datetime
+from pathlib import Path
 
 import structlog
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 
 from webmacs_backend.dependencies import AdminUser, CurrentUser
 from webmacs_backend.schemas import StatusResponse
@@ -23,21 +33,16 @@ from webmacs_backend.schemas.system import (
     UpdateTriggerRequest,
     VersionsResponse,
 )
-from webmacs_backend.services.updater import pull_images, restart_services
 from webmacs_backend.services.version_detector import get_all_service_versions
 
 logger = structlog.get_logger()
 
 router = APIRouter()
 
-# Prevent concurrent trigger calls from racing
-_update_lock = asyncio.Lock()
-
-# Global in-process update progress (reset on each new trigger)
-_update_progress: UpdateProgressResponse = UpdateProgressResponse(
-    overall_status="idle",
-    services={},
-)
+# Shared volume paths — must match WEBMACS_UPDATE_DIR env var in updater service
+_UPDATE_DIR = Path(os.environ.get("WEBMACS_UPDATE_DIR", "/updates"))
+_TRIGGER_FILE = _UPDATE_DIR / "trigger.json"
+_STATUS_FILE = _UPDATE_DIR / "update-status.json"
 
 
 def _extract_tag_from_image(image: str | None) -> str | None:
@@ -68,61 +73,40 @@ async def _get_github_latest() -> str | None:
         return None
 
 
-async def _perform_pull_and_restart(request: UpdateTriggerRequest) -> None:
-    global _update_progress  # noqa: PLW0603
+def _read_current_status() -> UpdateProgressResponse:
+    """Read the current update status from the shared status file.
 
-    def _set(overall: str, step: str, svc_statuses: dict[str, str], err: str | None = None) -> None:
-        global _update_progress  # noqa: PLW0603
-        _update_progress = UpdateProgressResponse(
-            overall_status=overall,  # type: ignore[arg-type]
-            services=svc_statuses,  # type: ignore[arg-type]
-            current_step=step,
-            started_at=_update_progress.started_at,
-            error=err,
-        )
-
-    started_at = datetime.now(UTC).isoformat()
-    _update_progress = UpdateProgressResponse(
-        overall_status="pulling",
-        services={
-            "backend": "updating",
-            "frontend": "updating",
-            "controller": "updating",
-        },
-        current_step="Pulling images…",
-        started_at=started_at,
-    )
-
-    loop = asyncio.get_running_loop()
-    images = [x for x in (request.backend_image, request.frontend_image, request.controller_image) if x]
-    if images:
-        ok = await loop.run_in_executor(None, pull_images, images)
-        if not ok:
-            logger.error("trigger_pull_failed", images=images)
-            svc_err = dict.fromkeys(("backend", "frontend", "controller"), "error")
-            _set("failed", "Image pull failed", svc_err, "Image pull failed")  # type: ignore[arg-type]
-            return
-
-    _set("restarting", "Restarting services…", dict.fromkeys(("backend", "frontend", "controller"), "updating"))  # type: ignore[arg-type]
-
-    version = request.version
-    if not version:
-        version = _extract_tag_from_image(request.backend_image) or "latest"
-
+    Falls back to an idle response if the file does not exist or cannot be parsed.
+    """
     try:
-        ok = await loop.run_in_executor(None, restart_services, version)
-        if ok:
-            logger.info("trigger_restart_success", version=version)
-            svc_ok = dict.fromkeys(("backend", "frontend", "controller"), "running")
-            _set("completed", "Update completed", svc_ok)  # type: ignore[arg-type]
-        else:
-            logger.error("trigger_restart_failed", version=version)
-            svc_err = dict.fromkeys(("backend", "frontend", "controller"), "error")
-            _set("failed", "Restart failed", svc_err, "Service restart failed")  # type: ignore[arg-type]
-    except Exception as exc:  # pragma: no cover
-        logger.error("trigger_restart_exception", error=str(exc))
-        svc_err = dict.fromkeys(("backend", "frontend", "controller"), "error")
-        _set("failed", str(exc), svc_err, str(exc))  # type: ignore[arg-type]
+        if _STATUS_FILE.exists():
+            data = json.loads(_STATUS_FILE.read_text())
+            return UpdateProgressResponse(**data)
+    except Exception as exc:  # pragma: no cover — defensive fallback
+        logger.debug("status_file_read_failed", error=str(exc))
+    return UpdateProgressResponse(overall_status="idle", services={})
+
+
+def _write_trigger(request: UpdateTriggerRequest) -> None:
+    """Write a trigger file to the shared updates volume.
+
+    The updater container detects the file and executes the pull+restart.
+    Raises RuntimeError when a trigger is already pending.
+    """
+    if _TRIGGER_FILE.exists():
+        raise RuntimeError("An update trigger is already pending")
+
+    images = [x for x in (request.backend_image, request.frontend_image, request.controller_image) if x]
+    version = request.version or _extract_tag_from_image(request.backend_image) or "latest"
+
+    _UPDATE_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "version": version,
+        "images": images,
+        "requested_at": datetime.now(UTC).isoformat(),
+    }
+    _TRIGGER_FILE.write_text(json.dumps(payload))
+    logger.info("trigger_file_written", version=version, images=images)
 
 
 @router.get("/versions", response_model=VersionsResponse)
@@ -137,12 +121,13 @@ async def get_versions(current_user: CurrentUser) -> VersionsResponse:
     # Fetch GitHub latest version (best-effort, non-blocking)
     github_version = await _get_github_latest()
 
+    current_status = _read_current_status()
+    is_updating = current_status.overall_status in ("pulling", "restarting")
+
     services = []
     for name in ("backend", "frontend", "controller"):
         info = detected[name]
-        # While an update is running, mark each service as "updating"
-        updating = _update_progress.overall_status in ("pulling", "restarting")
-        svc_status: ServiceStatus = "updating" if updating else info.status
+        svc_status: ServiceStatus = "updating" if is_updating else info.status
 
         services.append(
             ServiceVersion(
@@ -159,30 +144,30 @@ async def get_versions(current_user: CurrentUser) -> VersionsResponse:
 
 @router.get("/update-progress", response_model=UpdateProgressResponse)
 async def get_update_progress(current_user: CurrentUser) -> UpdateProgressResponse:
-    """Poll the current background update status (any authenticated user)."""
-    return _update_progress
+    """Poll the current update status from the shared status file (any authenticated user)."""
+    return _read_current_status()
 
 
 @router.post("/trigger", response_model=StatusResponse)
 async def trigger_update(
     request: UpdateTriggerRequest,
-    background_tasks: BackgroundTasks,
     admin_user: AdminUser,
 ) -> StatusResponse:
-    """Trigger a direct Docker pull + restart in background (admin only).
+    """Delegate a Docker pull + restart to the updater container (admin only).
 
-    The request accepts image references for the three services and/or a ``version``.
-    Returns immediately while the actual pull+restart runs asynchronously.
+    Writes a JSON trigger file to the shared ``updates`` volume. The updater container
+    detects it within its next poll cycle (≤30 s) and performs the actual work,
+    writing live progress to a sibling status file. Returns immediately.
     """
     if not (request.backend_image or request.frontend_image or request.controller_image or request.version):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No images or version specified")
 
-    if _update_lock.locked():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="An update is already in progress")
+    try:
+        _write_trigger(request)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
-    async def _guarded_update() -> None:
-        async with _update_lock:
-            await _perform_pull_and_restart(request)
-
-    background_tasks.add_task(_guarded_update)
-    return StatusResponse(status="accepted", message="Update trigger accepted and running in background.")
+    return StatusResponse(
+        status="accepted",
+        message="Update trigger written; updater will process within the next poll cycle.",
+    )

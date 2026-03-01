@@ -45,6 +45,10 @@ POLL_INTERVAL = int(os.environ.get("WEBMACS_UPDATER_POLL", "30"))
 # When false (default) abort update if DB backup fails. Set to '1'/'true'/'yes' to allow proceeding.
 ALLOW_NO_BACKUP = os.environ.get("WEBMACS_UPDATER_ALLOW_NO_BACKUP", "0").strip().lower() in ("1", "true", "yes")
 
+# Shared files used for GUI-initiated trigger IPC (written by backend, consumed here)
+TRIGGER_FILE = UPDATE_DIR / "trigger.json"
+STATUS_FILE = UPDATE_DIR / "update-status.json"
+
 
 def sha256_file(path: Path) -> str:
     """Compute SHA-256 digest of a file."""
@@ -314,6 +318,72 @@ def apply_bundle(bundle_path: Path) -> bool:  # noqa: PLR0911
         return True
 
 
+def _write_update_status(
+    overall_status: str,
+    services: dict[str, str],
+    current_step: str,
+    started_at: str | None = None,
+    error: str | None = None,
+) -> None:
+    """Persist current update progress to the shared status file (read by the backend API)."""
+    payload = {
+        "overall_status": overall_status,
+        "services": services,
+        "current_step": current_step,
+        "started_at": started_at or datetime.now(UTC).isoformat(),
+        "error": error,
+    }
+    try:
+        STATUS_FILE.write_text(json.dumps(payload))
+    except OSError as exc:
+        logger.warning("update_status_write_failed", error=str(exc))
+
+
+def process_trigger(trigger: dict) -> None:  # type: ignore[type-arg]
+    """Pull images and restart services from a GUI-initiated trigger file.
+
+    Writes progress to STATUS_FILE so the backend API can poll it.
+    Always removes TRIGGER_FILE on completion to prevent re-processing.
+    """
+    version: str = trigger.get("version") or "latest"
+    images: list[str] = [img for img in trigger.get("images", []) if img]
+    started_at: str = trigger.get("requested_at") or datetime.now(UTC).isoformat()
+
+    _svc_updating = {"backend": "updating", "frontend": "updating", "controller": "updating"}
+    _svc_error = {"backend": "error", "frontend": "error", "controller": "error"}
+    _svc_running = {"backend": "running", "frontend": "running", "controller": "running"}
+
+    try:
+        if images:
+            _write_update_status("pulling", _svc_updating, "Pulling images\u2026", started_at)
+            if not pull_images(images):
+                _write_update_status("failed", _svc_error, "Image pull failed", started_at, "Image pull failed")
+                return
+
+        _write_update_status("restarting", _svc_updating, "Restarting services\u2026", started_at)
+        ok = restart_services(version)
+        if ok:
+            logger.info("trigger_update_success", version=version)
+            _write_update_status("completed", _svc_running, "Update completed", started_at)
+        else:
+            _write_update_status("failed", _svc_error, "Restart failed", started_at, "Service restart failed")
+    finally:
+        TRIGGER_FILE.unlink(missing_ok=True)
+        logger.info("trigger_file_consumed", version=version)
+
+
+def scan_for_trigger() -> dict | None:  # type: ignore[type-arg]
+    """Return the pending trigger payload, or None if there is none."""
+    if not TRIGGER_FILE.exists():
+        return None
+    try:
+        return json.loads(TRIGGER_FILE.read_text())
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("trigger_file_invalid", error=str(exc))
+        TRIGGER_FILE.unlink(missing_ok=True)
+        return None
+
+
 def scan_for_bundles() -> list[Path]:
     """Find .tar.gz bundles in the update directory."""
     if not UPDATE_DIR.exists():
@@ -322,24 +392,31 @@ def scan_for_bundles() -> list[Path]:
 
 
 def run_updater_loop() -> None:
-    """Main loop: poll for update bundles and apply them."""
+    """Main loop: poll for GUI trigger files and update bundles and apply them."""
     import time
 
     logger.info("updater_started", update_dir=str(UPDATE_DIR), poll_interval=POLL_INTERVAL)
     UPDATE_DIR.mkdir(parents=True, exist_ok=True)
 
     while True:
-        bundles = scan_for_bundles()
-        if bundles:
-            # Apply oldest bundle first
-            bundle = bundles[0]
-            logger.info("bundle_detected", path=str(bundle))
-            success = apply_bundle(bundle)
-            if not success:
-                # Move failed bundle to avoid retry loop
-                FAILED_DIR.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(bundle), str(FAILED_DIR / bundle.name))
-                logger.error("bundle_moved_to_failed", path=str(bundle))
+        # Priority 1: GUI-initiated pull+restart trigger (written by backend API)
+        trigger = scan_for_trigger()
+        if trigger:
+            logger.info("trigger_detected", version=trigger.get("version"))
+            process_trigger(trigger)
+        else:
+            # Priority 2: Uploaded update bundles
+            bundles = scan_for_bundles()
+            if bundles:
+                # Apply oldest bundle first
+                bundle = bundles[0]
+                logger.info("bundle_detected", path=str(bundle))
+                success = apply_bundle(bundle)
+                if not success:
+                    # Move failed bundle to avoid retry loop
+                    FAILED_DIR.mkdir(parents=True, exist_ok=True)
+                    shutil.move(str(bundle), str(FAILED_DIR / bundle.name))
+                    logger.error("bundle_moved_to_failed", path=str(bundle))
         time.sleep(POLL_INTERVAL)
 
 
