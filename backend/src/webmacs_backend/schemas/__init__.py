@@ -71,6 +71,7 @@ from webmacs_backend.schemas.rules import (
 )
 from webmacs_backend.schemas.system import (
     ServiceVersion,
+    UpdateProgressResponse,
     UpdateTriggerRequest,
     VersionsResponse,
 )
@@ -149,6 +150,7 @@ __all__ = [
     "StatusResponse",
     "TokenData",
     "UpdateCheckResponse",
+    "UpdateProgressResponse",
     "UpdateTriggerRequest",
     # users
     "UserCreate",

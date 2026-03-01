@@ -138,7 +138,7 @@ async def test_create_firmware_update_duplicate_version(
     """POST /api/v1/ota rejects duplicate version (409)."""
     response = await client.post(
         "/api/v1/ota",
-        json={"version": "2.1.0"},
+        json={"version": "3.0.0"},
         headers=auth_headers,
     )
     assert response.status_code == 409
@@ -167,7 +167,7 @@ async def test_list_firmware_updates(
     assert response.status_code == 200
     data = response.json()
     assert data["total"] >= 1
-    assert data["data"][0]["version"] == "2.1.0"
+    assert data["data"][0]["version"] == "3.0.0"
     assert data["data"][0]["status"] == UpdateStatus.pending
 
 
@@ -181,7 +181,7 @@ async def test_get_firmware_update(
     response = await client.get("/api/v1/ota/fw-update-001", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
-    assert data["version"] == "2.1.0"
+    assert data["version"] == "3.0.0"
     assert data["changelog"] == "Bug fixes and improvements"
 
 
@@ -209,8 +209,8 @@ async def test_check_for_updates_with_pending(
     response = await client.get("/api/v1/ota/check", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
-    assert data["current_version"] == "2.0.0"
-    assert data["latest_version"] == "2.1.0"
+    assert data["current_version"] == "2.4.2"
+    assert data["latest_version"] == "3.0.0"
     assert data["update_available"] is True
 
 

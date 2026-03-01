@@ -38,6 +38,8 @@ services:
       INITIAL_ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
     volumes:
       - plugins:/plugins
+      - updates:/updates              # write trigger.json / read update-status.json
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # for version detection
     depends_on:
       db:
         condition: service_healthy
