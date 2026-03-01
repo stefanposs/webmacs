@@ -304,3 +304,28 @@ export interface ApiTokenCreatePayload {
   name: string
   expires_at?: string | null
 }
+
+// System version & update types
+export type ServiceStatus = 'running' | 'stopped' | 'error' | 'updating' | 'unknown'
+
+export interface ServiceVersion {
+  name: string
+  installed: string | null
+  available: string | null
+  image: string | null
+  status: ServiceStatus
+}
+
+export interface VersionsResponse {
+  services: ServiceVersion[]
+}
+
+export type UpdateOverallStatus = 'idle' | 'pulling' | 'restarting' | 'completed' | 'failed'
+
+export interface UpdateProgress {
+  overall_status: UpdateOverallStatus
+  services: Record<string, ServiceStatus>
+  current_step: string | null
+  started_at: string | null
+  error: string | null
+}

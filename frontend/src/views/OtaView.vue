@@ -19,43 +19,108 @@
       />
     </div>
 
-    <!-- System Version Card -->
-    <div class="version-card">
-      <div class="version-card__info">
-        <i class="pi pi-server" />
-        <div>
-          <div class="version-card__label">System Version</div>
-          <div class="version-card__value">{{ otaStore.checkResult?.current_version ?? '—' }}</div>
+    <!-- ── Per-Service Version Cards ─────────────────────────────────── -->
+    <div class="services-grid">
+      <div
+        v-for="svc in systemStore.versions"
+        :key="svc.name"
+        class="svc-card"
+        :class="`svc-card--${svc.status}`"
+      >
+        <div class="svc-card__header">
+          <i :class="serviceIcon(svc.name)" class="svc-card__icon" />
+          <span class="svc-card__name">{{ serviceLabel(svc.name) }}</span>
+          <span class="badge" :class="statusBadgeClass(svc.status)">{{ serviceStatusLabel(svc.status) }}</span>
+        </div>
+
+        <div class="svc-card__versions">
+          <div class="svc-card__version-row">
+            <span class="svc-card__version-label">Installed</span>
+            <span class="svc-card__version-value">{{ svc.installed ?? '—' }}</span>
+          </div>
+          <div class="svc-card__version-row">
+            <span class="svc-card__version-label">Available</span>
+            <span class="svc-card__version-value">
+              <template v-if="svc.available">
+                <span :class="isNewer(svc.available, svc.installed) ? 'text-warn' : 'text-ok'">
+                  {{ svc.available }}
+                </span>
+                <span v-if="isNewer(svc.available, svc.installed)" class="badge badge--warning" style="margin-left:0.4rem">new</span>
+              </template>
+              <template v-else>
+                <span class="svc-card__version-value--muted">—</span>
+              </template>
+            </span>
+          </div>
+        </div>
+
+        <div class="svc-card__image">
+          <i class="pi pi-box" /> {{ svc.image ?? '—' }}
         </div>
       </div>
-      <div class="version-card__status">
-        <template v-if="checking">
-          <span class="badge badge--info">Checking…</span>
-        </template>
-        <template v-else-if="otaStore.checkResult?.update_available">
-          <span class="badge badge--warning">Update available: {{ otaStore.checkResult.latest_version }}</span>
-        </template>
-        <template v-else-if="otaStore.checkResult && !otaStore.checkResult.github_error">
-          <span class="badge badge--sensor">Up to date</span>
-        </template>
-        <template v-else-if="otaStore.checkResult?.github_error">
-          <span class="badge badge--stopped" :title="otaStore.checkResult.github_error">GitHub unavailable</span>
-        </template>
-        <template v-else>
-          <span class="badge badge--stopped">Not checked</span>
-        </template>
+
+      <!-- Skeleton cards while loading -->
+      <template v-if="systemStore.loading && !systemStore.versions.length">
+        <div v-for="n in 3" :key="n" class="svc-card svc-card--loading">
+          <div class="svc-card__header">
+            <i class="pi pi-server svc-card__icon" />
+            <span class="svc-card__name skeleton skeleton--text" style="width:80px" />
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- ── One-Click Update Section ──────────────────────────────────── -->
+    <div class="update-section">
+      <!-- Update Progress (active) -->
+      <div v-if="systemStore.isUpdating || justFinished" class="update-progress-card">
+        <div class="update-progress-card__header">
+          <i class="pi" :class="systemStore.isUpdating ? 'pi-spin pi-spinner' : (systemStore.updateProgress?.overall_status === 'completed' ? 'pi-check-circle' : 'pi-times-circle')" />
+          <span>{{ systemStore.updateProgress?.current_step ?? 'Updating…' }}</span>
+        </div>
+        <div class="update-steps">
+          <div
+            v-for="svc in ['backend', 'frontend', 'controller']"
+            :key="svc"
+            class="update-step"
+            :class="`update-step--${systemStore.updateProgress?.services[svc] ?? 'unknown'}`"
+          >
+            <i class="pi" :class="stepIcon(systemStore.updateProgress?.services[svc])" />
+            <span>{{ serviceLabel(svc) }}</span>
+          </div>
+        </div>
+        <div v-if="systemStore.updateProgress?.error" class="update-progress-card__error">
+          <i class="pi pi-exclamation-triangle" /> {{ systemStore.updateProgress.error }}
+        </div>
       </div>
-      <div style="display:flex; gap:0.5rem; align-items:center">
-        <button class="btn-secondary" :disabled="checking" @click="handleCheck">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': checking }" /> Check for Updates
-        </button>
-        <button
-          v-if="otaStore.checkResult?.github_latest_version && isGithubNewer"
-          class="btn-primary"
-          @click="handleOneClickUpdate"
-        >
-          <i class="pi pi-cloud-download" /> One-Click Update
-        </button>
+
+      <!-- Trigger button (idle / has update) -->
+      <div v-else class="update-trigger">
+        <div v-if="hasUpdateAvailable" class="update-trigger__info">
+          <i class="pi pi-info-circle" />
+          <span>Version <strong>{{ latestAvailable }}</strong> is available for all services.</span>
+        </div>
+        <div v-else-if="systemStore.versions.length" class="update-trigger__info update-trigger__info--ok">
+          <i class="pi pi-check-circle" />
+          <span>All services are up to date.</span>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap">
+          <button
+            class="btn-secondary"
+            :disabled="systemStore.loading"
+            @click="handleRefreshVersions"
+          >
+            <i class="pi pi-refresh" :class="{ 'pi-spin': systemStore.loading }" /> Refresh Status
+          </button>
+          <button
+            v-if="hasUpdateAvailable && authStore.isAdmin"
+            class="btn-primary"
+            @click="handleOneClickUpdate"
+          >
+            <i class="pi pi-cloud-download" /> Update to {{ latestAvailable }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -77,8 +142,6 @@
           <div class="github-card__version">
             <span class="github-card__label">Latest Release</span>
             <span class="github-card__value">v{{ otaStore.checkResult.github_latest_version }}</span>
-            <span v-if="isGithubNewer" class="badge badge--warning" style="margin-left: 0.5rem">newer</span>
-            <span v-else class="badge badge--sensor" style="margin-left: 0.5rem">installed</span>
           </div>
           <div class="github-card__actions">
             <a
@@ -106,6 +169,11 @@
           </div>
         </template>
       </div>
+    </div>
+    <div v-else style="margin-bottom:1rem">
+      <button class="btn-secondary" :disabled="checking" @click="handleCheck">
+        <i class="pi pi-github" :class="{ 'pi-spin': checking }" /> Check GitHub Releases
+      </button>
     </div>
 
     <!-- Upload Progress -->
@@ -137,7 +205,7 @@
           <td><strong>{{ update.version }}</strong></td>
           <td>{{ update.changelog ?? '—' }}</td>
           <td>
-            <span class="badge" :class="statusBadgeClass(update.status)">{{ update.status }}</span>
+            <span class="badge" :class="otaBadgeClass(update.status)">{{ update.status }}</span>
             <div v-if="update.error_message" class="error-hint">{{ update.error_message }}</div>
           </td>
           <td>
@@ -212,15 +280,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, reactive } from 'vue'
 import { useOtaStore } from '@/stores/ota'
+import { useSystemStore } from '@/stores/system'
 import { useNotification } from '@/composables/useNotification'
 import { useFormatters } from '@/composables/useFormatters'
 import api from '@/services/api'
-import type { FirmwareUpdate, UpdateStatus } from '@/types'
+import type { FirmwareUpdate, UpdateStatus, ServiceStatus } from '@/types'
 import { useAuthStore } from '@/stores/auth'
 
 const otaStore = useOtaStore()
+const systemStore = useSystemStore()
 const { success, error } = useNotification()
 const { formatDate } = useFormatters()
+const authStore = useAuthStore()
 
 const showCreateDialog = ref(false)
 const page = ref(1)
@@ -231,72 +302,91 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 const githubRepo = 'stefanposs/webmacs'
 
-const isGithubNewer = computed(() => {
-  const cr = otaStore.checkResult
-  if (!cr?.github_latest_version || !cr.current_version) return false
-  const parse = (v: string) => v.split('.').map(Number)
+/** True for a few seconds after update completes, so progress card stays visible. */
+const justFinished = ref(false)
+
+// ── Computed ────────────────────────────────────────────────────────────────
+
+const latestAvailable = computed<string | null>(() => {
+  for (const svc of systemStore.versions) {
+    if (svc.available) return svc.available
+  }
+  return null
+})
+
+const hasUpdateAvailable = computed<boolean>(() => {
+  return systemStore.versions.some((svc) => isNewer(svc.available, svc.installed))
+})
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function isNewer(available: string | null, installed: string | null): boolean {
+  if (!available || !installed) return false
+  const clean = (v: string) => v.replace(/^v/, '')
+  const parse = (v: string) => clean(v).split('.').map(Number)
   try {
-    const cur = parse(cr.current_version)
-    const gh = parse(cr.github_latest_version)
+    const a = parse(available)
+    const b = parse(installed)
     for (let i = 0; i < 3; i++) {
-      if ((gh[i] ?? 0) > (cur[i] ?? 0)) return true
-      if ((gh[i] ?? 0) < (cur[i] ?? 0)) return false
+      if ((a[i] ?? 0) > (b[i] ?? 0)) return true
+      if ((a[i] ?? 0) < (b[i] ?? 0)) return false
     }
     return false
   } catch {
     return false
   }
-})
-
-const form = reactive({
-  version: '',
-  changelog: '',
-})
-
-const authStore = useAuthStore()
-
-function triggerUpload() {
-  fileInput.value?.click()
 }
 
-async function handleFileUpload(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-
-  if (!file.name.endsWith('.tar.gz') && !file.name.endsWith('.tgz')) {
-    error('Invalid file', 'Please select a .tar.gz update bundle.')
-    return
+function serviceIcon(name: string): string {
+  const icons: Record<string, string> = {
+    backend: 'pi pi-server',
+    frontend: 'pi pi-desktop',
+    controller: 'pi pi-microchip',
   }
+  return icons[name] ?? 'pi pi-box'
+}
 
-  uploading.value = true
-  uploadProgress.value = 0
+function serviceLabel(name: string): string {
+  const labels: Record<string, string> = {
+    backend: 'Backend',
+    frontend: 'Frontend',
+    controller: 'Controller',
+  }
+  return labels[name] ?? name
+}
 
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
+function serviceStatusLabel(status: ServiceStatus): string {
+  const labels: Record<ServiceStatus, string> = {
+    running: 'Running',
+    stopped: 'Stopped',
+    error: 'Error',
+    updating: 'Updating…',
+    unknown: 'Unknown',
+  }
+  return labels[status] ?? status
+}
 
-    await api.post('/ota/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: (e) => {
-        if (e.total) {
-          uploadProgress.value = Math.round((e.loaded * 100) / e.total)
-        }
-      },
-    })
-    success('Bundle uploaded', `"${file.name}" was uploaded. The update will be applied automatically.`)
-    uploadProgress.value = 100
-  } catch (err: unknown) {
-    const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      ?? (err as Error).message
-    error('Upload failed', msg)
-  } finally {
-    uploading.value = false
-    input.value = ''
+function statusBadgeClass(status: ServiceStatus): string {
+  const map: Record<ServiceStatus, string> = {
+    running: 'badge--sensor',
+    stopped: 'badge--stopped',
+    error: 'badge--error',
+    updating: 'badge--info',
+    unknown: 'badge--stopped',
+  }
+  return map[status] ?? ''
+}
+
+function stepIcon(status: ServiceStatus | undefined): string {
+  switch (status) {
+    case 'running': return 'pi-check-circle'
+    case 'updating': return 'pi-spin pi-spinner'
+    case 'error': return 'pi-times-circle'
+    default: return 'pi-circle'
   }
 }
 
-function statusBadgeClass(status: UpdateStatus): string {
+function otaBadgeClass(status: UpdateStatus): string {
   const map: Record<UpdateStatus, string> = {
     pending: 'badge--warning',
     downloading: 'badge--info',
@@ -309,6 +399,48 @@ function statusBadgeClass(status: UpdateStatus): string {
   return map[status] ?? ''
 }
 
+const form = reactive({ version: '', changelog: '' })
+
+// ── Actions ─────────────────────────────────────────────────────────────────
+
+function triggerUpload() {
+  fileInput.value?.click()
+}
+
+async function handleRefreshVersions() {
+  await systemStore.fetchVersions()
+}
+
+async function handleFileUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  if (!file.name.endsWith('.tar.gz') && !file.name.endsWith('.tgz')) {
+    error('Invalid file', 'Please select a .tar.gz update bundle.')
+    return
+  }
+  uploading.value = true
+  uploadProgress.value = 0
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    await api.post('/ota/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (e) => {
+        if (e.total) uploadProgress.value = Math.round((e.loaded * 100) / e.total)
+      },
+    })
+    success('Bundle uploaded', `"${file.name}" was uploaded. The update will be applied automatically.`)
+    uploadProgress.value = 100
+  } catch (err: unknown) {
+    const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? (err as Error).message
+    error('Upload failed', msg)
+  } finally {
+    uploading.value = false
+    input.value = ''
+  }
+}
+
 function changePage(delta: number) {
   page.value += delta
   otaStore.fetchUpdates(page.value)
@@ -318,7 +450,6 @@ async function handleCheck() {
   checking.value = true
   try {
     await otaStore.checkForUpdates()
-    success('Update check complete', otaStore.checkResult?.update_available ? 'A new update is available.' : 'System is up to date.')
   } catch (err: unknown) {
     error('Update check failed', (err as Error).message)
   } finally {
@@ -328,10 +459,7 @@ async function handleCheck() {
 
 async function handleCreate() {
   try {
-    await otaStore.createUpdate({
-      version: form.version,
-      changelog: form.changelog || undefined,
-    })
+    await otaStore.createUpdate({ version: form.version, changelog: form.changelog || undefined })
     success('Update created', `Version ${form.version} was added.`)
     showCreateDialog.value = false
     Object.assign(form, { version: '', changelog: '' })
@@ -373,60 +501,264 @@ async function confirmDelete(update: FirmwareUpdate) {
   }
 }
 
-onMounted(async () => {
-  otaStore.fetchUpdates(page.value)
-  try {
-    await otaStore.checkForUpdates()
-  } catch {
-    // silently ignore — user can manually retry via button
-  }
-})
-
 async function handleOneClickUpdate() {
-  // Only admins may trigger system updates
   if (!authStore.isAdmin) {
     error('Unauthorized', 'Only administrators can perform system updates.')
     return
   }
-
-  const latest = otaStore.checkResult?.github_latest_version
+  const latest = latestAvailable.value
   if (!latest) {
-    error('No release', 'No GitHub release version found to trigger.')
+    error('No release', 'No available version found.')
     return
   }
-
+  justFinished.value = false
   try {
-    await api.post('/system/trigger', { version: latest })
-    success('Update started', `Triggered pull and restart for version ${latest}.`)
+    await systemStore.triggerUpdate(latest)
+    success('Update started', `Pulling version ${latest} for all services.`)
+    // Watch for completion then briefly keep progress card visible
+    const prev = systemStore.updateProgress?.overall_status
+    if (prev) {
+      const watcher = setInterval(() => {
+        const s = systemStore.updateProgress?.overall_status
+        if (s === 'completed' || s === 'failed') {
+          clearInterval(watcher)
+          justFinished.value = true
+          setTimeout(() => { justFinished.value = false }, 5000)
+        }
+      }, 500)
+    }
   } catch (err: unknown) {
     error('Update trigger failed', (err as Error).message)
   }
 }
+
+// ── Lifecycle ────────────────────────────────────────────────────────────────
+
+onMounted(async () => {
+  otaStore.fetchUpdates(page.value)
+  systemStore.initialize()
+  try {
+    await otaStore.checkForUpdates()
+  } catch {
+    // silently ignore — user can retry manually
+  }
+})
 </script>
 
 <style lang="scss" scoped>
 @import '@/assets/styles/views-shared';
 
-.version-card {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.25rem 1.5rem;
+// ── Services Grid ───────────────────────────────────────────────────────────
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.svc-card {
   background: var(--wm-surface);
   border-radius: var(--wm-radius-lg);
   box-shadow: var(--wm-shadow);
-  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-left: 4px solid var(--wm-border);
+  transition: border-color 0.2s;
+
+  &--running  { border-left-color: var(--wm-success); }
+  &--stopped  { border-left-color: var(--wm-text-muted); }
+  &--error    { border-left-color: var(--wm-danger); }
+  &--updating { border-left-color: var(--wm-primary); }
+  &--unknown  { border-left-color: var(--wm-border); }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  &__icon {
+    font-size: 1.3rem;
+    color: var(--wm-primary);
+  }
+
+  &__name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--wm-text);
+    flex: 1;
+  }
+
+  &__versions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__version-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__version-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--wm-text-secondary);
+    min-width: 4.5rem;
+  }
+
+  &__version-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--wm-text);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    &--muted {
+      color: var(--wm-text-muted);
+      font-weight: 400;
+    }
+  }
+
+  &__image {
+    font-size: 0.72rem;
+    color: var(--wm-text-muted);
+    font-family: var(--wm-font-mono, monospace);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.text-warn { color: var(--wm-warning); }
+.text-ok   { color: var(--wm-success); }
+
+// ── Update Section ──────────────────────────────────────────────────────────
+.update-section {
+  margin-bottom: 1.25rem;
+}
+
+.update-progress-card {
+  background: var(--wm-surface);
+  border-radius: var(--wm-radius-lg);
+  box-shadow: var(--wm-shadow);
+  padding: 1.25rem 1.5rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+
+    > i { font-size: 1.25rem; color: var(--wm-primary); }
+  }
+
+  &__error {
+    margin-top: 0.75rem;
+    color: var(--wm-danger);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+}
+
+.update-steps {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.update-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+
+  > i { font-size: 1rem; }
+
+  &--running  > i, &--completed > i { color: var(--wm-success); }
+  &--updating > i { color: var(--wm-primary); }
+  &--error    > i { color: var(--wm-danger); }
+  &--unknown  > i, &--stopped > i   { color: var(--wm-text-muted); }
+}
+
+.update-trigger {
+  background: var(--wm-surface);
+  border-radius: var(--wm-radius-lg);
+  box-shadow: var(--wm-shadow);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
 
   &__info {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex: 1;
+    color: var(--wm-text-secondary);
+    font-size: 0.9rem;
 
-    > i {
-      font-size: 1.5rem;
-      color: var(--wm-primary);
-    }
+    > i { font-size: 1.1rem; color: var(--wm-warning); }
+
+    &--ok > i { color: var(--wm-success); }
+  }
+}
+
+// ── GitHub Card ─────────────────────────────────────────────────────────────
+.github-card {
+  background: var(--wm-surface);
+  border-radius: var(--wm-radius-lg);
+  box-shadow: var(--wm-shadow);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--wm-bg);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--wm-text-secondary);
+    border-bottom: 1px solid var(--wm-border);
+
+    > i { font-size: 1.1rem; }
+  }
+
+  &__repo {
+    margin-left: auto;
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--wm-text-muted);
+    font-family: var(--wm-font-mono, monospace);
+  }
+
+  &__body { padding: 1rem 1.25rem; }
+
+  &__version {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
   }
 
   &__label {
@@ -438,16 +770,30 @@ async function handleOneClickUpdate() {
   }
 
   &__value {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--wm-text);
   }
 
   &__status {
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--wm-text-secondary);
+    font-size: 0.85rem;
+
+    > i { font-size: 1rem; }
+
+    &--error { color: var(--wm-warning); }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
   }
 }
 
+// ── Error / Misc ─────────────────────────────────────────────────────────────
 .error-hint {
   font-size: 0.72rem;
   color: var(--wm-danger);
@@ -498,77 +844,20 @@ async function handleOneClickUpdate() {
   }
 }
 
-.github-card {
-  background: var(--wm-surface);
-  border-radius: var(--wm-radius-lg);
-  box-shadow: var(--wm-shadow);
-  margin-bottom: 1.5rem;
-  overflow: hidden;
+// ── Skeleton ─────────────────────────────────────────────────────────────────
+.skeleton {
+  background: var(--wm-bg);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    background: var(--wm-bg);
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--wm-text-secondary);
-    border-bottom: 1px solid var(--wm-border);
-
-    > i { font-size: 1.1rem; }
+  &--text {
+    display: inline-block;
+    height: 1rem;
   }
+}
 
-  &__repo {
-    margin-left: auto;
-    font-weight: 400;
-    font-size: 0.78rem;
-    color: var(--wm-text-muted);
-    font-family: var(--wm-font-mono, monospace);
-  }
-
-  &__body {
-    padding: 1rem 1.25rem;
-  }
-
-  &__version {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  &__label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--wm-text-secondary);
-  }
-
-  &__value {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--wm-text);
-  }
-
-  &__status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--wm-text-secondary);
-    font-size: 0.85rem;
-
-    > i { font-size: 1rem; }
-
-    &--error {
-      color: var(--wm-warning);
-    }
-  }
-
-  &__actions {
-    display: flex;
-    gap: 0.5rem;
-  }
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
 }
 </style>

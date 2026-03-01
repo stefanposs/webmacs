@@ -23,6 +23,7 @@ dependencies = [
     "webmacs-plugin-simulated",
     "webmacs-plugin-system",
     "webmacs-plugin-revpi",
+    "docker>=7.0.0",
 ]
 
 [project.optional-dependencies]
