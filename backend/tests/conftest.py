@@ -240,7 +240,7 @@ async def sample_firmware_update(db_session: AsyncSession, admin_user: User) -> 
     """Insert a pending firmware update record."""
     fw = FirmwareUpdate(
         public_id="fw-update-001",
-        version="2.1.0",
+        version="3.0.0",
         changelog="Bug fixes and improvements",
         status=UpdateStatus.pending,
         user_public_id=admin_user.public_id,
