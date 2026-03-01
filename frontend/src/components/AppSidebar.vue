@@ -1,4 +1,9 @@
 <template>
+  <!-- Mobile backdrop overlay -->
+  <Transition name="sidebar-backdrop">
+    <div v-if="uiStore.sidebarOpen && isMobile" class="sidebar-backdrop" aria-hidden="true" @click="uiStore.closeSidebar" />
+  </Transition>
+
   <aside class="sidebar" :class="{ 'sidebar--hidden-mobile': !uiStore.sidebarOpen }">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -8,6 +13,9 @@
           <span class="sidebar-version">v2.0</span>
         </div>
       </div>
+      <button v-if="isMobile" class="sidebar-close" @click="uiStore.closeSidebar" aria-label="Close sidebar">
+        <i class="pi pi-times" />
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -19,6 +27,7 @@
         class="sidebar-link"
         active-class="sidebar-link--active"
         exact-active-class="sidebar-link--exact"
+        @click="closeMobileSidebar"
       >
         <i :class="item.icon" />
         <span>{{ item.label }}</span>
@@ -31,6 +40,7 @@
         :to="item.to"
         class="sidebar-link"
         active-class="sidebar-link--active"
+        @click="closeMobileSidebar"
       >
         <i :class="item.icon" />
         <span>{{ item.label }}</span>
@@ -38,7 +48,7 @@
 
       <template v-if="authStore.isOperator">
         <div class="sidebar-section-label">Automation</div>
-        <router-link to="/rules" class="sidebar-link" active-class="sidebar-link--active">
+        <router-link to="/rules" class="sidebar-link" active-class="sidebar-link--active" @click="closeMobileSidebar">
           <i class="pi pi-bolt" />
           <span>Rules</span>
         </router-link>
@@ -46,28 +56,28 @@
 
       <template v-if="authStore.isAdmin">
         <div class="sidebar-section-label">System</div>
-        <router-link to="/plugins" class="sidebar-link" active-class="sidebar-link--active">
+        <router-link to="/plugins" class="sidebar-link" active-class="sidebar-link--active" @click="closeMobileSidebar">
           <i class="pi pi-microchip" />
           <span>Plugins</span>
         </router-link>
-        <router-link to="/webhooks" class="sidebar-link" active-class="sidebar-link--active">
+        <router-link to="/webhooks" class="sidebar-link" active-class="sidebar-link--active" @click="closeMobileSidebar">
           <i class="pi pi-link" />
           <span>Webhooks</span>
         </router-link>
-        <router-link to="/ota" class="sidebar-link" active-class="sidebar-link--active">
+        <router-link to="/ota" class="sidebar-link" active-class="sidebar-link--active" @click="closeMobileSidebar">
           <i class="pi pi-cloud-download" />
           <span>OTA Updates</span>
         </router-link>
 
         <div class="sidebar-section-label">Admin</div>
-        <router-link to="/users" class="sidebar-link" active-class="sidebar-link--active">
+        <router-link to="/users" class="sidebar-link" active-class="sidebar-link--active" @click="closeMobileSidebar">
           <i class="pi pi-users" />
           <span>Users</span>
         </router-link>
       </template>
 
       <div class="sidebar-section-label">Account</div>
-      <router-link to="/tokens" class="sidebar-link" active-class="sidebar-link--active">
+      <router-link to="/tokens" class="sidebar-link" active-class="sidebar-link--active" @click="closeMobileSidebar">
         <i class="pi pi-key" />
         <span>API Tokens</span>
       </router-link>
@@ -89,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
@@ -97,6 +107,29 @@ import { useUiStore } from '@/stores/ui'
 const authStore = useAuthStore()
 const router = useRouter()
 const uiStore = useUiStore()
+
+const isMobile = ref(false)
+let mql: MediaQueryList | null = null
+
+function handleMediaChange(e: MediaQueryListEvent | MediaQueryList) {
+  isMobile.value = e.matches
+}
+
+function closeMobileSidebar() {
+  if (isMobile.value) {
+    uiStore.closeSidebar()
+  }
+}
+
+onMounted(() => {
+  mql = window.matchMedia('(max-width: 899px)')
+  isMobile.value = mql.matches
+  mql.addEventListener('change', handleMediaChange)
+})
+
+onUnmounted(() => {
+  mql?.removeEventListener('change', handleMediaChange)
+})
 
 const initials = computed(() => {
   const name = authStore.user?.username ?? '?'
@@ -127,6 +160,25 @@ async function handleLogout() {
 </script>
 
 <style lang="scss" scoped>
+/* Sidebar backdrop for mobile */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+}
+
+.sidebar-backdrop-enter-active,
+.sidebar-backdrop-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-backdrop-enter-from,
+.sidebar-backdrop-leave-to {
+  opacity: 0;
+}
+
 .sidebar {
   position: fixed;
   left: 0;
@@ -143,14 +195,34 @@ async function handleLogout() {
 
 /* Hide sidebar on small screens when closed */
 @media (max-width: 899px) {
-  .sidebar { transform: translateX(0); transition: transform 0.2s ease; }
+  .sidebar { transform: translateX(0); transition: transform 0.25s ease; }
   .sidebar--hidden-mobile { transform: translateX(-110%); }
-  .layout-main { margin-left: 0 !important; }
 }
 
 .sidebar-header {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  border-radius: var(--wm-radius);
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+
+  &:hover { color: #f1f5f9; background: rgba(255, 255, 255, 0.1); }
 }
 
 .sidebar-logo {
@@ -200,12 +272,13 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.6rem 1.5rem;
+  padding: 0.7rem 1.5rem;
   margin: 0.1rem 0.5rem;
   border-radius: var(--wm-radius);
   transition: all 0.15s ease;
   font-size: 0.9rem;
   font-weight: 500;
+  min-height: 44px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.06);
@@ -274,9 +347,14 @@ async function handleLogout() {
   color: #64748b;
   cursor: pointer;
   font-size: 1rem;
-  padding: 0.4rem;
+  padding: 0.5rem;
   border-radius: var(--wm-radius);
   transition: all 0.15s ease;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover { color: #f1f5f9; background: rgba(239, 68, 68, 0.2); }
 }

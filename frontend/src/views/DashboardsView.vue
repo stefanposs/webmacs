@@ -103,7 +103,7 @@ onMounted(() => store.fetchDashboards())
 }
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 1rem;
 }
 .dashboard-card {
@@ -184,7 +184,9 @@ onMounted(() => store.fetchDashboards())
   border: 1px solid var(--wm-border, #334155);
   border-radius: 12px;
   padding: 1.5rem;
-  min-width: 340px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 1rem;
 }
 .modal h2 { color: var(--wm-text, #e2e8f0); margin-bottom: 1rem; font-size: 1.1rem; }
 .modal label { display: block; font-size: 0.85rem; color: var(--wm-text-muted, #94a3b8); margin-bottom: 0.3rem; }

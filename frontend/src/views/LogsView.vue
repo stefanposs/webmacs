@@ -45,26 +45,28 @@
       {{ logStore.error }}
     </div>
 
-    <table v-else-if="logStore.logs.length" class="data-table">
-      <thead>
-        <tr>
-          <th style="width: 160px">Timestamp</th>
-          <th style="width: 100px">Type</th>
-          <th style="width: 100px">Status</th>
-          <th style="width: 140px">User</th>
-          <th>Message</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="log in logStore.logs" :key="log.public_id">
-          <td class="mono">{{ formatRelativeTime(log.created_on) }}</td>
-          <td><span class="badge" :class="`badge--${log.logging_type}`">{{ log.logging_type }}</span></td>
-          <td>{{ log.status_type ?? '—' }}</td>
-          <td class="mono">{{ displayUser(log.username, log.user_public_id) }}</td>
-          <td>{{ log.content }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-else-if="logStore.logs.length" class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 160px">Timestamp</th>
+            <th style="width: 100px">Type</th>
+            <th style="width: 100px">Status</th>
+            <th style="width: 140px">User</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="log in logStore.logs" :key="log.public_id">
+            <td class="mono">{{ formatRelativeTime(log.created_on) }}</td>
+            <td><span class="badge" :class="`badge--${log.logging_type}`">{{ log.logging_type }}</span></td>
+            <td>{{ log.status_type ?? '—' }}</td>
+            <td class="mono">{{ displayUser(log.username, log.user_public_id) }}</td>
+            <td>{{ log.content }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-file-edit" />
@@ -158,7 +160,7 @@ onMounted(() => logStore.fetchLogs())
 }
 
 .filter-input {
-  min-width: 160px;
+  min-width: min(100%, 160px);
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--wm-border, #d1d5db);
   border-radius: var(--wm-radius, 8px);
@@ -167,7 +169,7 @@ onMounted(() => logStore.fetchLogs())
 
   &--grow {
     flex: 1;
-    min-width: 220px;
+    min-width: min(100%, 220px);
   }
 }
 </style>

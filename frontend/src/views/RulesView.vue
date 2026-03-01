@@ -9,7 +9,8 @@
 
     <div v-if="ruleStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading rules...</div>
 
-    <table v-else-if="ruleStore.rules.length" class="data-table">
+    <div v-else-if="ruleStore.rules.length" class="table-responsive">
+      <table class="data-table">
       <thead>
         <tr>
           <th>Name</th>
@@ -55,6 +56,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-bolt" />

@@ -96,7 +96,8 @@
       <div v-if="connectionMode === 'connecting' && filteredLiveDatapoints.length === 0" class="loading">
         <i class="pi pi-spin pi-spinner" /> Connecting to live stream…
       </div>
-      <table v-else-if="filteredLiveDatapoints.length" class="data-table data-table--live" aria-label="Live datapoints">
+      <div v-else-if="filteredLiveDatapoints.length" class="table-responsive">
+      <table class="data-table data-table--live" aria-label="Live datapoints">
         <thead>
           <tr>
             <th>Event</th>
@@ -131,6 +132,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div v-else class="empty-state">
         <i class="pi pi-bolt" />
         Waiting for live datapoints…
@@ -140,7 +142,8 @@
     <!-- Table Mode (paginated) -->
     <div v-else>
       <div v-if="datapointStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading datapoints...</div>
-      <table v-else-if="filteredTableDatapoints.length" class="data-table" aria-label="Datapoints table">
+      <div v-else-if="filteredTableDatapoints.length" class="table-responsive">
+      <table class="data-table" aria-label="Datapoints table">
         <thead>
           <tr>
             <th>Public ID</th>
@@ -161,6 +164,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
 
       <div v-else class="empty-state">
         <i class="pi pi-chart-line" />
@@ -586,7 +590,7 @@ onMounted(async () => {
 .filter-group {
   position: relative;
   flex: 1;
-  min-width: 200px;
+  min-width: min(100%, 200px);
 }
 
 .filter-icon {
@@ -626,10 +630,10 @@ onMounted(async () => {
   font-size: 0.85rem;
   color: var(--wm-text);
   cursor: pointer;
-  min-width: 140px;
+  min-width: min(100%, 140px);
 
   &--sm {
-    min-width: 100px;
+    min-width: min(100%, 100px);
   }
 }
 
@@ -744,6 +748,7 @@ onMounted(async () => {
   border: 1px solid #fbbf24;
   border-radius: var(--wm-radius-lg, 12px);
   color: #92400e;
+  flex-wrap: wrap;
 }
 
 .plugin-hint__icon {

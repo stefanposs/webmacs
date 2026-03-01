@@ -47,6 +47,23 @@ const uiStore = useUiStore()
   max-width: 1400px;
 }
 
+/* Mobile layout overrides */
+@media (max-width: 768px) {
+  .layout-main {
+    margin-left: 0 !important;
+  }
+
+  .layout-content {
+    padding: 1rem 0.75rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 899px) {
+  .layout-content {
+    padding: 1.25rem 1.25rem;
+  }
+}
+
 /* Page transition */
 .page-enter-active,
 .page-leave-active {

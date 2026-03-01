@@ -188,7 +188,8 @@
 
     <div v-if="otaStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading updates...</div>
 
-    <table v-else-if="otaStore.updates.length" class="data-table">
+    <div v-else-if="otaStore.updates.length" class="table-responsive">
+    <table class="data-table">
       <thead>
         <tr>
           <th>Version</th>
@@ -238,6 +239,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-cloud-download" />
