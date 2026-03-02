@@ -5,7 +5,7 @@
     <AppSidebar v-if="authStore.isAuthenticated && uiStore.sidebarOpen" />
     <div :class="['layout-main', { 'layout-main--full': !authStore.isAuthenticated || !uiStore.sidebarOpen }]">
       <AppTopbar v-if="authStore.isAuthenticated" />
-      <main class="layout-content">
+      <main :class="['layout-content', { 'layout-content--flush': !authStore.isAuthenticated }]">
         <router-view v-slot="{ Component }">
           <transition name="page" mode="out-in">
             <component :is="Component" />
@@ -47,6 +47,11 @@ const uiStore = useUiStore()
 .layout-content {
   padding: 1.75rem 2rem;
   max-width: 1400px;
+
+  &--flush {
+    padding: 0;
+    max-width: none;
+  }
 }
 
 /* Mobile layout overrides */
