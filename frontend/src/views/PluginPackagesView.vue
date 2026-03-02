@@ -94,11 +94,13 @@
 import { onMounted, ref } from 'vue'
 import { usePluginStore } from '@/stores/plugins'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useFormatters } from '@/composables/useFormatters'
 import type { PluginPackage } from '@/types'
 
 const pluginStore = usePluginStore()
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const { formatDate } = useFormatters()
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -134,9 +136,14 @@ async function handleFileUpload(event: Event) {
 }
 
 async function confirmUninstall(pkg: PluginPackage) {
-  if (!confirm(`Uninstall "${pkg.package_name}"? Any plugin instances using it will stop working.`)) {
-    return
-  }
+  const confirmed = await confirm({
+    title: 'Uninstall package',
+    message: `Uninstall "${pkg.package_name}"? Any plugin instances using it will stop working.`,
+    confirmLabel: 'Uninstall',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
   try {
     await pluginStore.uninstallPackage(pkg.public_id)
     success('Package removed', `"${pkg.package_name}" was uninstalled.`)
@@ -191,11 +198,14 @@ onMounted(async () => {
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-lg);
   overflow: hidden;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: all var(--wm-transition);
+  border-top: 3px solid transparent;
 
   &:hover {
-    border-color: var(--wm-primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--wm-border);
+    border-top-color: var(--wm-secondary, #8b5cf6);
+    box-shadow: var(--wm-shadow-md);
+    transform: translateY(-2px);
   }
 
   &--uploaded {

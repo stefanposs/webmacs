@@ -145,11 +145,13 @@
 import { onMounted, ref, reactive } from 'vue'
 import { useWebhookStore } from '@/stores/webhooks'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useFormatters } from '@/composables/useFormatters'
 import type { Webhook, WebhookEventType, WebhookUpdatePayload } from '@/types'
 
 const webhookStore = useWebhookStore()
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const { formatDate } = useFormatters()
 
 const showCreateDialog = ref(false)
@@ -236,13 +238,19 @@ async function handleEdit() {
 }
 
 async function confirmDelete(webhook: Webhook) {
-  if (confirm(`Delete webhook "${webhook.url}"?`)) {
-    try {
-      await webhookStore.deleteWebhook(webhook.public_id)
-      success('Webhook deleted', `Webhook was removed.`)
-    } catch (err: unknown) {
-      error('Failed to delete webhook', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Delete webhook',
+    message: `Delete webhook "${webhook.url}"? This action cannot be undone.`,
+    confirmLabel: 'Delete',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  try {
+    await webhookStore.deleteWebhook(webhook.public_id)
+    success('Webhook deleted', `Webhook was removed.`)
+  } catch (err: unknown) {
+    error('Failed to delete webhook', (err as Error).message)
   }
 }
 

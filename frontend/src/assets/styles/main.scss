@@ -10,9 +10,20 @@
   --wm-primary-dark: #2563eb;
   --wm-primary-light: #dbeafe;
 
+  /* Accent — warm gold for highlights, badges, feature markers */
+  --wm-accent: #f59e0b;
+  --wm-accent-hover: #d97706;
+  --wm-accent-light: #fef3c7;
+
+  /* Secondary — violet for selected states, links, decorative accents */
+  --wm-secondary: #8b5cf6;
+  --wm-secondary-hover: #7c3aed;
+  --wm-secondary-light: #ede9fe;
+
   /* Neutrals */
   --wm-bg: #f1f5f9;
   --wm-surface: #ffffff;
+  --wm-surface-warm: #fffbeb;
   --wm-border: #e2e8f0;
   --wm-border-light: #f1f5f9;
   --wm-text: #1e293b;
@@ -35,17 +46,27 @@
   --wm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   --wm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 
-  /* Spacing */
+  /* Spacing scale */
+  --wm-space-xs: 0.25rem;
+  --wm-space-sm: 0.5rem;
+  --wm-space-md: 1rem;
+  --wm-space-lg: 1.5rem;
+  --wm-space-xl: 2rem;
+  --wm-space-2xl: 3rem;
+
+  /* Radii */
   --wm-radius: 8px;
   --wm-radius-lg: 12px;
+  --wm-radius-xl: 16px;
 
   /* Transitions */
   --wm-transition: 0.2s ease;
+  --wm-transition-slow: 0.35s ease;
 
   /* Sidebar */
   --wm-sidebar-width: 260px;
 
-  /* Breakpoints (documentation only — CSS custom properties cannot be used in @media queries, use literal values) */
+  /* Breakpoints (reference only — CSS custom properties cannot be used in @media queries, use literal values) */
   --wm-bp-mobile: 480px;
   --wm-bp-tablet: 768px;
   --wm-bp-desktop: 900px;
@@ -61,14 +82,19 @@
 }
 
 html {
-  font-size: 14px;
+  font-size: 15px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: var(--wm-bg);
+  background-color: #eef2f7;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, #eef2f7 0%, #e8ecf4 100%);
+  background-attachment: fixed;
   color: var(--wm-text);
   line-height: 1.6;
 }
@@ -79,6 +105,10 @@ a {
 }
 
 /* Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }

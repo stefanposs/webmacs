@@ -266,6 +266,18 @@ async function handleLogout() {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    content: '';
+    width: 3px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--wm-primary);
+    flex-shrink: 0;
+  }
 }
 
 .sidebar-link {

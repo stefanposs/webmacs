@@ -61,9 +61,11 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDashboardStore } from '@/stores/dashboards'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 
 const store = useDashboardStore()
 const router = useRouter()
+const { confirm } = useConfirmDialog()
 
 const showCreate = ref(false)
 const newName = ref('')
@@ -78,9 +80,15 @@ async function handleCreate() {
 }
 
 async function confirmDelete(publicId: string) {
-  if (confirm('Delete this dashboard?')) {
-    await store.deleteDashboard(publicId)
-  }
+  const confirmed = await confirm({
+    title: 'Delete dashboard',
+    message: 'Delete this dashboard? This action cannot be undone.',
+    confirmLabel: 'Delete',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  await store.deleteDashboard(publicId)
 }
 
 onMounted(() => store.fetchDashboards())

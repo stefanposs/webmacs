@@ -92,7 +92,8 @@
     </div>
 
     <!-- Live Tail Mode -->
-    <div v-if="viewMode === 'live'">
+    <Transition name="mode-fade" mode="out-in">
+    <div v-if="viewMode === 'live'" key="live">
       <div v-if="connectionMode === 'connecting' && filteredLiveDatapoints.length === 0" class="loading">
         <i class="pi pi-spin pi-spinner" /> Connecting to live stream…
       </div>
@@ -140,7 +141,7 @@
     </div>
 
     <!-- Table Mode (paginated) -->
-    <div v-else>
+    <div v-else key="table">
       <div v-if="datapointStore.loading" class="loading"><i class="pi pi-spin pi-spinner" /> Loading datapoints...</div>
       <div v-else-if="filteredTableDatapoints.length" class="table-responsive">
       <table class="data-table" aria-label="Datapoints table">
@@ -181,6 +182,7 @@
         </button>
       </div>
     </div>
+    </Transition>
   </div>
 </template>
 
@@ -433,6 +435,20 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 @import '@/assets/styles/views-shared';
+
+/* Mode crossfade transition */
+.mode-fade-enter-active,
+.mode-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.mode-fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.mode-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 
 .view-header {
   display: flex;

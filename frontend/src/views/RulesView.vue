@@ -226,12 +226,14 @@ import { onMounted, ref, reactive, computed } from 'vue'
 import { useRuleStore } from '@/stores/rules'
 import { useEventStore } from '@/stores/events'
 import { useNotification } from '@/composables/useNotification'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useFormatters } from '@/composables/useFormatters'
 import type { Rule, RuleOperator, RuleActionType } from '@/types'
 
 const ruleStore = useRuleStore()
 const eventStore = useEventStore()
 const { success, error } = useNotification()
+const { confirm } = useConfirmDialog()
 const { formatDate } = useFormatters()
 
 const showCreateDialog = ref(false)
@@ -360,13 +362,19 @@ async function handleEdit() {
 }
 
 async function confirmDelete(rule: Rule) {
-  if (confirm(`Delete rule "${rule.name}"?`)) {
-    try {
-      await ruleStore.deleteRule(rule.public_id)
-      success('Rule deleted', `"${rule.name}" was removed.`)
-    } catch (err: unknown) {
-      error('Failed to delete rule', (err as Error).message)
-    }
+  const confirmed = await confirm({
+    title: 'Delete rule',
+    message: `Delete rule "${rule.name}"? This action cannot be undone.`,
+    confirmLabel: 'Delete',
+    variant: 'danger',
+    icon: 'pi pi-trash',
+  })
+  if (!confirmed) return
+  try {
+    await ruleStore.deleteRule(rule.public_id)
+    success('Rule deleted', `"${rule.name}" was removed.`)
+  } catch (err: unknown) {
+    error('Failed to delete rule', (err as Error).message)
   }
 }
 

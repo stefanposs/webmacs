@@ -32,6 +32,20 @@
       </router-link>
     </div>
 
+    <!-- Welcome hero -->
+    <div class="welcome-hero">
+      <div class="welcome-hero__content">
+        <h2 class="welcome-hero__greeting">Welcome back, {{ authStore.user?.username ?? 'Operator' }}</h2>
+        <p class="welcome-hero__summary">
+          {{ sensorEvents.length + actuatorEvents.length + rangeEvents.length }} devices configured &middot;
+          {{ connectionMode === 'websocket' ? 'Live connection' : connectionMode === 'polling' ? 'Polling active' : 'Connecting...' }}
+        </p>
+      </div>
+      <div class="welcome-hero__icon">
+        <i class="pi pi-microchip" />
+      </div>
+    </div>
+
     <!-- Stats bar -->
     <div class="stats-bar">
       <div class="stat-card">
@@ -162,6 +176,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { useEventStore } from '@/stores/events'
 import { useDatapointStore } from '@/stores/datapoints'
 import { usePluginStore } from '@/stores/plugins'
+import { useAuthStore } from '@/stores/auth'
 import { useRealtimeDatapoints } from '@/composables/useRealtimeDatapoints'
 import { useFormatters } from '@/composables/useFormatters'
 import type { Event } from '@/types'
@@ -172,6 +187,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const eventStore = useEventStore()
 const datapointStore = useDatapointStore()
 const pluginStore = usePluginStore()
+const authStore = useAuthStore()
 const { formatNumber } = useFormatters()
 const { latestDatapoints: realtimeDatapoints, connectionMode, isConnected, isPaused, togglePause, throttleMs, setThrottleMs } = useRealtimeDatapoints(1500)
 
@@ -326,6 +342,59 @@ onMounted(async () => {
   gap: 1.75rem;
 }
 
+/* Welcome hero */
+.welcome-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-secondary, #8b5cf6) 100%);
+  border-radius: var(--wm-radius-lg);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+}
+
+.welcome-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.welcome-hero__greeting {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.welcome-hero__summary {
+  font-size: 0.88rem;
+  opacity: 0.85;
+}
+
+.welcome-hero__icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--wm-radius-lg);
+  font-size: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .welcome-hero {
+    padding: 1.25rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .welcome-hero__greeting {
+    font-size: 1.1rem;
+  }
+}
+
 /* Plugin hint banner */
 .plugin-hint {
   display: flex;
@@ -431,6 +500,13 @@ onMounted(async () => {
   padding: 1rem 1.25rem;
   border-radius: var(--wm-radius-lg);
   box-shadow: var(--wm-shadow-sm);
+  transition: all var(--wm-transition);
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--wm-shadow-md);
+  }
 }
 
 @media (max-width: 480px) {
@@ -575,9 +651,10 @@ onMounted(async () => {
   border-radius: var(--wm-radius-lg);
   padding: 1.25rem;
   box-shadow: var(--wm-shadow);
-  transition: box-shadow var(--wm-transition);
+  transition: all var(--wm-transition);
+  border-left: 3px solid var(--wm-primary);
 
-  &:hover { box-shadow: var(--wm-shadow-md); }
+  &:hover { box-shadow: var(--wm-shadow-md); transform: translateY(-2px); }
 }
 
 .sensor-header {
@@ -638,6 +715,10 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  border-left: 3px solid var(--wm-success);
+  transition: all var(--wm-transition);
+
+  &:hover { box-shadow: var(--wm-shadow-md); transform: translateY(-2px); }
 }
 
 .actuator-header { font-weight: 600; font-size: 0.9rem; color: var(--wm-text); }
@@ -653,7 +734,16 @@ onMounted(async () => {
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:hover:not(.btn-toggle--active) {
+    border-color: var(--wm-success);
+    color: var(--wm-success);
+  }
+
+  &:active {
+    transform: scale(0.93);
+  }
 
   &--active {
     background: var(--wm-success);
@@ -672,6 +762,10 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  border-left: 3px solid var(--wm-accent, #f59e0b);
+  transition: all var(--wm-transition);
+
+  &:hover { box-shadow: var(--wm-shadow-md); transform: translateY(-2px); }
 
   input[type='range'] {
     width: 100%;
