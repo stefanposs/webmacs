@@ -26,6 +26,9 @@ struct Cli {
     
     #[arg(long, default_value = "postgresql://webmacs:webmacs@localhost:5432/webmacs")]
     database_url: String,
+
+    #[arg(long, default_value = "your-secret-key")]
+    jwt_secret: String,
 }
 
 #[tokio::main]
@@ -33,8 +36,9 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     
     // Initialize tracing
+    let log_level = cli.log_level.parse().unwrap_or(tracing::Level::INFO);
     tracing_subscriber::fmt()
-        .with_max_level(cli.log_level.parse().unwrap_or(tracing::Level::INFO))
+        .with_max_level(log_level)
         .init();
         
     info!("Starting WebMACS Rust PoC");
@@ -46,16 +50,18 @@ async fn main() -> Result<()> {
     }
     
     // Initialize database connection pool
-    let db_pool = sqlx::PgPool::connect(&cli.database_url).await?;
+    let db_pool = sqlx::PgPool::connect(&cli.database_url).await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
     info!("Connected to database");
     
     // Initialize services
     let ingestion_service = IngestionService::new(db_pool.clone());
-    let websocket_server = WebSocketServer::new();
+    let websocket_server = WebSocketServer::new(cli.jwt_secret);
     
     // Start WebSocket server
+    let bind_addr_clone = cli.bind_addr.clone();
     let ws_handle = tokio::spawn(async move {
-        websocket_server.start(&cli.bind_addr).await
+        websocket_server.start(&bind_addr_clone).await
     });
     
     // Start ingestion service

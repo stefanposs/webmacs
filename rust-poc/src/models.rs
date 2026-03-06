@@ -37,10 +37,16 @@ pub enum WebmacsError {
     Serialization(#[from] serde_json::Error),
     
     #[error("WebSocket error: {0}")]
-    WebSocket(#[from] tokio_tungsgenite::tungstenite::Error),
+    WebSocket(#[from] tokio_tungstenite::tungstenite::Error),
     
     #[error("Validation error: {message}")]
     Validation { message: String },
+
+    #[error("Authentication error: {message}")]
+    Authentication { message: String },
+
+    #[error("Configuration error: {message}")]
+    Configuration { message: String },
 }
 
 pub type Result<T> = std::result::Result<T, WebmacsError>;
@@ -55,4 +61,19 @@ impl DatapointCreate {
             experiment_public_id: experiment_id,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthenticatedUser {
+    pub user_id: Uuid,
+    pub username: String,
+    pub admin: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct JwtClaims {
+    pub sub: String, // user_id
+    pub username: String,
+    pub admin: bool,
+    pub exp: usize,
 }

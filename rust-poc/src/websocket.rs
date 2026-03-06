@@ -1,42 +1,52 @@
-use crate::models::{WebSocketMessage, Result};
+use crate::models::{WebSocketMessage, Result, WebmacsError, JwtClaims, AuthenticatedUser};
 use axum::{
     extract::{
         ws::{WebSocket, Message},
-        WebSocketUpgrade,
+        WebSocketUpgrade, Query,
     },
     response::Response,
     routing::get,
     Router,
+    http::{StatusCode, HeaderMap},
 };
 use std::sync::Arc;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, RwLock};
 use tracing::{info, warn, error};
+use serde::Deserialize;
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
+
+#[derive(Debug, Deserialize)]
+struct WebSocketQuery {
+    token: Option<String>,
+}
 
 pub struct WebSocketServer {
-    clients: Arc<std::sync::Mutex<Vec<broadcast::Sender<WebSocketMessage>>>>,
+    clients: Arc<RwLock<Vec<broadcast::Sender<WebSocketMessage>>>>,
+    jwt_secret: String,
 }
 
 impl WebSocketServer {
-    pub fn new() -> Self {
+    pub fn new(jwt_secret: String) -> Self {
         Self {
-            clients: Arc::new(std::sync::Mutex::new(Vec::new())),
+            clients: Arc::new(RwLock::new(Vec::new())),
+            jwt_secret,
         }
     }
     
     pub async fn start(&self, bind_addr: &str) -> Result<()> {
         let app = Router::new()
             .route("/ws/datapoints/stream", get(websocket_handler))
-            .with_state(self.clients.clone());
+            .with_state((self.clients.clone(), self.jwt_secret.clone()));
             
         let listener = tokio::net::TcpListener::bind(bind_addr).await
-            .map_err(|e| crate::models::WebmacsError::Validation { 
+            .map_err(|e| WebmacsError::Configuration { 
                 message: format!("Failed to bind to {}: {}", bind_addr, e) 
             })?;
             
         info!("WebSocket server listening on {}", bind_addr);
         
         axum::serve(listener, app).await
-            .map_err(|e| crate::models::WebmacsError::Validation {
+            .map_err(|e| WebmacsError::Configuration {
                 message: format!("Server error: {}", e)
             })?;
             
@@ -44,7 +54,7 @@ impl WebSocketServer {
     }
     
     pub async fn broadcast(&self, message: WebSocketMessage) {
-        let clients = self.clients.lock().unwrap();
+        let clients = self.clients.read().await;
         let mut disconnected = Vec::new();
         
         for (i, client) in clients.iter().enumerate() {
@@ -56,9 +66,11 @@ impl WebSocketServer {
         // Remove disconnected clients
         drop(clients);
         if !disconnected.is_empty() {
-            let mut clients = self.clients.lock().unwrap();
+            let mut clients = self.clients.write().await;
             for &i in disconnected.iter().rev() {
-                clients.remove(i);
+                if i < clients.len() {
+                    clients.remove(i);
+                }
             }
             info!("Removed {} disconnected clients", disconnected.len());
         }
@@ -67,25 +79,50 @@ impl WebSocketServer {
 
 async fn websocket_handler(
     ws: WebSocketUpgrade,
-    axum::extract::State(clients): axum::extract::State<Arc<std::sync::Mutex<Vec<broadcast::Sender<WebSocketMessage>>>>>,
-) -> Response {
-    ws.on_upgrade(|socket| handle_websocket(socket, clients))
+    Query(params): Query<WebSocketQuery>,
+    axum::extract::State((clients, jwt_secret)): axum::extract::State<(
+        Arc<RwLock<Vec<broadcast::Sender<WebSocketMessage>>>>,
+        String,
+    )>,
+) -> Result<Response, StatusCode> {
+    // Authenticate the WebSocket connection
+    let token = params.token.ok_or(StatusCode::UNAUTHORIZED)?;
+    let _user = authenticate_token(&token, &jwt_secret)?;
+    
+    Ok(ws.on_upgrade(move |socket| handle_websocket(socket, clients, _user)))
+}
+
+fn authenticate_token(token: &str, secret: &str) -> Result<AuthenticatedUser, StatusCode> {
+    let decoding_key = DecodingKey::from_secret(secret.as_ref());
+    let validation = Validation::new(Algorithm::HS256);
+    
+    let token_data = decode::<JwtClaims>(token, &decoding_key, &validation)
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+    
+    let user_id = token_data.claims.sub.parse()
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+    
+    Ok(AuthenticatedUser {
+        user_id,
+        username: token_data.claims.username,
+        admin: token_data.claims.admin,
+    })
 }
 
 async fn handle_websocket(
-    socket: WebSocket,
-    clients: Arc<std::sync::Mutex<Vec<broadcast::Sender<WebSocketMessage>>>>,
+    mut socket: WebSocket,
+    clients: Arc<RwLock<Vec<broadcast::Sender<WebSocketMessage>>>>,
+    _user: AuthenticatedUser,
 ) {
-    let (sender, mut receiver) = socket.split();
     let (tx, mut rx) = broadcast::channel::<WebSocketMessage>(100);
     
     // Add client to the list
     {
-        let mut client_list = clients.lock().unwrap();
+        let mut client_list = clients.write().await;
         client_list.push(tx.clone());
     }
     
-    info!("WebSocket client connected");
+    info!("WebSocket client connected (user: {})", _user.username);
     
     // Send connection acknowledgment
     let ack_message = WebSocketMessage {
@@ -94,7 +131,7 @@ async fn handle_websocket(
     };
     
     if let Ok(json) = serde_json::to_string(&ack_message) {
-        if let Err(e) = sender.send(Message::Text(json)).await {
+        if let Err(e) = socket.send(Message::Text(json)).await {
             warn!("Failed to send connection ack: {}", e);
             return;
         }
@@ -102,12 +139,12 @@ async fn handle_websocket(
     
     // Handle incoming messages (ping/pong)
     let ping_task = tokio::spawn(async move {
-        while let Some(msg) = receiver.recv().await {
+        while let Some(msg) = socket.recv().await {
             match msg {
                 Ok(Message::Text(text)) => {
                     if text.contains("ping") {
                         let pong = r#"{"type":"pong"}"#;
-                        if let Err(e) = sender.send(Message::Text(pong.to_string())).await {
+                        if let Err(e) = socket.send(Message::Text(pong.to_string())).await {
                             error!("Failed to send pong: {}", e);
                             break;
                         }
@@ -127,10 +164,11 @@ async fn handle_websocket(
     });
     
     // Handle outgoing broadcasts
+    let mut socket_clone = socket;
     let broadcast_task = tokio::spawn(async move {
         while let Ok(message) = rx.recv().await {
             if let Ok(json) = serde_json::to_string(&message) {
-                if sender.send(Message::Text(json)).await.is_err() {
+                if socket_clone.send(Message::Text(json)).await.is_err() {
                     break;
                 }
             }

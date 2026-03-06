@@ -1,4 +1,4 @@
-use crate::models::{Datapoint, DatapointBatch, WebSocketMessage, Result};
+use crate::models::{Datapoint, DatapointBatch, WebSocketMessage, Result, WebmacsError};
 use sqlx::PgPool;
 use tokio::sync::broadcast;
 use tracing::{info, warn, error, instrument};
@@ -37,8 +37,21 @@ impl IngestionService {
         
         info!("Processing batch of {} datapoints", batch_size);
         
+        if batch_size == 0 {
+            return Err(WebmacsError::Validation {
+                message: "Empty batch not allowed".to_string(),
+            });
+        }
+
+        if batch_size > 500 {
+            return Err(WebmacsError::Validation {
+                message: format!("Batch size {} exceeds maximum of 500", batch_size),
+            });
+        }
+        
         // Get active experiment (simplified for PoC)
-        let active_experiment = self.get_active_experiment().await?;
+        let active_experiment = self.get_active_experiment().await
+            .map_err(|e| WebmacsError::Database(format!("Failed to get active experiment: {}", e).into()))?;
         
         // Convert to datapoints with generated IDs and timestamps
         let datapoints: Vec<Datapoint> = batch
@@ -55,7 +68,8 @@ impl IngestionService {
         );
         
         // Handle results
-        let ids = db_result?;
+        let ids = db_result
+            .map_err(|e| WebmacsError::Database(format!("Failed to persist batch: {}", e).into()))?;
         
         if let Err(e) = webhook_result {
             warn!("Webhook dispatch failed: {}", e);
@@ -83,41 +97,34 @@ impl IngestionService {
     async fn persist_batch(&self, datapoints: &[Datapoint]) -> Result<Vec<Uuid>> {
         let start = Instant::now();
         
-        // Use PostgreSQL COPY for maximum throughput
-        let mut tx = self.db_pool.begin().await?;
+        let mut tx = self.db_pool.begin().await
+            .map_err(|e| WebmacsError::Database(format!("Failed to begin transaction: {}", e).into()))?;
         
-        // Build VALUES clause for batch insert
-        let mut query = String::from(
-            "INSERT INTO datapoints (public_id, value, timestamp, event_public_id, experiment_public_id) VALUES "
-        );
+        // Prepare arrays for bulk insert using PostgreSQL UNNEST
+        let public_ids: Vec<Uuid> = datapoints.iter().map(|dp| dp.public_id).collect();
+        let values: Vec<f64> = datapoints.iter().map(|dp| dp.value).collect();
+        let timestamps: Vec<chrono::DateTime<chrono::Utc>> = datapoints.iter().map(|dp| dp.timestamp).collect();
+        let event_ids: Vec<Uuid> = datapoints.iter().map(|dp| dp.event_public_id).collect();
+        let experiment_ids: Vec<Option<Uuid>> = datapoints.iter().map(|dp| dp.experiment_public_id).collect();
         
-        let mut params = Vec::new();
-        for (i, dp) in datapoints.iter().enumerate() {
-            if i > 0 {
-                query.push_str(", ");
-            }
-            let base = i * 5;
-            query.push_str(&format!(
-                "(${}, ${}, ${}, ${}, ${})",
-                base + 1, base + 2, base + 3, base + 4, base + 5
-            ));
+        // Use UNNEST for efficient bulk insert with compile-time verification
+        sqlx::query!(
+            r#"
+            INSERT INTO datapoints (public_id, value, timestamp, event_public_id, experiment_public_id)
+            SELECT * FROM UNNEST($1::uuid[], $2::float8[], $3::timestamptz[], $4::uuid[], $5::uuid[])
+            "#,
+            &public_ids as &[Uuid],
+            &values as &[f64],
+            &timestamps as &[chrono::DateTime<chrono::Utc>],
+            &event_ids as &[Uuid],
+            &experiment_ids as &[Option<Uuid>]
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| WebmacsError::Database(format!("Failed to execute batch insert: {}", e).into()))?;
             
-            params.extend([
-                Box::new(dp.public_id) as Box<dyn sqlx::Encode<sqlx::Postgres> + Send + Sync>,
-                Box::new(dp.value),
-                Box::new(dp.timestamp),
-                Box::new(dp.event_public_id),
-                Box::new(dp.experiment_public_id),
-            ]);
-        }
-        
-        // Execute batch insert
-        sqlx::query(&query)
-            .bind_all(params)
-            .execute(&mut *tx)
-            .await?;
-            
-        tx.commit().await?;
+        tx.commit().await
+            .map_err(|e| WebmacsError::Database(format!("Failed to commit transaction: {}", e).into()))?;
         
         let duration = start.elapsed();
         info!(
@@ -127,7 +134,7 @@ impl IngestionService {
             datapoints.len() as f64 / duration.as_secs_f64()
         );
         
-        Ok(datapoints.iter().map(|dp| dp.public_id).collect())
+        Ok(public_ids)
     }
     
     async fn get_active_experiment(&self) -> Result<Option<Uuid>> {
@@ -166,31 +173,12 @@ impl IngestionService {
             datapoints,
         };
         
-        if let Err(e) = self.ws_broadcaster.send(message) {
-            warn!("WebSocket broadcast failed: {}", e);
+        if let Err(_) = self.ws_broadcaster.send(message) {
+            warn!("WebSocket broadcast failed: no active receivers");
         }
     }
     
     pub fn get_websocket_receiver(&self) -> broadcast::Receiver<WebSocketMessage> {
         self.ws_broadcaster.subscribe()
-    }
-}
-
-// Extension trait to bind multiple parameters
-trait QueryExt {
-    fn bind_all<T>(self, params: Vec<T>) -> Self
-    where
-        T: sqlx::Encode<sqlx::Postgres> + Send + Sync;
-}
-
-impl<'a> QueryExt for sqlx::query::Query<'a, sqlx::Postgres, sqlx::postgres::PgArguments> {
-    fn bind_all<T>(mut self, params: Vec<T>) -> Self
-    where
-        T: sqlx::Encode<sqlx::Postgres> + Send + Sync,
-    {
-        for param in params {
-            self = self.bind(param);
-        }
-        self
     }
 }
