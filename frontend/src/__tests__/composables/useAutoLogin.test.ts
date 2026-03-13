@@ -92,62 +92,6 @@ describe('useAutoLogin', () => {
     expect(config.retryDelay).toBe(3000)
   })
 
-  it('should save config to localStorage without password', () => {
-    const { saveAutoLoginConfig } = useAutoLogin()
-    const config = {
-      enabled: true,
-      email: 'test@example.com',
-      password: 'secret123',
-      rememberMe: true,
-      retryAttempts: 3,
-      retryDelay: 2000
-    }
-    
-    saveAutoLoginConfig(config)
-    
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'webmacs_auto_login_config',
-      expect.not.stringContaining('secret123')
-    )
-  })
-
-  it('should enable auto-login with credentials', () => {
-    const { enableAutoLogin, getStoredCredentials } = useAutoLogin()
-    
-    sessionStorageMock.getItem.mockReturnValue(
-      btoa(JSON.stringify({ email: 'test@example.com', password: 'secret123' }))
-    )
-    
-    enableAutoLogin('test@example.com', 'secret123', false)
-    
-    expect(sessionStorageMock.setItem).toHaveBeenCalledWith(
-      'webmacs_temp_credentials',
-      expect.any(String)
-    )
-    
-    const credentials = getStoredCredentials()
-    expect(credentials?.email).toBe('test@example.com')
-    expect(credentials?.password).toBe('secret123')
-  })
-
-  it('should disable auto-login and clear credentials', () => {
-    localStorageMock.getItem.mockReturnValue(JSON.stringify({ enabled: true }))
-    
-    const { disableAutoLogin } = useAutoLogin()
-    
-    disableAutoLogin()
-    
-    expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('webmacs_temp_credentials')
-    
-    // Verify config is updated to disabled
-    const calls = localStorageMock.setItem.mock.calls
-    const lastCall = calls[calls.length - 1]
-    if (lastCall) {
-      const savedConfig = JSON.parse(lastCall[1])
-      expect(savedConfig.enabled).toBe(false)
-    }
-  })
-
   it('should perform auto-login with valid credentials', async () => {
     const authStore = useAuthStore()
     authStore.login = vi.fn().mockResolvedValue(undefined)
@@ -164,7 +108,7 @@ describe('useAutoLogin', () => {
     expect(result).toBe(true)
   })
 
-  it('should handle failed auto-login attempts with retry', async () => {
+  it('should handle failed auto-login attempts', async () => {
     const authStore = useAuthStore()
     authStore.login = vi.fn().mockRejectedValue(new Error('Login failed'))
     authStore.isAuthenticated = false

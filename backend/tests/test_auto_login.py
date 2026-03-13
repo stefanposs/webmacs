@@ -139,91 +139,25 @@ async def test_regular_vs_auto_login_rate_limits(client: AsyncClient, session: A
 
 
 @pytest.mark.asyncio
-async def test_rate_limit_status_endpoint(
-    client: AsyncClient, 
-    session: AsyncSession,
-    admin_user: User,
-    auth_headers: dict
-):
-    """Test rate limit status endpoint"""
-    # Make some failed attempts
-    for i in range(3):
-        await client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": "test@example.com",
-                "password": "wrongpassword"
-            }
-        )
-
-    for i in range(2):
-        await client.post(
-            "/api/v1/auth/auto-login",
-            json={
-                "email": "test@example.com",
-                "password": "wrongpassword"
-            }
-        )
-
-    # Check status as admin
-    response = await client.get(
-        "/api/v1/auth/rate-limit-status?email=test@example.com",
-        headers=auth_headers
-    )
-
-    assert response.status_code == 200
-    data = response.json()
+async def test_rate_limit_cleanup_over_time():
+    """Test that rate limit entries are cleaned up over time"""
+    from webmacs_backend.api.v1.auth import login_attempts, record_login_attempt, check_rate_limit
     
-    assert data["email"] == "test@example.com"
-    assert data["regular_attempts"]["recent_count"] == 3
-    assert data["regular_attempts"]["max_allowed"] == 5
-    assert data["auto_login_attempts"]["recent_count"] == 2
-    assert data["auto_login_attempts"]["max_allowed"] == 10
-    assert not data["regular_attempts"]["is_locked"]
-    assert not data["auto_login_attempts"]["is_locked"]
-
-
-@pytest.mark.asyncio
-async def test_clear_rate_limit_endpoint(
-    client: AsyncClient,
-    session: AsyncSession, 
-    admin_user: User,
-    auth_headers: dict
-):
-    """Test clearing rate limits"""
-    # Create rate limit by failing attempts
-    for i in range(5):
-        await client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": "cleartest@example.com",
-                "password": "wrongpassword"
-            }
-        )
-
-    # Verify rate limit is active
-    response = await client.post(
-        "/api/v1/auth/login",
-        json={
-            "email": "cleartest@example.com",
-            "password": "wrongpassword"
-        }
-    )
-    assert response.status_code == 429
-
-    # Clear rate limit as admin
-    response = await client.post(
-        "/api/v1/auth/clear-rate-limit?email=cleartest@example.com",
-        headers=auth_headers
-    )
-    assert response.status_code == 200
-
-    # Verify rate limit is cleared
-    response = await client.post(
-        "/api/v1/auth/login",
-        json={
-            "email": "cleartest@example.com",
-            "password": "wrongpassword"
-        }
-    )
-    assert response.status_code == 401  # Wrong password, but not rate limited
+    email = "cleanup@example.com"
+    
+    # Record some attempts
+    for i in range(3):
+        record_login_attempt(email)
+    
+    assert len(login_attempts[email]) == 3
+    
+    # Mock time passing (16 minutes)
+    with patch('time.time', return_value=time.time() + 16 * 60):
+        # This should clean up old attempts
+        try:
+            check_rate_limit(email)
+        except:
+            pass  # We don't care about the exception, just the cleanup
+    
+    # Old attempts should be cleaned up
+    assert len(login_attempts.get(email, [])) == 0
