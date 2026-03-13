@@ -34,6 +34,7 @@ LOGIN_ATTEMPT_WINDOW = 15 * 60  # 15 minutes
 
 class RateLimitExceededError(Exception):
     """Raised when rate limit is exceeded."""
+
     def __init__(self, retry_after: int):
         self.retry_after = retry_after
         super().__init__(f"Too many login attempts. Try again after {retry_after} seconds.")
@@ -45,10 +46,7 @@ def check_rate_limit(email: str, max_attempts: int = MAX_LOGIN_ATTEMPTS, window:
 
     # Clean up old attempts
     if email in login_attempts:
-        login_attempts[email] = [
-            attempt_time for attempt_time in login_attempts[email]
-            if now - attempt_time < window
-        ]
+        login_attempts[email] = [attempt_time for attempt_time in login_attempts[email] if now - attempt_time < window]
 
     # Check current attempts
     recent_attempts = login_attempts.get(email, [])
@@ -72,11 +70,7 @@ def clear_login_attempts(email: str) -> None:
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(
-    login_data: LoginRequest,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-) -> LoginResponse:
+async def login(login_data: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)) -> LoginResponse:
     """
     User login with rate limiting and auto-login support.
 
@@ -90,9 +84,7 @@ async def login(
         check_rate_limit(login_data.email)
 
         # Find user by email
-        result = await db.execute(
-            select(User).where(User.email == login_data.email)
-        )
+        result = await db.execute(select(User).where(User.email == login_data.email))
         user = result.scalar_one_or_none()
 
         # Verify password
@@ -101,19 +93,13 @@ async def login(
             record_login_attempt(login_data.email)
 
             await logger.awarning(
-                "Login attempt failed",
-                email=login_data.email,
-                client_ip=client_ip,
-                reason="invalid_credentials"
+                "Login attempt failed", email=login_data.email, client_ip=client_ip, reason="invalid_credentials"
             )
 
             # Add artificial delay to slow down brute force attacks
             await asyncio.sleep(1)
 
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid email or password"
-            )
+            raise HTTPException(status_code=401, detail="Invalid email or password")
 
         # Clear failed attempts on successful login
         clear_login_attempts(login_data.email)
@@ -125,42 +111,30 @@ async def login(
         await create_log(db, f"User '{user.username}' logged in.", user.public_id)
         await db.commit()
 
-        await logger.ainfo(
-            "User login successful",
-            user_id=user.public_id,
-            email=user.email,
-            client_ip=client_ip
-        )
+        await logger.ainfo("User login successful", user_id=user.public_id, email=user.email, client_ip=client_ip)
 
         return LoginResponse(
             status="success",
             message="Successfully logged in.",
             access_token=access_token,
             public_id=user.public_id,
-            username=user.username
+            username=user.username,
         )
 
     except RateLimitExceededError as e:
         await logger.awarning(
-            "Login rate limit exceeded",
-            email=login_data.email,
-            client_ip=client_ip,
-            retry_after=e.retry_after
+            "Login rate limit exceeded", email=login_data.email, client_ip=client_ip, retry_after=e.retry_after
         )
 
         raise HTTPException(
             status_code=429,
             detail=f"Too many login attempts. Try again in {e.retry_after} seconds.",
-            headers={"Retry-After": str(e.retry_after)}
+            headers={"Retry-After": str(e.retry_after)},
         ) from None
 
 
 @router.post("/auto-login", response_model=LoginResponse)
-async def auto_login(
-    login_data: LoginRequest,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-) -> LoginResponse:
+async def auto_login(login_data: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)) -> LoginResponse:
     """
     Automated login endpoint with reduced rate limiting for auto-login clients.
 
@@ -174,9 +148,7 @@ async def auto_login(
         check_rate_limit(f"auto:{login_data.email}", max_attempts=10, window=5 * 60)
 
         # Find user by email
-        result = await db.execute(
-            select(User).where(User.email == login_data.email)
-        )
+        result = await db.execute(select(User).where(User.email == login_data.email))
         user = result.scalar_one_or_none()
 
         # Verify password
@@ -185,16 +157,10 @@ async def auto_login(
             record_login_attempt(f"auto:{login_data.email}")
 
             await logger.awarning(
-                "Auto-login attempt failed",
-                email=login_data.email,
-                client_ip=client_ip,
-                reason="invalid_credentials"
+                "Auto-login attempt failed", email=login_data.email, client_ip=client_ip, reason="invalid_credentials"
             )
 
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid email or password"
-            )
+            raise HTTPException(status_code=401, detail="Invalid email or password")
 
         # Clear failed attempts on successful auto-login
         clear_login_attempts(f"auto:{login_data.email}")
@@ -202,41 +168,31 @@ async def auto_login(
         # Create access token
         access_token = create_access_token(user_id=user.id, role=user.role.value)
 
-        await logger.ainfo(
-            "Auto-login successful",
-            user_id=user.public_id,
-            email=user.email,
-            client_ip=client_ip
-        )
+        await logger.ainfo("Auto-login successful", user_id=user.public_id, email=user.email, client_ip=client_ip)
 
         return LoginResponse(
             status="success",
             message="Auto-login successful.",
             access_token=access_token,
             public_id=user.public_id,
-            username=user.username
+            username=user.username,
         )
 
     except RateLimitExceededError as e:
         await logger.awarning(
-            "Auto-login rate limit exceeded",
-            email=login_data.email,
-            client_ip=client_ip,
-            retry_after=e.retry_after
+            "Auto-login rate limit exceeded", email=login_data.email, client_ip=client_ip, retry_after=e.retry_after
         )
 
         raise HTTPException(
             status_code=429,
             detail=f"Too many auto-login attempts. Try again in {e.retry_after} seconds.",
-            headers={"Retry-After": str(e.retry_after)}
+            headers={"Retry-After": str(e.retry_after)},
         ) from None
 
 
 @router.post("/logout", response_model=StatusResponse)
 async def logout(
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    request: Request, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> StatusResponse:
     """
     User logout - blacklists the current JWT token so it cannot be reused.
@@ -251,30 +207,17 @@ async def logout(
     token = authorization.split(" ")[1]
 
     # Add token to blacklist
-    blacklist_entry = BlacklistToken(
-        token=token,
-        blacklisted_on=datetime.now(UTC)
-    )
+    blacklist_entry = BlacklistToken(token=token, blacklisted_on=datetime.now(UTC))
     db.add(blacklist_entry)
     await db.commit()
 
-    await logger.ainfo(
-        "User logout",
-        user_id=current_user.public_id,
-        email=current_user.email,
-        client_ip=client_ip
-    )
+    await logger.ainfo("User logout", user_id=current_user.public_id, email=current_user.email, client_ip=client_ip)
 
-    return StatusResponse(
-        status="success",
-        message="Successfully logged out."
-    )
+    return StatusResponse(status="success", message="Successfully logged out.")
 
 
 @router.get("/me", response_model=UserMeResponse)
-async def get_current_user_info(
-    current_user: User = Depends(get_current_user)
-) -> UserMeResponse:
+async def get_current_user_info(current_user: User = Depends(get_current_user)) -> UserMeResponse:
     """
     Get current authenticated user information.
     """
@@ -285,16 +228,14 @@ async def get_current_user_info(
         admin=current_user.admin,
         role=current_user.role.value,
         registered_on=current_user.registered_on,
-        sso_provider=getattr(current_user, 'sso_provider', None),
-        created_on=current_user.registered_on
+        sso_provider=getattr(current_user, "sso_provider", None),
+        created_on=current_user.registered_on,
     )
 
 
 @router.get("/rate-limit-status")
 async def get_rate_limit_status(
-    email: str,
-    request: Request,
-    current_user: User = Depends(get_current_user)
+    email: str, request: Request, current_user: User = Depends(get_current_user)
 ) -> dict[str, Any]:
     """
     Get rate limit status for debugging and monitoring.
@@ -307,15 +248,13 @@ async def get_rate_limit_status(
 
     # Get regular login attempts
     regular_attempts = login_attempts.get(email, [])
-    recent_regular = [
-        attempt for attempt in regular_attempts
-        if now - attempt < LOGIN_ATTEMPT_WINDOW
-    ]
+    recent_regular = [attempt for attempt in regular_attempts if now - attempt < LOGIN_ATTEMPT_WINDOW]
 
     # Get auto-login attempts
     auto_attempts = login_attempts.get(f"auto:{email}", [])
     recent_auto = [
-        attempt for attempt in auto_attempts
+        attempt
+        for attempt in auto_attempts
         if now - attempt < 5 * 60  # 5 minute window for auto-login
     ]
 
@@ -334,24 +273,15 @@ async def get_rate_limit_status(
             "is_locked": len(recent_auto) >= 10,
         },
         "all_attempts": {
-            "regular": [
-                {"timestamp": attempt, "type": "manual"}
-                for attempt in recent_regular
-            ],
-            "auto": [
-                {"timestamp": attempt, "type": "auto"}
-                for attempt in recent_auto
-            ]
-        }
+            "regular": [{"timestamp": attempt, "type": "manual"} for attempt in recent_regular],
+            "auto": [{"timestamp": attempt, "type": "auto"} for attempt in recent_auto],
+        },
     }
 
 
 @router.post("/clear-rate-limit")
 async def clear_rate_limit(
-    email: str,
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    email: str, request: Request, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> StatusResponse:
     """
     Clear rate limit for a specific email.
@@ -371,10 +301,7 @@ async def clear_rate_limit(
         target_email=email,
         admin_user_id=current_user.public_id,
         admin_email=current_user.email,
-        client_ip=client_ip
+        client_ip=client_ip,
     )
 
-    return StatusResponse(
-        status="success",
-        message=f"Rate limit cleared for {email}"
-    )
+    return StatusResponse(status="success", message=f"Rate limit cleared for {email}")

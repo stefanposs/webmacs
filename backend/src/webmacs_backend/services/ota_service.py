@@ -101,8 +101,10 @@ async def check_github_releases() -> dict[str, str | None]:  # noqa: PLR0911
     except httpx.TimeoutException:
         logger.warning("github_api_timeout", repo=repo)
         err_result: dict[str, str | None] = {
-            "version": None, "download_url": None,
-            "release_url": None, "error": "Connection timed out",
+            "version": None,
+            "download_url": None,
+            "release_url": None,
+            "error": "Connection timed out",
         }
         _github_cache["data"] = err_result
         _github_cache["expires_at"] = _time.monotonic() + _GITHUB_ERROR_CACHE_TTL
