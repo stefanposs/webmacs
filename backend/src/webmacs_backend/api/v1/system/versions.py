@@ -107,16 +107,20 @@ def _write_trigger(request: UpdateTriggerRequest) -> None:
         "requested_at": datetime.now(UTC).isoformat(),
     }
     # Atomic write: tmp file + rename prevents the updater from reading partial JSON
-    fd = tempfile.NamedTemporaryFile(dir=_UPDATE_DIR, suffix=".tmp", delete=False, mode="w")
+    tmp_path = None
+    with tempfile.NamedTemporaryFile(dir=_UPDATE_DIR, suffix=".tmp", delete=False, mode="w") as fd:
+        tmp_path = fd.name
+        try:
+            fd.write(json.dumps(payload))
+            fd.flush()
+            os.fsync(fd.fileno())
+        except BaseException:
+            Path(tmp_path).unlink(missing_ok=True)
+            raise
     try:
-        fd.write(json.dumps(payload))
-        fd.flush()
-        os.fsync(fd.fileno())
-        fd.close()
-        os.rename(fd.name, str(_TRIGGER_FILE))
+        os.rename(tmp_path, str(_TRIGGER_FILE))
     except BaseException:
-        fd.close()
-        Path(fd.name).unlink(missing_ok=True)
+        Path(tmp_path).unlink(missing_ok=True)
         raise
     logger.info("trigger_file_written", version=version, images=images)
 

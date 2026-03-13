@@ -15,7 +15,7 @@ export interface AutoLoginConfig {
 export function useAutoLogin() {
   const router = useRouter()
   const authStore = useAuthStore()
-  const { showError, showSuccess } = useNotification()
+  const { error: showError, success: showSuccess } = useNotification()
   
   const isAutoLoggingIn = ref(false)
   const autoLoginAttempts = ref(0)

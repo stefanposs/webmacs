@@ -92,9 +92,10 @@ describe('useAutoLogin', () => {
 
   it('should perform auto-login with valid credentials', async () => {
     const authStore = useAuthStore()
-    authStore.login = vi.fn().mockResolvedValue(undefined)
-    authStore.isAuthenticated = true
-    
+    authStore.login = vi.fn().mockImplementation(async () => {
+      authStore.token = 'fake-token'
+    })
+
     const { performAutoLogin } = useAutoLogin()
     
     const result = await performAutoLogin({
@@ -109,8 +110,7 @@ describe('useAutoLogin', () => {
   it('should handle failed auto-login attempts with retry', async () => {
     const authStore = useAuthStore()
     authStore.login = vi.fn().mockRejectedValue(new Error('Login failed'))
-    authStore.isAuthenticated = false
-    
+
     const { performAutoLogin } = useAutoLogin()
     
     const result = await performAutoLogin({

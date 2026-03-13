@@ -166,7 +166,7 @@ import Badge from 'primevue/badge'
 import Button from 'primevue/button'
 
 const autoLogin = useAutoLogin()
-const { showSuccess, showError } = useNotification()
+const { success: showSuccess, error: showError } = useNotification()
 
 const config = ref<AutoLoginConfig>({
   enabled: false,

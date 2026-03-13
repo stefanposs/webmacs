@@ -30,7 +30,7 @@
               severity="warn" 
               :closable="false"
             >
-              <template #messageicon>
+              <template #icon>
                 <i class="pi pi-exclamation-triangle"></i>
               </template>
               Account temporarily locked due to too many failed attempts.
@@ -191,7 +191,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const autoLogin = useAutoLogin()
-const { showError } = useNotification()
+const { error: showError } = useNotification()
 
 const isLoading = ref(false)
 const showAutoLoginSettings = ref(false)

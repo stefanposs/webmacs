@@ -39,7 +39,7 @@ _github_cache: dict[str, object] = {"data": None, "expires_at": 0.0}
 _github_cache_lock = asyncio.Lock()
 
 
-async def check_github_releases() -> dict[str, str | None]:
+async def check_github_releases() -> dict[str, str | None]:  # noqa: PLR0911
     """Query GitHub Releases API for the latest release.
 
     Returns a dict with keys: version, download_url, release_url, error.
@@ -100,7 +100,10 @@ async def check_github_releases() -> dict[str, str | None]:
 
     except httpx.TimeoutException:
         logger.warning("github_api_timeout", repo=repo)
-        err_result: dict[str, str | None] = {"version": None, "download_url": None, "release_url": None, "error": "Connection timed out"}
+        err_result: dict[str, str | None] = {
+            "version": None, "download_url": None,
+            "release_url": None, "error": "Connection timed out",
+        }
         _github_cache["data"] = err_result
         _github_cache["expires_at"] = _time.monotonic() + _GITHUB_ERROR_CACHE_TTL
         return err_result
