@@ -37,3 +37,18 @@ class SsoAuthorizeResponse(BaseModel):
     """URL the frontend should redirect to."""
 
     redirect_url: str
+
+
+class UserMeResponse(BaseModel):
+    """Response for ``GET /auth/me``."""
+
+    public_id: str
+    email: str
+    username: str
+    admin: bool = False
+    role: str = "viewer"
+    registered_on: datetime.datetime
+    sso_provider: str | None = None
+    created_on: datetime.datetime | None = None
+
+    model_config = {"from_attributes": True}

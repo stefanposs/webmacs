@@ -20,13 +20,13 @@ from webmacs_backend.schemas import (
     LoginRequest,
     LoginResponse,
     StatusResponse,
-    TokenResponse,
     UserMeResponse,
 )
 from webmacs_backend.security import create_access_token, verify_password
+from webmacs_backend.services.log_service import create_log
 
 logger = structlog.get_logger()
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -101,7 +101,7 @@ async def login(
         user = result.scalar_one_or_none()
         
         # Verify password
-        if not user or not verify_password(login_data.password, user.hashed_password):
+        if not user or not verify_password(login_data.password, user.password_hash):
             # Record failed attempt
             record_login_attempt(login_data.email)
             
@@ -124,8 +124,12 @@ async def login(
         clear_login_attempts(login_data.email)
         
         # Create access token
-        access_token = create_access_token(data={"sub": user.public_id})
+        access_token = create_access_token(user_id=user.id, role=user.role.value)
         
+        # Audit log
+        await create_log(db, f"User '{user.username}' logged in.", user.public_id)
+        await db.commit()
+
         await logger.ainfo(
             "User login successful",
             user_id=user.public_id,
@@ -181,7 +185,7 @@ async def auto_login(
         user = result.scalar_one_or_none()
         
         # Verify password
-        if not user or not verify_password(login_data.password, user.hashed_password):
+        if not user or not verify_password(login_data.password, user.password_hash):
             # Record failed attempt with auto prefix
             record_login_attempt(f"auto:{login_data.email}")
             
@@ -201,7 +205,7 @@ async def auto_login(
         clear_login_attempts(f"auto:{login_data.email}")
         
         # Create access token
-        access_token = create_access_token(data={"sub": user.public_id})
+        access_token = create_access_token(user_id=user.id, role=user.role.value)
         
         await logger.ainfo(
             "Auto-login successful",
@@ -284,6 +288,7 @@ async def get_current_user_info(
         email=current_user.email,
         username=current_user.username,
         admin=current_user.admin,
+        role=current_user.role.value,
         registered_on=current_user.registered_on,
         sso_provider=getattr(current_user, 'sso_provider', None),
         created_on=current_user.registered_on

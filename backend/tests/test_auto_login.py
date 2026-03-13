@@ -7,21 +7,20 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from webmacs_backend.models import User
-from webmacs_backend.security import get_password_hash
+from webmacs_backend.security import hash_password
 
 
 @pytest.mark.asyncio
-async def test_auto_login_success(client: AsyncClient, session: AsyncSession):
+async def test_auto_login_success(client: AsyncClient, db_session: AsyncSession):
     """Test successful auto-login"""
     # Create test user
     user = User(
         email="autotest@example.com",
         username="autotest",
-        hashed_password=get_password_hash("password123"),
-        admin=False
+        password_hash=hash_password("password123"),
     )
-    session.add(user)
-    await session.commit()
+    db_session.add(user)
+    await db_session.commit()
 
     # Test auto-login
     response = await client.post(
@@ -41,7 +40,7 @@ async def test_auto_login_success(client: AsyncClient, session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_auto_login_invalid_credentials(client: AsyncClient, session: AsyncSession):
+async def test_auto_login_invalid_credentials(client: AsyncClient, db_session: AsyncSession):
     """Test auto-login with invalid credentials"""
     response = await client.post(
         "/api/v1/auth/auto-login",
@@ -56,17 +55,16 @@ async def test_auto_login_invalid_credentials(client: AsyncClient, session: Asyn
 
 
 @pytest.mark.asyncio
-async def test_auto_login_rate_limiting(client: AsyncClient, session: AsyncSession):
+async def test_auto_login_rate_limiting(client: AsyncClient, db_session: AsyncSession):
     """Test auto-login rate limiting (10 attempts per 5 minutes)"""
     # Create test user
     user = User(
         email="ratelimit@example.com",
         username="ratelimit",
-        hashed_password=get_password_hash("password123"),
-        admin=False
+        password_hash=hash_password("password123"),
     )
-    session.add(user)
-    await session.commit()
+    db_session.add(user)
+    await db_session.commit()
 
     # Make 10 failed attempts (should be allowed)
     for i in range(10):
@@ -94,17 +92,16 @@ async def test_auto_login_rate_limiting(client: AsyncClient, session: AsyncSessi
 
 
 @pytest.mark.asyncio
-async def test_regular_vs_auto_login_rate_limits(client: AsyncClient, session: AsyncSession):
+async def test_regular_vs_auto_login_rate_limits(client: AsyncClient, db_session: AsyncSession):
     """Test that regular login and auto-login have separate rate limits"""
     # Create test user
     user = User(
         email="separate@example.com",
         username="separate",
-        hashed_password=get_password_hash("password123"),
-        admin=False
+        password_hash=hash_password("password123"),
     )
-    session.add(user)
-    await session.commit()
+    db_session.add(user)
+    await db_session.commit()
 
     # Make 5 failed regular login attempts (should hit regular limit)
     for i in range(5):
@@ -141,7 +138,7 @@ async def test_regular_vs_auto_login_rate_limits(client: AsyncClient, session: A
 @pytest.mark.asyncio
 async def test_rate_limit_status_endpoint(
     client: AsyncClient, 
-    session: AsyncSession,
+    db_session: AsyncSession,
     admin_user: User,
     auth_headers: dict
 ):
@@ -186,7 +183,7 @@ async def test_rate_limit_status_endpoint(
 @pytest.mark.asyncio
 async def test_clear_rate_limit_endpoint(
     client: AsyncClient,
-    session: AsyncSession, 
+    db_session: AsyncSession, 
     admin_user: User,
     auth_headers: dict
 ):
@@ -257,18 +254,17 @@ async def test_rate_limit_cleanup_over_time():
 @pytest.mark.asyncio
 async def test_auto_login_successful_after_failed_attempts(
     client: AsyncClient, 
-    session: AsyncSession
+    db_session: AsyncSession
 ):
     """Test that successful auto-login clears failed attempts"""
     # Create test user
     user = User(
         email="successafter@example.com",
         username="successafter",
-        hashed_password=get_password_hash("password123"),
-        admin=False
+        password_hash=hash_password("password123"),
     )
-    session.add(user)
-    await session.commit()
+    db_session.add(user)
+    await db_session.commit()
 
     # Make some failed attempts
     for i in range(3):

@@ -29,19 +29,37 @@ logger = structlog.get_logger()
 GITHUB_API = "https://api.github.com"
 _GITHUB_TIMEOUT = 8.0  # seconds
 _DOWNLOAD_TIMEOUT = 30.0  # seconds
+_GITHUB_CACHE_TTL = 300  # cache GitHub API responses for 5 minutes
+_GITHUB_ERROR_CACHE_TTL = 60  # cache error responses for 1 minute
 
 UPDATE_DIR = Path(os.environ.get("WEBMACS_UPDATE_DIR", "/updates"))
+
+# Simple in-memory cache to avoid GitHub rate limiting (60 req/h unauthenticated)
+_github_cache: dict[str, object] = {"data": None, "expires_at": 0.0}
+_github_cache_lock = asyncio.Lock()
 
 
 async def check_github_releases() -> dict[str, str | None]:
     """Query GitHub Releases API for the latest release.
 
     Returns a dict with keys: version, download_url, release_url, error.
-    All values default to None on failure.
+    All values default to None on failure.  Responses are cached for 5 minutes
+    to stay well under the unauthenticated GitHub rate limit (60 req/h).
     """
-    repo = settings.github_repo
-    if not repo:
-        return {"version": None, "download_url": None, "release_url": None, "error": "github_repo not configured"}
+    import time as _time
+
+    # Return cached result if still fresh
+    if _github_cache["data"] is not None and _time.monotonic() < _github_cache["expires_at"]:
+        return _github_cache["data"]  # type: ignore[return-value]
+
+    async with _github_cache_lock:
+        # Double-check after acquiring lock (another coroutine may have refreshed)
+        if _github_cache["data"] is not None and _time.monotonic() < _github_cache["expires_at"]:
+            return _github_cache["data"]  # type: ignore[return-value]
+
+        repo = settings.github_repo
+        if not repo:
+            return {"version": None, "download_url": None, "release_url": None, "error": "github_repo not configured"}
 
     url = f"{GITHUB_API}/repos/{repo}/releases/latest"
     try:
@@ -75,14 +93,23 @@ async def check_github_releases() -> dict[str, str | None]:
                 break
 
         logger.info("github_latest_release", version=version, has_asset=download_url is not None)
-        return {"version": version or None, "download_url": download_url, "release_url": release_url, "error": None}
+        result = {"version": version or None, "download_url": download_url, "release_url": release_url, "error": None}
+        _github_cache["data"] = result
+        _github_cache["expires_at"] = _time.monotonic() + _GITHUB_CACHE_TTL
+        return result
 
     except httpx.TimeoutException:
         logger.warning("github_api_timeout", repo=repo)
-        return {"version": None, "download_url": None, "release_url": None, "error": "Connection timed out"}
+        err_result: dict[str, str | None] = {"version": None, "download_url": None, "release_url": None, "error": "Connection timed out"}
+        _github_cache["data"] = err_result
+        _github_cache["expires_at"] = _time.monotonic() + _GITHUB_ERROR_CACHE_TTL
+        return err_result
     except httpx.HTTPError as exc:
         logger.warning("github_api_error", error=str(exc), repo=repo)
-        return {"version": None, "download_url": None, "release_url": None, "error": str(exc)}
+        err_result = {"version": None, "download_url": None, "release_url": None, "error": str(exc)}
+        _github_cache["data"] = err_result
+        _github_cache["expires_at"] = _time.monotonic() + _GITHUB_ERROR_CACHE_TTL
+        return err_result
 
 
 # ─── State machine ───────────────────────────────────────────────────────────

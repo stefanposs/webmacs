@@ -391,11 +391,11 @@ if [[ -n "$BUNDLE_PATH" && -f "$BUNDLE_PATH" ]]; then
         err "Invalid bundle: manifest.json not found"
     fi
 
-    VERSION=$(python3 -c "import json; print(json.load(open('$WORK_DIR/manifest.json'))['version'])" 2>/dev/null || echo "unknown")
+    VERSION=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['version'])" "$WORK_DIR/manifest.json" 2>/dev/null || echo "unknown")
     info "Bundle version: ${VERSION}"
 
     # Checksum verification
-    EXPECTED_SHA=$(python3 -c "import json; print(json.load(open('$WORK_DIR/manifest.json'))['images_sha256'])" 2>/dev/null || echo "")
+    EXPECTED_SHA=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['images_sha256'])" "$WORK_DIR/manifest.json" 2>/dev/null || echo "")
     if [[ -n "$EXPECTED_SHA" ]]; then
         info "Verifying checksum..."
         ACTUAL_SHA=$(sha256sum "$WORK_DIR/images.tar" | cut -d' ' -f1)

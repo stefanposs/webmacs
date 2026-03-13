@@ -53,7 +53,7 @@ def _extract_tag(image_ref: str | None) -> str | None:
     last_colon = image_ref.rfind(":")
     if last_colon > last_slash:
         tag = image_ref[last_colon + 1 :]
-        return tag if tag and tag != "latest" else None
+        return tag if tag else None
     return None
 
 
@@ -104,20 +104,25 @@ def get_all_service_versions() -> dict[str, ServiceInfo]:
     from webmacs_backend import __version__ as backend_version
 
     docker_available = os.path.exists("/var/run/docker.sock")
+    env_version = os.environ.get("WEBMACS_VERSION") or None
 
     if docker_available:
         result: dict[str, ServiceInfo] = {}
         for svc in ("backend", "frontend", "controller"):
             info = _get_service_info_from_docker(svc)
+            installed = info.installed
             # Fallback: if Docker found nothing, use package __version__ for backend
-            if svc == "backend" and info.installed is None:
-                result[svc] = ServiceInfo(
-                    installed=backend_version,
-                    image=info.image,
-                    status=info.status,
-                )
-            else:
-                result[svc] = info
+            # or WEBMACS_VERSION env var for all services
+            if installed is None:
+                if svc == "backend":
+                    installed = backend_version
+                elif env_version:
+                    installed = env_version
+            result[svc] = ServiceInfo(
+                installed=installed,
+                image=info.image,
+                status=info.status,
+            )
         return result
 
     # Dev / no Docker socket — return stubs

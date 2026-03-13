@@ -15,6 +15,7 @@ from webmacs_backend.schemas.auth import (
     SsoAuthorizeResponse,
     SsoConfigResponse,
     TokenData,
+    UserMeResponse,
 )
 from webmacs_backend.schemas.common import (
     HealthResponse,
@@ -150,6 +151,7 @@ __all__ = [
     "StatusResponse",
     "TokenData",
     "UpdateCheckResponse",
+    "UserMeResponse",
     "UpdateProgressResponse",
     "UpdateTriggerRequest",
     # users

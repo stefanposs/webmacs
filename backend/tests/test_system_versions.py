@@ -392,7 +392,7 @@ class TestVersionDetector:
         from webmacs_backend.services.version_detector import _extract_tag
 
         assert _extract_tag("stefanposs/webmacs-backend:2.4.2") == "2.4.2"
-        assert _extract_tag("image:latest") is None
+        assert _extract_tag("image:latest") == "latest"
         assert _extract_tag("image") is None
         assert _extract_tag("image@sha256:abc") is None
         assert _extract_tag(None) is None
@@ -440,22 +440,29 @@ class TestUpdaterIPC:
         trigger_f = tmp_path / "trigger.json"
         trigger_f.write_text(json.dumps({"version": "2.5.0", "images": ["img:2.5.0"]}))
         status_f = tmp_path / "update-status.json"
+        pending_f = tmp_path / ".pending-complete.json"
 
         with (
             patch("webmacs_backend.services.updater.TRIGGER_FILE", trigger_f),
             patch("webmacs_backend.services.updater.STATUS_FILE", status_f),
+            patch("webmacs_backend.services.updater._PENDING_COMPLETE_FILE", pending_f),
             patch("webmacs_backend.services.updater.pull_images", return_value=True) as mock_pull,
             patch("webmacs_backend.services.updater.restart_services", return_value=True) as mock_restart,
+            patch("webmacs_backend.services.updater._restart_updater") as mock_restart_updater,
         ):
             from webmacs_backend.services.updater import process_trigger
 
             process_trigger({"version": "2.5.0", "images": ["img:2.5.0"]})
 
             mock_pull.assert_called_once_with(["img:2.5.0"])
-            mock_restart.assert_called_once_with("2.5.0")
+            mock_restart.assert_called_once_with("2.5.0", exclude_updater=True)
+            mock_restart_updater.assert_called_once_with("2.5.0")
 
             # trigger file should be consumed (deleted)
             assert not trigger_f.exists()
+
+            # pending-complete marker should be cleaned up
+            assert not pending_f.exists()
 
             # status file should show completed
             final = json.loads(status_f.read_text())
@@ -484,10 +491,12 @@ class TestUpdaterIPC:
         trigger_f = tmp_path / "trigger.json"
         trigger_f.write_text("{}")
         status_f = tmp_path / "update-status.json"
+        pending_f = tmp_path / ".pending-complete.json"
 
         with (
             patch("webmacs_backend.services.updater.TRIGGER_FILE", trigger_f),
             patch("webmacs_backend.services.updater.STATUS_FILE", status_f),
+            patch("webmacs_backend.services.updater._PENDING_COMPLETE_FILE", pending_f),
             patch("webmacs_backend.services.updater.pull_images", return_value=True),
             patch("webmacs_backend.services.updater.restart_services", return_value=False),
         ):
@@ -498,6 +507,9 @@ class TestUpdaterIPC:
             final = json.loads(status_f.read_text())
             assert final["overall_status"] == "failed"
             assert "restart" in final["error"].lower()
+
+            # pending-complete marker should be cleaned up on failure too
+            assert not pending_f.exists()
 
     def test_write_update_status(self, tmp_path: Path) -> None:
         status_f = tmp_path / "update-status.json"
