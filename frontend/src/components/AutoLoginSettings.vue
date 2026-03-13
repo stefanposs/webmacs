@@ -59,6 +59,7 @@
             v-model="config.rememberMe"
             :disabled="!config.enabled"
             binary
+            @change="handleConfigChange"
           />
           <label for="remember-me" class="font-medium">
             Remember credentials across browser sessions

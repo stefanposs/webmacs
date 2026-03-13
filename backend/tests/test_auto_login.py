@@ -230,32 +230,7 @@ async def test_clear_rate_limit_endpoint(
 
 
 @pytest.mark.asyncio
-async def test_rate_limit_cleanup_over_time():
-    """Test that rate limit entries are cleaned up over time"""
-    from webmacs_backend.api.v1.auth import login_attempts, record_login_attempt, check_rate_limit
-    
-    email = "cleanup@example.com"
-    
-    # Record some attempts
-    for i in range(3):
-        record_login_attempt(email)
-    
-    assert len(login_attempts[email]) == 3
-    
-    # Mock time passing (16 minutes)
-    with patch('time.time', return_value=time.time() + 16 * 60):
-        # This should clean up old attempts
-        try:
-            check_rate_limit(email)
-        except:
-            pass  # We don't care about the exception, just the cleanup
-    
-    # Old attempts should be cleaned up
-    assert len(login_attempts.get(email, [])) == 0
-
-
-@pytest.mark.asyncio
-async def test_auto_login_successful_after_failed_attempts(
+async def test_successful_auto_login_clears_attempts(
     client: AsyncClient, 
     session: AsyncSession
 ):

@@ -20,7 +20,6 @@ from webmacs_backend.schemas import (
     LoginRequest,
     LoginResponse,
     StatusResponse,
-    TokenResponse,
     UserMeResponse,
 )
 from webmacs_backend.security import create_access_token, verify_password
