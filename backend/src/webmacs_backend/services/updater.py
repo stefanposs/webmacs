@@ -42,12 +42,17 @@ BACKUP_DIR = UPDATE_DIR / "backups"
 FAILED_DIR = UPDATE_DIR / "failed"
 COMPOSE_FILE = Path("/opt/webmacs/docker-compose.prod.yml")
 POLL_INTERVAL = int(os.environ.get("WEBMACS_UPDATER_POLL", "30"))
+
+# Services to restart (excluding updater — it restarts itself separately)
+_APP_SERVICES = ["backend", "frontend", "controller"]
 # When false (default) abort update if DB backup fails. Set to '1'/'true'/'yes' to allow proceeding.
 ALLOW_NO_BACKUP = os.environ.get("WEBMACS_UPDATER_ALLOW_NO_BACKUP", "0").strip().lower() in ("1", "true", "yes")
 
 # Shared files used for GUI-initiated trigger IPC (written by backend, consumed here)
 TRIGGER_FILE = UPDATE_DIR / "trigger.json"
 STATUS_FILE = UPDATE_DIR / "update-status.json"
+# Marker written before restart; on startup, presence means "restart succeeded → write completed"
+_PENDING_COMPLETE_FILE = UPDATE_DIR / ".pending-complete.json"
 
 
 def sha256_file(path: Path) -> str:
@@ -144,11 +149,20 @@ def pull_images(images: list[str]) -> bool:
 ENV_FILE = Path("/opt/webmacs/.env")
 
 
-def restart_services(version: str) -> bool:
-    """Restart the Docker Compose stack with the new version tag."""
+def restart_services(version: str, *, exclude_updater: bool = False) -> bool:
+    """Restart the Docker Compose stack with the new version tag.
+
+    When *exclude_updater* is True, only application services (backend,
+    frontend, controller) are restarted so the updater process survives
+    to write the final status file.
+    """
     env = os.environ.copy()
     env["WEBMACS_VERSION"] = version
-    cmd = ["docker", "compose", "-f", str(COMPOSE_FILE), "up", "-d", "--no-build", "--remove-orphans"]
+    cmd = ["docker", "compose", "-f", str(COMPOSE_FILE), "up", "-d", "--no-build"]
+    if exclude_updater:
+        cmd.extend(_APP_SERVICES)
+    else:
+        cmd.append("--remove-orphans")
     for attempt in (1, 2):
         try:
             result = subprocess.run(  # noqa: S603
@@ -339,11 +353,62 @@ def _write_update_status(
         logger.warning("update_status_write_failed", error=str(exc))
 
 
+def _write_pending_complete(version: str, started_at: str) -> None:
+    """Write a marker so the next updater instance can finalize completion.
+
+    This is written *before* restarting services because `docker compose up -d`
+    will recreate the updater container, killing this process. The new process
+    detects the marker on startup and writes the final 'completed' status.
+    """
+    payload = {"version": version, "started_at": started_at}
+    try:
+        _PENDING_COMPLETE_FILE.write_text(json.dumps(payload))
+    except OSError as exc:
+        logger.warning("pending_complete_write_failed", error=str(exc))
+
+
+def _finalize_pending_complete() -> None:
+    """If a pending-complete marker exists, finalize the update status.
+
+    Called on updater startup: if the marker is present it means the previous
+    updater instance restarted services successfully but was killed before it
+    could write 'completed' to the status file.
+
+    Markers older than 10 minutes are discarded as stale (the update likely
+    failed due to power loss or crash).
+    """
+    if not _PENDING_COMPLETE_FILE.exists():
+        return
+    try:
+        data = json.loads(_PENDING_COMPLETE_FILE.read_text())
+        started_at = data.get("started_at", datetime.now(UTC).isoformat())
+        version = data.get("version", "unknown")
+
+        # Reject stale markers (> 10 minutes old)
+        marker_age = _PENDING_COMPLETE_FILE.stat().st_mtime
+        if time.time() - marker_age > 600:
+            logger.warning("pending_complete_stale", version=version, age_s=int(time.time() - marker_age))
+            return
+
+        _svc_running = {"backend": "running", "frontend": "running", "controller": "running"}
+        _write_update_status("completed", _svc_running, "Update completed", started_at)
+        logger.info("pending_complete_finalized", version=version)
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("pending_complete_read_failed", error=str(exc))
+    finally:
+        _PENDING_COMPLETE_FILE.unlink(missing_ok=True)
+
+
 def process_trigger(trigger: dict) -> None:  # type: ignore[type-arg]
     """Pull images and restart services from a GUI-initiated trigger file.
 
     Writes progress to STATUS_FILE so the backend API can poll it.
     Always removes TRIGGER_FILE on completion to prevent re-processing.
+
+    To avoid the updater killing itself during ``docker compose up -d``,
+    we restart only the application services first, write 'completed',
+    then restart the updater separately (which is safe because the status
+    has already been written).
     """
     version: str = trigger.get("version") or "latest"
     images: list[str] = [img for img in trigger.get("images", []) if img]
@@ -361,15 +426,50 @@ def process_trigger(trigger: dict) -> None:  # type: ignore[type-arg]
                 return
 
         _write_update_status("restarting", _svc_updating, "Restarting services\u2026", started_at)
-        ok = restart_services(version)
+
+        # Write pending-complete marker BEFORE restarting, in case we get killed
+        _write_pending_complete(version, started_at)
+
+        # Restart only app services (backend, frontend, controller) — NOT the updater
+        ok = restart_services(version, exclude_updater=True)
         if ok:
             logger.info("trigger_update_success", version=version)
             _write_update_status("completed", _svc_running, "Update completed", started_at)
+            _PENDING_COMPLETE_FILE.unlink(missing_ok=True)
+            # Delete trigger BEFORE restarting updater (restart may kill us)
+            TRIGGER_FILE.unlink(missing_ok=True)
+            # Now restart the updater itself (this will kill us, but status is written)
+            _restart_updater(version)
         else:
+            _PENDING_COMPLETE_FILE.unlink(missing_ok=True)
             _write_update_status("failed", _svc_error, "Restart failed", started_at, "Service restart failed")
     finally:
         TRIGGER_FILE.unlink(missing_ok=True)
         logger.info("trigger_file_consumed", version=version)
+
+
+def _restart_updater(version: str) -> None:
+    """Restart the updater container with the new version.
+
+    This will kill the current process, but only called AFTER the status
+    file has been written to 'completed'.
+    """
+    env = os.environ.copy()
+    env["WEBMACS_VERSION"] = version
+    cmd = ["docker", "compose", "-f", str(COMPOSE_FILE), "up", "-d", "--no-build", "updater"]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=60, env=env)  # noqa: S603
+        if result.returncode != 0:
+            logger.error(
+                "updater_self_restart_failed",
+                version=version,
+                returncode=result.returncode,
+                stderr=(result.stderr or "").strip(),
+            )
+        else:
+            logger.info("updater_self_restart", version=version)
+    except subprocess.TimeoutExpired:
+        logger.warning("updater_self_restart_timeout", version=version)
 
 
 def scan_for_trigger() -> dict | None:  # type: ignore[type-arg]
@@ -397,6 +497,9 @@ def run_updater_loop() -> None:
 
     logger.info("updater_started", update_dir=str(UPDATE_DIR), poll_interval=POLL_INTERVAL)
     UPDATE_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Finalize any pending update that was interrupted by a container restart
+    _finalize_pending_complete()
 
     while True:
         # Priority 1: GUI-initiated pull+restart trigger (written by backend API)

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -105,7 +106,22 @@ def _write_trigger(request: UpdateTriggerRequest) -> None:
         "images": images,
         "requested_at": datetime.now(UTC).isoformat(),
     }
-    _TRIGGER_FILE.write_text(json.dumps(payload))
+    # Atomic write: tmp file + rename prevents the updater from reading partial JSON
+    tmp_path = None
+    with tempfile.NamedTemporaryFile(dir=_UPDATE_DIR, suffix=".tmp", delete=False, mode="w") as fd:
+        tmp_path = fd.name
+        try:
+            fd.write(json.dumps(payload))
+            fd.flush()
+            os.fsync(fd.fileno())
+        except BaseException:
+            Path(tmp_path).unlink(missing_ok=True)
+            raise
+    try:
+        os.rename(tmp_path, str(_TRIGGER_FILE))
+    except BaseException:
+        Path(tmp_path).unlink(missing_ok=True)
+        raise
     logger.info("trigger_file_written", version=version, images=images)
 
 

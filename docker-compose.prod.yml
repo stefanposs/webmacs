@@ -36,6 +36,7 @@ services:
       INITIAL_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@webmacs.local}
       INITIAL_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       INITIAL_ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      WEBMACS_VERSION: ${WEBMACS_VERSION:-latest}
     volumes:
       - plugins:/plugins
       - updates:/updates              # write trigger.json / read update-status.json
@@ -105,10 +106,12 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       ENV: production
       WEBMACS_UPDATE_DIR: /updates
+      WEBMACS_VERSION: ${WEBMACS_VERSION:-latest}
     volumes:
       - updates:/updates
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/webmacs/.env:/opt/webmacs/.env
+      - /opt/webmacs/docker-compose.prod.yml:/opt/webmacs/docker-compose.prod.yml:ro
     depends_on:
       backend:
         condition: service_healthy

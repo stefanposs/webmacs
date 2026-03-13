@@ -1,393 +1,364 @@
 <template>
-  <div class="login-page">
-    <div class="login-glow login-glow--top" />
-    <div class="login-glow login-glow--bottom" />
-
-    <div class="login-card">
-      <div class="login-logo">
-        <i class="pi pi-microchip" />
-      </div>
-      <h1>WebMACS</h1>
-      <p class="login-subtitle">Web-based Monitoring and Control System</p>
-
-      <form @submit.prevent="handleLogin" class="login-form">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <div class="input-icon">
-            <i class="pi pi-envelope" />
-            <input id="email" v-model="email" type="email" placeholder="admin@webmacs.io" required autofocus />
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div class="w-full max-w-md p-6">
+      <Card class="shadow-lg">
+        <template #title>
+          <div class="text-center mb-4">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+              WebMACS
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">
+              Web-based Monitoring and Control System
+            </p>
           </div>
-        </div>
+        </template>
 
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-icon">
-            <i class="pi pi-lock" />
-            <input id="password" v-model="password" type="password" placeholder="••••••••" required />
+        <template #content>
+          <!-- Auto-Login Status -->
+          <div v-if="autoLogin.isAutoLoggingIn.value" class="mb-4">
+            <div class="flex items-center justify-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+              <ProgressSpinner style="width: 20px; height: 20px" stroke-width="4" />
+              <span class="text-sm text-blue-800 dark:text-blue-200">
+                Automatically logging in...
+              </span>
+            </div>
           </div>
-        </div>
 
-        <p v-if="error" class="error-message">
-          <i class="pi pi-exclamation-circle" /> {{ error }}
-        </p>
+          <!-- Account Locked Warning -->
+          <div v-if="isAccountLocked" class="mb-4">
+            <Message 
+              severity="warn" 
+              :closable="false"
+            >
+              <template #icon>
+                <i class="pi pi-exclamation-triangle"></i>
+              </template>
+              Account temporarily locked due to too many failed attempts.
+              <br>
+              Try again after {{ formatTime(unlockTime) }}.
+            </Message>
+          </div>
 
-        <button type="submit" class="btn-login" :disabled="loading">
-          <i v-if="loading" class="pi pi-spin pi-spinner" />
-          <i v-else class="pi pi-sign-in" />
-          {{ loading ? 'Signing in...' : 'Sign In' }}
-        </button>
-      </form>
+          <!-- Login Form -->
+          <form @submit.prevent="handleLogin" class="space-y-4">
+            <!-- Email Field -->
+            <div class="flex flex-col gap-2">
+              <label for="email" class="font-medium text-gray-700 dark:text-gray-300">
+                Email
+              </label>
+              <InputText
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="admin@webmacs.local"
+                :invalid="!!errors.email"
+                :disabled="isLoading || isAccountLocked"
+                required
+                autofocus
+                @blur="validateEmail"
+                @input="clearError('email')"
+              />
+              <small v-if="errors.email" class="text-red-500">
+                {{ errors.email }}
+              </small>
+            </div>
 
-      <!-- SSO login -->
-      <div v-if="ssoConfig?.enabled" class="sso-divider">
-        <span>or</span>
-      </div>
-      <a v-if="ssoConfig?.enabled" :href="ssoConfig.authorize_url" class="btn-sso">
-        <i class="pi pi-shield" />
-        Sign in with {{ ssoConfig.provider_name }}
-      </a>
+            <!-- Password Field -->
+            <div class="flex flex-col gap-2">
+              <label for="password" class="font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </label>
+              <Password
+                id="password"
+                v-model="form.password"
+                placeholder="Enter your password"
+                :invalid="!!errors.password"
+                :disabled="isLoading || isAccountLocked"
+                :feedback="false"
+                toggle-mask
+                required
+                @blur="validatePassword"
+                @input="clearError('password')"
+              />
+              <small v-if="errors.password" class="text-red-500">
+                {{ errors.password }}
+              </small>
+            </div>
+
+            <!-- Remember Me & Auto-Login -->
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  id="remember-me"
+                  v-model="form.rememberMe"
+                  :disabled="isLoading || isAccountLocked"
+                  binary
+                />
+                <label for="remember-me" class="text-sm text-gray-700 dark:text-gray-300">
+                  Remember me
+                </label>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  id="enable-auto-login"
+                  v-model="form.enableAutoLogin"
+                  :disabled="isLoading || isAccountLocked"
+                  binary
+                />
+                <label for="enable-auto-login" class="text-sm text-gray-700 dark:text-gray-300">
+                  Enable auto-login for this session
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <Button
+              type="submit"
+              label="Sign In"
+              icon="pi pi-sign-in"
+              :loading="isLoading"
+              :disabled="isAccountLocked || !isFormValid"
+              class="w-full"
+              size="large"
+            />
+          </form>
+
+          <!-- SSO Login (if enabled) -->
+          <div v-if="ssoConfig?.enabled" class="mt-6">
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-300 dark:border-gray-600" />
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">Or</span>
+              </div>
+            </div>
+
+            <Button
+              :label="`Sign in with ${ssoConfig.provider_name}`"
+              icon="pi pi-external-link"
+              outlined
+              class="w-full mt-4"
+              @click="handleSSOLogin"
+            />
+          </div>
+
+          <!-- Auto-Login Settings Link -->
+          <div class="mt-6 text-center">
+            <Button
+              label="Auto-Login Settings"
+              link
+              size="small"
+              @click="showAutoLoginSettings = true"
+            />
+          </div>
+        </template>
+      </Card>
     </div>
 
-    <div class="login-footer">
-      WebMACS v2.0 &middot; IoT Control Platform
-    </div>
+    <!-- Auto-Login Settings Dialog -->
+    <Dialog
+      v-model:visible="showAutoLoginSettings"
+      modal
+      header="Auto-Login Settings"
+      :style="{ width: '600px' }"
+    >
+      <AutoLoginSettings />
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import api from '@/services/api'
+import { useAutoLogin } from '@/composables/useAutoLogin'
+import { useNotification } from '@/composables/useNotification'
+import { AutoLoginService } from '@/services/autoLoginService'
+import AutoLoginSettings from '@/components/AutoLoginSettings.vue'
 
-interface SsoConfig {
-  enabled: boolean
-  provider_name: string
-  authorize_url: string
-}
+import Card from 'primevue/card'
+import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
+import Button from 'primevue/button'
+import Checkbox from 'primevue/checkbox'
+import Message from 'primevue/message'
+import Dialog from 'primevue/dialog'
+import ProgressSpinner from 'primevue/progressspinner'
 
-const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
+const autoLogin = useAutoLogin()
+const { error: showError } = useNotification()
 
-const email = ref('')
-const password = ref('')
-const error = ref('')
-const loading = ref(false)
-const ssoConfig = ref<SsoConfig | null>(null)
+const isLoading = ref(false)
+const showAutoLoginSettings = ref(false)
+const ssoConfig = ref<any>(null)
 
+const form = reactive({
+  email: '',
+  password: '',
+  rememberMe: false,
+  enableAutoLogin: false
+})
+
+const errors = reactive({
+  email: '',
+  password: '',
+  general: ''
+})
+
+// Account lockout state
+const isAccountLocked = computed(() => {
+  return AutoLoginService.isAccountLocked(form.email)
+})
+
+const unlockTime = computed(() => {
+  return AutoLoginService.getUnlockTime(form.email)
+})
+
+// Form validation
+const isFormValid = computed(() => {
+  return form.email && form.password && !errors.email && !errors.password
+})
+
+// Initialize component
 onMounted(async () => {
+  // Check if already authenticated
+  if (authStore.isAuthenticated) {
+    const redirect = route.query.redirect as string
+    await router.push(redirect || '/dashboard')
+    return
+  }
+
+  // Load SSO configuration
   try {
-    const { data } = await api.get<SsoConfig>('/auth/sso/config')
-    ssoConfig.value = data
-  } catch {
-    // SSO config endpoint not available — hide SSO button
+    const response = await fetch('/api/v1/auth/sso/config')
+    if (response.ok) {
+      ssoConfig.value = await response.json()
+    }
+  } catch (error) {
+    console.warn('Failed to load SSO config:', error)
+  }
+
+  // Load saved email if available
+  const storedCreds = autoLogin.getStoredCredentials()
+  if (storedCreds?.email) {
+    form.email = storedCreds.email
+    if (storedCreds.password) {
+      form.password = storedCreds.password
+      form.enableAutoLogin = true
+    }
+  }
+
+  // Initialize auto-login
+  await autoLogin.initializeAutoLogin()
+})
+
+// Watch for auto-login attempts
+watch(() => autoLogin.autoLoginAttempts.value, (attempts) => {
+  if (attempts > 0) {
+    AutoLoginService.logAttempt({
+      email: form.email,
+      success: authStore.isAuthenticated,
+      error: authStore.isAuthenticated ? undefined : 'Auto-login failed'
+    })
   }
 })
 
-async function handleLogin() {
-  error.value = ''
-  loading.value = true
-  try {
-    await authStore.login(email.value, password.value)
-    const redirect = (route.query.redirect as string) || '/'
-    const safeRedirect = redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
-    router.push(safeRedirect)
-  } catch {
-    error.value = 'Invalid credentials. Please try again.'
-  } finally {
-    loading.value = false
+// Validation functions
+const validateEmail = () => {
+  if (!form.email) {
+    errors.email = 'Email is required'
+  } else if (!form.email.includes('@')) {
+    errors.email = 'Please enter a valid email address'
+  } else {
+    errors.email = ''
   }
+}
+
+const validatePassword = () => {
+  if (!form.password) {
+    errors.password = 'Password is required'
+  } else {
+    errors.password = ''
+  }
+}
+
+const clearError = (field: keyof typeof errors) => {
+  errors[field] = ''
+}
+
+// Handle login form submission
+const handleLogin = async () => {
+  if (isAccountLocked.value) {
+    showError('Account is temporarily locked. Please wait before trying again.')
+    return
+  }
+
+  validateEmail()
+  validatePassword()
+
+  if (!isFormValid.value) {
+    return
+  }
+
+  isLoading.value = true
+  errors.general = ''
+
+  try {
+    await authStore.login(form.email, form.password)
+
+    // Log successful attempt
+    AutoLoginService.logAttempt({
+      email: form.email,
+      success: true
+    })
+
+    // Enable auto-login if requested
+    if (form.enableAutoLogin) {
+      autoLogin.enableAutoLogin(form.email, form.password, form.rememberMe)
+    }
+
+    // Navigate to intended destination
+    const redirect = route.query.redirect as string
+    await router.push(redirect || '/dashboard')
+
+  } catch (error: any) {
+    console.error('Login failed:', error)
+
+    // Log failed attempt
+    AutoLoginService.logAttempt({
+      email: form.email,
+      success: false,
+      error: error.message || 'Login failed'
+    })
+
+    errors.general = error.message || 'Invalid email or password'
+    showError(errors.general)
+
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Handle SSO login
+const handleSSOLogin = () => {
+  window.location.href = '/api/v1/auth/sso/authorize'
+}
+
+// Format time for account lockout display
+const formatTime = (time: Date | null): string => {
+  if (!time) return ''
+  
+  const now = new Date()
+  const diff = time.getTime() - now.getTime()
+  
+  if (diff <= 0) return 'now'
+  
+  const minutes = Math.ceil(diff / (1000 * 60))
+  return `${minutes} minute${minutes !== 1 ? 's' : ''}`
 }
 </script>
-
-<style lang="scss" scoped>
-/* ── Login page: full-bleed dark background ─────────────────────────── */
-.login-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding: 2rem 1rem;
-  /* Solid fallback prevents any light bleed */
-  background-color: #0f172a;
-  background-image:
-    radial-gradient(ellipse at 30% 20%, rgba(59, 130, 246, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-    linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0f172a 100%);
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-/* Animated glow orbs */
-.login-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  pointer-events: none;
-  z-index: 0;
-  animation: float 8s ease-in-out infinite;
-
-  &--top {
-    width: 500px;
-    height: 500px;
-    background: rgba(59, 130, 246, 0.25);
-    top: -200px;
-    left: -100px;
-  }
-
-  &--bottom {
-    width: 400px;
-    height: 400px;
-    background: rgba(139, 92, 246, 0.2);
-    bottom: -150px;
-    right: -100px;
-    animation-delay: -4s;
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(20px, -20px); }
-}
-
-/* ── Card ────────────────────────────────────────────────────────────── */
-.login-card {
-  position: relative;
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 2.5rem 2.5rem 2rem;
-  border-radius: 20px;
-  box-shadow:
-    0 25px 60px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-
-  h1 {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--wm-text);
-    margin-bottom: 0.2rem;
-    letter-spacing: -0.03em;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-card {
-    padding: 2rem 1.5rem 1.5rem;
-    border-radius: 16px;
-  }
-}
-
-/* ── Logo ────────────────────────────────────────────────────────────── */
-.login-logo {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 1.25rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 6px 20px rgba(59, 130, 246, 0.35),
-    0 0 0 4px rgba(59, 130, 246, 0.08);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  &:hover {
-    transform: scale(1.06) rotate(-2deg);
-  }
-
-  i {
-    font-size: 1.6rem;
-    color: #fff;
-  }
-}
-
-.login-subtitle {
-  color: var(--wm-text-muted);
-  margin-bottom: 2rem;
-  font-size: 0.88rem;
-  letter-spacing: 0.01em;
-}
-
-/* ── Form ────────────────────────────────────────────────────────────── */
-.login-form { text-align: left; }
-
-.input-icon {
-  position: relative;
-
-  i {
-    position: absolute;
-    left: 0.85rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--wm-text-muted);
-    font-size: 0.85rem;
-    transition: color var(--wm-transition);
-  }
-
-  input {
-    padding-left: 2.5rem !important;
-  }
-
-  &:focus-within i {
-    color: var(--wm-primary);
-  }
-}
-
-.form-group {
-  margin-bottom: 1.25rem;
-
-  label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.78rem;
-    margin-bottom: 0.4rem;
-    color: var(--wm-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  input {
-    width: 100%;
-    padding: 0.7rem 0.85rem;
-    border: 1.5px solid var(--wm-border);
-    border-radius: 10px;
-    font-size: 0.95rem;
-    background: #f8fafc;
-    transition: all var(--wm-transition);
-
-    &::placeholder {
-      color: #b0bec5;
-    }
-
-    &:hover {
-      border-color: #cbd5e1;
-    }
-
-    &:focus {
-      outline: none;
-      border-color: var(--wm-primary);
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-  }
-}
-
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--wm-danger);
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--wm-danger-bg);
-  border-radius: var(--wm-radius);
-  animation: shake 0.4s ease-in-out;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
-
-/* ── Button ──────────────────────────────────────────────────────────── */
-.btn-login {
-  width: 100%;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #7c3aed 100%);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
-  margin-top: 0.25rem;
-
-  &:hover:not(:disabled) {
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
-    transform: translateY(-2px);
-  }
-
-  &:active:not(:disabled) { transform: translateY(0); }
-  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-}
-
-/* ── Footer ──────────────────────────────────────────────────────────── */
-.login-footer {
-  position: relative;
-  z-index: 1;
-  margin-top: 2rem;
-  font-size: 0.75rem;
-  color: rgba(148, 163, 184, 0.7);
-  letter-spacing: 0.02em;
-}
-
-/* ── SSO ─────────────────────────────────────────────────────────────── */
-.sso-divider {
-  display: flex;
-  align-items: center;
-  margin: 1.5rem 0;
-  gap: 0.75rem;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--wm-border);
-  }
-
-  span {
-    color: var(--wm-text-muted);
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-}
-
-.btn-sso {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.7rem;
-  background: #1e293b;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-
-  &:hover {
-    background: #334155;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    transform: translateY(-1px);
-  }
-
-  &:active { transform: translateY(0); }
-}
-</style>

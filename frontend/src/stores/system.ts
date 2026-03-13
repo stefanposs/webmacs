@@ -49,10 +49,17 @@ export const useSystemStore = defineStore('system', () => {
 
   /**
    * Trigger a Docker pull + restart for the given version.
+   * Sends explicit image references so the updater pulls them before restarting.
    * Starts polling /update-progress until finished.
    */
   async function triggerUpdate(version: string): Promise<void> {
-    await api.post('/system/trigger', { version })
+    const registry = 'stefanposs'
+    await api.post('/system/trigger', {
+      version,
+      backend_image: `${registry}/webmacs-backend:${version}`,
+      frontend_image: `${registry}/webmacs-frontend:${version}`,
+      controller_image: `${registry}/webmacs-controller:${version}`,
+    })
     // Optimistically set status to pulling
     updateProgress.value = {
       overall_status: 'pulling',
