@@ -71,25 +71,23 @@ describe('useAutoLogin', () => {
     expect(config.retryDelay).toBe(2000)
   })
 
-  it('should load saved config from localStorage', () => {
-    const savedConfig = {
+  it('should save config to localStorage without password', () => {
+    const { saveAutoLoginConfig } = useAutoLogin()
+    const config = {
       enabled: true,
       email: 'test@example.com',
-      rememberMe: false,
-      retryAttempts: 5,
-      retryDelay: 3000
+      password: 'secret123',
+      rememberMe: true,
+      retryAttempts: 3,
+      retryDelay: 2000
     }
     
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(savedConfig))
+    saveAutoLoginConfig(config)
     
-    const { loadAutoLoginConfig } = useAutoLogin()
-    const config = loadAutoLoginConfig()
-    
-    expect(config.enabled).toBe(true)
-    expect(config.email).toBe('test@example.com')
-    expect(config.rememberMe).toBe(false)
-    expect(config.retryAttempts).toBe(5)
-    expect(config.retryDelay).toBe(3000)
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'webmacs_auto_login_config',
+      expect.not.stringContaining('secret123')
+    )
   })
 
   it('should perform auto-login with valid credentials', async () => {
@@ -108,7 +106,7 @@ describe('useAutoLogin', () => {
     expect(result).toBe(true)
   })
 
-  it('should handle failed auto-login attempts', async () => {
+  it('should handle failed auto-login attempts with retry', async () => {
     const authStore = useAuthStore()
     authStore.login = vi.fn().mockRejectedValue(new Error('Login failed'))
     authStore.isAuthenticated = false

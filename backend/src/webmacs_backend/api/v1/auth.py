@@ -233,6 +233,63 @@ async def auto_login(
         )
 
 
+@router.post("/logout", response_model=StatusResponse)
+async def logout(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> StatusResponse:
+    """
+    User logout - blacklists the current JWT token so it cannot be reused.
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    
+    # Extract token from Authorization header
+    authorization = request.headers.get("Authorization")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="No token provided")
+    
+    token = authorization.split(" ")[1]
+    
+    # Add token to blacklist
+    blacklist_entry = BlacklistToken(
+        token=token,
+        blacklisted_on=datetime.now(timezone.utc)
+    )
+    db.add(blacklist_entry)
+    await db.commit()
+    
+    await logger.ainfo(
+        "User logout",
+        user_id=current_user.public_id,
+        email=current_user.email,
+        client_ip=client_ip
+    )
+    
+    return StatusResponse(
+        status="success",
+        message="Successfully logged out."
+    )
+
+
+@router.get("/me", response_model=UserMeResponse)
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user)
+) -> UserMeResponse:
+    """
+    Get current authenticated user information.
+    """
+    return UserMeResponse(
+        public_id=current_user.public_id,
+        email=current_user.email,
+        username=current_user.username,
+        admin=current_user.admin,
+        registered_on=current_user.registered_on,
+        sso_provider=getattr(current_user, 'sso_provider', None),
+        created_on=current_user.registered_on
+    )
+
+
 @router.get("/rate-limit-status")
 async def get_rate_limit_status(
     email: str,
