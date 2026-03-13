@@ -37,15 +37,21 @@ const routerMock = {
   }
 }
 
-vi.mock('vue-router', () => ({
-  useRouter: () => routerMock
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  return {
+    ...actual,
+    useRouter: () => routerMock
+  }
+})
 
 // Mock notification composable
 vi.mock('@/composables/useNotification', () => ({
   useNotification: () => ({
-    showError: vi.fn(),
-    showSuccess: vi.fn()
+    error: vi.fn(),
+    success: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn()
   })
 }))
 

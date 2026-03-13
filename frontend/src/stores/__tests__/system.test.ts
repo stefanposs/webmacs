@@ -140,7 +140,12 @@ describe('useSystemStore', () => {
     const store = useSystemStore()
     await store.triggerUpdate('2.5.0')
 
-    expect(api.post).toHaveBeenCalledWith('/system/trigger', { version: '2.5.0' })
+    expect(api.post).toHaveBeenCalledWith('/system/trigger', {
+      version: '2.5.0',
+      backend_image: 'stefanposs/webmacs-backend:2.5.0',
+      frontend_image: 'stefanposs/webmacs-frontend:2.5.0',
+      controller_image: 'stefanposs/webmacs-controller:2.5.0',
+    })
     // Optimistic update
     expect(store.updateProgress?.overall_status).toBe('pulling')
   })
