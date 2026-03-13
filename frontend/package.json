@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@primevue/themes": "^4.5.4",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "pinia": "^2.3.0",
@@ -28,6 +29,7 @@
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.10.0",
     "@vitejs/plugin-vue": "^5.2.1",
+    "@vitest/coverage-v8": "^2.1.8",
     "@vue/eslint-config-typescript": "^14.2.0",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.16.0",
@@ -36,7 +38,6 @@
     "sass": "^1.83.0",
     "typescript": "~5.7.2",
     "vite": "^6.0.0",
-    "@vitest/coverage-v8": "^2.1.8",
     "vitest": "^2.1.8",
     "vue-tsc": "^2.2.0"
   }

@@ -7,21 +7,28 @@ import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import ConfirmationService from 'primevue/confirmationservice'
 import ToastService from 'primevue/toastservice'
+import Aura from '@primevue/themes/aura'
 
-// PrimeVue theme
-import 'primevue/resources/themes/aura-dark-green/theme.css'
-import 'primevue/resources/primevue.min.css'
+// PrimeVue icons & custom styles
 import 'primeicons/primeicons.css'
 
 // Custom styles
-import './assets/styles/main.css'
+import './assets/styles/main.scss'
 
 const app = createApp(App)
 
 const pinia = createPinia()
 app.use(pinia)
 
-app.use(PrimeVue)
+app.use(PrimeVue, {
+  theme: {
+    preset: Aura,
+    options: {
+      darkModeSelector: '.dark-mode',
+      cssLayer: false,
+    },
+  },
+})
 app.use(ConfirmationService)
 app.use(ToastService)
 app.use(router)

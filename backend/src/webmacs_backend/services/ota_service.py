@@ -7,7 +7,7 @@ import datetime
 import hashlib
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import httpx
 import structlog
@@ -49,12 +49,12 @@ async def check_github_releases() -> dict[str, str | None]:  # noqa: PLR0911
     import time as _time
 
     # Return cached result if still fresh
-    if _github_cache["data"] is not None and _time.monotonic() < _github_cache["expires_at"]:
+    if _github_cache["data"] is not None and _time.monotonic() < cast(float, _github_cache["expires_at"]):
         return _github_cache["data"]  # type: ignore[return-value]
 
     async with _github_cache_lock:
         # Double-check after acquiring lock (another coroutine may have refreshed)
-        if _github_cache["data"] is not None and _time.monotonic() < _github_cache["expires_at"]:
+        if _github_cache["data"] is not None and _time.monotonic() < cast(float, _github_cache["expires_at"]):
             return _github_cache["data"]  # type: ignore[return-value]
 
         repo = settings.github_repo
