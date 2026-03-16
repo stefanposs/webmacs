@@ -242,13 +242,29 @@ wait_for_apt_lock() {
 # install manually, pinning the apt source to the latest supported codename.
 install_docker() {
     local codename=""
+    local os_id=""
     if [[ -f /etc/os-release ]]; then
         codename=$(. /etc/os-release && echo "${VERSION_CODENAME:-}")
+        os_id=$(. /etc/os-release && echo "${ID:-}")
     fi
+
+    # Clean up broken Docker apt sources from previous failed installs
+    # (e.g. get.docker.com may have added a source for an unsupported codename)
+    for f in /etc/apt/sources.list.d/docker*; do
+        [[ -f "$f" ]] || continue
+        if grep -qE "(raspbian|${codename:-NONE})" "$f" 2>/dev/null; then
+            info "Removing stale Docker apt source: $f"
+            rm -f "$f"
+        fi
+    done
 
     # Codenames known to have Docker packages (Debian + Ubuntu)
     local supported="buster bullseye bookworm focal jammy noble"
     local fallback="bookworm"
+
+    # Docker publishes packages under "debian" (not "raspbian") and "ubuntu"
+    local repo_distro="debian"
+    [[ "$os_id" == "ubuntu" ]] && repo_distro="ubuntu"
 
     if echo "$supported" | grep -qw "${codename:-}"; then
         # Supported — use the official convenience script
@@ -257,19 +273,11 @@ install_docker() {
     else
         # Not (yet) supported — add Docker repo manually with fallback codename
         warn "OS codename '${codename:-unknown}' not yet supported by Docker's install script."
-        info "Installing Docker manually (using '${fallback}' repository)..."
+        info "Installing Docker manually (using '${fallback}' packages for ${repo_distro})..."
 
         apt-get update -qq
         apt-get install -y -qq ca-certificates curl gnupg
         install -m 0755 -d /etc/apt/keyrings
-
-        # Docker uses the "debian" repo for both Debian and Raspbian
-        local repo_distro="debian"
-        if [[ -f /etc/os-release ]]; then
-            local os_id
-            os_id=$(. /etc/os-release && echo "${ID:-}")
-            [[ "$os_id" == "ubuntu" ]] && repo_distro="ubuntu"
-        fi
 
         local keyring="/etc/apt/keyrings/docker.gpg"
         rm -f "$keyring"
