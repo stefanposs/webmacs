@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
 # WebMACS — Raspberry Pi Installation Script
-# Tested on: Raspberry Pi OS Lite (Bookworm / Bullseye), 64-bit and 32-bit
+# Tested on: Raspberry Pi OS Lite (Bookworm / Bullseye), 64-bit
 # Supported hardware: Raspberry Pi 3 (1 GB), Pi 4, Pi 5
+# Requires: 64-bit Raspberry Pi OS (armv7l / 32-bit is NOT supported)
 # Minimum RAM: 750 MB (+ swap configured automatically)
 #
 # Usage:
@@ -89,8 +90,17 @@ fi
 # Architecture check
 case "$ARCH" in
     aarch64) ok "Architecture: 64-bit ARM (aarch64)" ;;
-    armv7l)  ok "Architecture: 32-bit ARM (armv7l) — Raspberry Pi 3 supported" ;;
-    armv6l)  warn "Architecture: ARMv6 (armv6l) — Raspberry Pi 1/Zero, too slow for WebMACS" ;;
+    armv7l)
+        echo ""
+        err "32-bit ARM (armv7l) detected — WebMACS Docker images require 64-bit.\n\n" \
+            "  Your Raspberry Pi 3 supports 64-bit, but you're running a 32-bit OS.\n" \
+            "  Please re-flash with 64-bit Raspberry Pi OS:\n\n" \
+            "    1. Download 'Raspberry Pi OS Lite (64-bit)' from:\n" \
+            "       https://www.raspberrypi.com/software/operating-systems/\n" \
+            "    2. Flash with Raspberry Pi Imager\n" \
+            "    3. Run this installer again\n"
+        ;;
+    armv6l)  err "Architecture: ARMv6 (armv6l) — Raspberry Pi 1/Zero is not supported." ;;
     x86_64)  ok "Architecture: x86_64 (testing/dev mode)" ;;
     *)       err "Unsupported architecture: ${ARCH}" ;;
 esac

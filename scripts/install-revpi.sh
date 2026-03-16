@@ -91,7 +91,13 @@ fi
 
 case "$ARCH" in
     aarch64) ok "Architecture: 64-bit ARM (aarch64)" ;;
-    armv7l)  ok "Architecture: 32-bit ARM (armv7l)" ;;
+    armv7l)
+        echo ""
+        err "32-bit ARM (armv7l) detected — WebMACS Docker images require 64-bit.\n\n" \
+            "  Please install a 64-bit OS image for your device.\n" \
+            "  RevPi: use the latest KUNBUS 64-bit image.\n" \
+            "  RPi:   use 'Raspberry Pi OS Lite (64-bit)'.\n"
+        ;;
     x86_64)  ok "Architecture: x86_64 (testing/dev mode)" ;;
     *)       err "Unsupported architecture: ${ARCH}" ;;
 esac
