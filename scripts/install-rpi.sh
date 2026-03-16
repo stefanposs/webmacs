@@ -215,14 +215,87 @@ else
     fi
 fi
 
+# ── Helper: wait for apt/dpkg lock ───────────────────────────────────────────
+wait_for_apt_lock() {
+    local max_wait=120  # seconds
+    local waited=0
+    while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; do
+        if [[ $waited -eq 0 ]]; then
+            info "Waiting for other package manager to finish..."
+        fi
+        sleep 5
+        waited=$((waited + 5))
+        if [[ $waited -ge $max_wait ]]; then
+            warn "Still waiting after ${waited}s — apt/dpkg lock held by another process."
+            warn "Run 'ps aux | grep -E apt\|dpkg' to investigate."
+            err "Timed out waiting for package manager lock after ${max_wait}s."
+        fi
+    done
+    if [[ $waited -gt 0 ]]; then
+        ok "Package manager lock released (waited ${waited}s)"
+    fi
+}
+
+# ── Helper: install Docker with codename fallback ────────────────────────────
+# Docker's get.docker.com may not support bleeding-edge OS releases (e.g.
+# Raspbian Trixie).  When the current VERSION_CODENAME has no Docker repo we
+# install manually, pinning the apt source to the latest supported codename.
+install_docker() {
+    local codename=""
+    if [[ -f /etc/os-release ]]; then
+        codename=$(. /etc/os-release && echo "${VERSION_CODENAME:-}")
+    fi
+
+    # Codenames known to have Docker packages (Debian + Ubuntu)
+    local supported="buster bullseye bookworm focal jammy noble"
+    local fallback="bookworm"
+
+    if echo "$supported" | grep -qw "${codename:-}"; then
+        # Supported — use the official convenience script
+        info "Installing Docker via get.docker.com..."
+        curl -fsSL https://get.docker.com | sh
+    else
+        # Not (yet) supported — add Docker repo manually with fallback codename
+        warn "OS codename '${codename:-unknown}' not yet supported by Docker's install script."
+        info "Installing Docker manually (using '${fallback}' repository)..."
+
+        apt-get update -qq
+        apt-get install -y -qq ca-certificates curl gnupg
+        install -m 0755 -d /etc/apt/keyrings
+
+        # Docker uses the "debian" repo for both Debian and Raspbian
+        local repo_distro="debian"
+        if [[ -f /etc/os-release ]]; then
+            local os_id
+            os_id=$(. /etc/os-release && echo "${ID:-}")
+            [[ "$os_id" == "ubuntu" ]] && repo_distro="ubuntu"
+        fi
+
+        local keyring="/etc/apt/keyrings/docker.gpg"
+        rm -f "$keyring"
+        curl -fsSL "https://download.docker.com/linux/${repo_distro}/gpg" \
+            | gpg --dearmor -o "$keyring"
+        chmod a+r "$keyring"
+
+        local arch
+        arch=$(dpkg --print-architecture)
+        echo "deb [arch=${arch} signed-by=${keyring}] https://download.docker.com/linux/${repo_distro} ${fallback} stable" \
+            > /etc/apt/sources.list.d/docker.list
+
+        apt-get update -qq
+        apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    fi
+
+    systemctl enable docker
+    systemctl start docker
+}
+
 # ── 6. Install Docker ────────────────────────────────────────────────────────
 step "Installing Docker"
 
 if ! command -v docker &>/dev/null; then
-    info "Installing Docker via get.docker.com..."
-    curl -fsSL https://get.docker.com | sh
-    systemctl enable docker
-    systemctl start docker
+    wait_for_apt_lock
+    install_docker
     ok "Docker installed ($(docker --version | cut -d' ' -f3 | tr -d ','))"
 else
     ok "Docker already installed ($(docker --version | cut -d' ' -f3 | tr -d ','))"
@@ -230,6 +303,7 @@ fi
 
 # Docker Compose plugin
 if ! docker compose version &>/dev/null; then
+    wait_for_apt_lock
     info "Installing Docker Compose plugin..."
     apt-get update -qq
     apt-get install -y -qq docker-compose-plugin
